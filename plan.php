@@ -1222,21 +1222,7 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
         <div id="uploadBtn" class="w-8 h-8 rounded-full border flex items-center justify-center cursor-pointer hover:bg-gray-100 transition" style="border-color: #090404;">
           <img src="Assets/upload.png" alt="Upload" class="w-6 h-6 opacity-70">
         </div>
-        <div id="takePhotoBtn" class="w-8 h-8 rounded-full border flex items-center justify-center cursor-pointer hover:bg-gray-100 transition" style="border-color: #090404;">
-          <img src="Assets/camera.png" alt="Take Photo" class="w-6 h-6 opacity-70">
-        </div>
-      </div>
-      <input type="file" id="uploadInput" accept="image/*" class="hidden">
-      <hr class="my-4" />
-      <div class="grid grid-cols-5 gap-3 mb-6">
-        <img src="Assets/Profile Icon/Profile.png" class="w-12 h-12 rounded-full cursor-pointer border hover:border-yellow-500" />
-        <img src="Assets/Profile Icon/Profile2.png" class="w-12 h-12 rounded-full cursor-pointer border hover:border-yellow-500" />
-        <img src="Assets/Profile Icon/Profile3.png" class="w-12 h-12 rounded-full cursor-pointer border hover:border-yellow-500" />
-        <img src="Assets/Profile Icon/Profile4.png" class="w-12 h-12 rounded-full cursor-pointer border hover:border-yellow-500" />
-        <img src="Assets/Profile Icon/Profile5.png" class="w-12 h-12 rounded-full cursor-pointer border hover:border-yellow-500" />
-        <img src="Assets/Profile Icon/Profile6.png" class="w-12 h-12 rounded-full cursor-pointer border hover:border-yellow-500" />
-        <img src="Assets/Profile Icon/Profile7.png" class="w-12 h-12 rounded-full cursor-pointer border hover:border-yellow-500" />
-        <img src="Assets/Profile Icon/Profile8.png" class="w-12 h-12 rounded-full cursor-pointer border hover:border-yellow-500" />
+                <img src="Assets/Profile Icon/Profile8.png" class="w-12 h-12 rounded-full cursor-pointer border hover:border-yellow-500" />
       </div>
       <div class="flex justify-end gap-3">
         <button class="px-4 py-2 rounded-lg border border-gray-300 hover:bg-gray-100 transition" id="cancelBtnFooter">Cancel</button>
