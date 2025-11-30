@@ -1,20 +1,17 @@
 <?php
-ini_set('display_errors', 1);
+ini_set('display_errors',1);
 error_reporting(E_ALL);
 
-// DB
-$host = "127.0.0.1";
-$port = "5432";
-$dbname = "dinadrawing";
-$username = "kai";
-$password = "DND2025";
+$pdo = new PDO(
+  "pgsql:host=127.0.0.1;port=5432;dbname=dinadrawing",
+  "kai",
+  "DND2025",
+  [
+    PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,
+    PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC
+  ]
+);
 
-$pdo = new PDO("pgsql:host=$host;port=$port;dbname=$dbname", $username, $password, [
-  PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-  PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC
-]);
-
-// Pull events (support both schemas: datetime or date+time; place or location)
 $stmt = $pdo->query("
   SELECT
     id,
@@ -26,17 +23,32 @@ $stmt = $pdo->query("
       WHEN time IS NOT NULL THEN time::text
       ELSE NULL
     END AS dt,
-    location AS loc
+    location AS loc,              -- removed place (column does not exist)
+    banner_type, banner_color, banner_from, banner_to, banner_image
   FROM events
   ORDER BY date NULLS LAST, id DESC
 ");
 $events = $stmt->fetchAll();
 
-// Helpers
-function h($s) { return htmlspecialchars($s ?? '', ENT_QUOTES, 'UTF-8'); }
-function formatMonth($dt) { $ts = $dt ? strtotime($dt) : false; return $ts ? date('M', $ts) : '-'; }
-function formatDay($dt) { $ts = $dt ? strtotime($dt) : false; return $ts ? date('d', $ts) : '-'; }
-function formatDate($dt) { $ts = $dt ? strtotime($dt) : false; return $ts ? date('M d, Y', $ts) : '-'; }
+function h($s){ return htmlspecialchars($s??'',ENT_QUOTES,'UTF-8'); }
+function formatMonth($dt){ $ts=$dt?strtotime($dt):false; return $ts?date('M',$ts):'-'; }
+function formatDay($dt){ $ts=$dt?strtotime($dt):false; return $ts?date('d',$ts):'-'; }
+function formatDate($dt){ $ts=$dt?strtotime($dt):false; return $ts?date('M d, Y',$ts):'-'; }
+
+function card_banner_style($ev){
+  $t = $ev['banner_type'] ?? null;
+  if ($t === 'image' && !empty($ev['banner_image'])){
+    $rel = ltrim($ev['banner_image'],'/');
+    return "background-image:url('/DINADRAWING/".h($rel)."');background-size:cover;background-position:center;color:#fff;";
+  }
+  if ($t === 'gradient' && !empty($ev['banner_from']) && !empty($ev['banner_to'])){
+    return "background:linear-gradient(to right,".h($ev['banner_from']).",".h($ev['banner_to']).");color:#111;";
+  }
+  if ($t === 'color' && !empty($ev['banner_color'])){
+    return "background:".h($ev['banner_color']).";color:#fff;";
+  }
+  return "background:#f4b41a;color:#222;";
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -45,9 +57,7 @@ function formatDate($dt) { $ts = $dt ? strtotime($dt) : false; return $ts ? date
   <title>My Plans | DiNaDrawing</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <style>
-    body { font-family: 'Poppins', sans-serif; background-color: #fffaf2; }
-  </style>
+  <style>body{font-family:'Poppins',sans-serif;background-color:#fffaf2;}</style>
 </head>
 <body class="flex bg-[#fffaf2]">
 
@@ -231,7 +241,7 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
         <?php if (!empty($events)): ?>
           <?php foreach ($events as $ev): ?>
             <div class="relative w-64 bg-white border border-gray-300 rounded-2xl overflow-hidden shadow group">
-              <div class="bg-[#f4b41a] text-[#222] font-bold p-4 text-lg flex justify-between items-start">
+              <div class="font-bold p-4 text-lg flex justify-between items-start" style="<?php echo card_banner_style($ev); ?>">
                 <div>
                   <?php echo h($ev['name'] ?? 'Untitled'); ?>
                   <div class="text-sm font-normal text-[#222]/80"><?php echo h($ev['loc'] ?? '-'); ?></div>
@@ -510,7 +520,10 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
     if (!notificationBtn?.contains(e.target) && !notificationPanel?.contains(e.target)) notificationPanel?.classList.add('hidden');
   });
   document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') { profileDropdown?.classList.add('hidden'); notificationPanel?.classList.add('hidden'); }
+    if(e.key==='Escape'){
+      document.getElementById('profileDropdown')?.classList.add('hidden');
+      document.getElementById('notificationPanel')?.classList.add('hidden');
+    }
   });
   document.getElementById('logoutProfile')?.addEventListener('click', () => {
     document.getElementById('logoutBtn')?.click();
