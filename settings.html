@@ -98,6 +98,13 @@
 
     .appearance-switch .option.left.active svg { color: #f59e0b; }
     .appearance-switch .option.right.active svg { color: #374151; }
+    
+    /* Password validation styles */
+    .req-valid .req-icon { color: #22c55e !important; }
+    .req-valid .req-text { color: #16a34a; }
+    #strengthLabel.weak { color: #ef4444; }
+    #strengthLabel.medium { color: #f59e0b; }
+    #strengthLabel.strong { color: #22c55e; }
   </style>
 </head>
 <body class="flex bg-[#fffaf2]">
@@ -311,49 +318,58 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
             <!-- CHANGE PASSWORD -->
         <div class="flex flex-col gap-3" id="passwordSection">
         <h3 class="text-base font-semibold">Change Password</h3>
-
-        <div class="relative">
         <input type="password" id="oldPass" placeholder="Old Password" class="w-full border rounded-xl px-4 py-2 text-sm" />
-        <button type="button" class="toggle-pass absolute right-2 top-1/2 -translate-y-1/2 text-gray-500" data-target="oldPass" aria-label="Show password">
-        <!-- VISIBILTY TOGGLE -->
-        <svg class="eye" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"></path>
-        <circle cx="12" cy="12" r="3"></circle>
-       </svg>
-      </button>
-       </div>
-      <div class="relative">
-      <input type="password" id="newPass" placeholder="New Password" class="w-full border rounded-xl px-4 py-2 text-sm mt-2" />
-      <button type="button" class="toggle-pass absolute right-2 top-1/2 -translate-y-1/2 text-gray-500" data-target="newPass" aria-label="Show password">
-      <svg class="eye" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"></path>
-      <circle cx="12" cy="12" r="3"></circle>
-      </svg>
-     </button>
-    <span id="passStrengthMsg" class="text-xs text-red-500 hidden">Password must be at least 8 characters long.</span>
-  </div>
+        <input type="password" id="newPass" placeholder="New Password" class="w-full border rounded-xl px-4 py-2 text-sm" />
+        
+        <!-- PASSWORD REQUIREMENTS VALIDATION BOX -->
+        <div id="passwordRequirements" class="bg-white border border-gray-200 rounded-lg p-4 text-sm hidden shadow-sm">
+          <h4 class="font-semibold mb-2 text-gray-700">PASSWORD MUST CONTAIN:</h4>
+          <div class="space-y-1.5">
+            <div id="req-lowercase" class="flex items-center gap-2">
+              <span class="req-icon text-red-500 font-bold">✗</span>
+              <span class="req-text">At least <strong>one lowercase letter</strong></span>
+            </div>
+            <div id="req-uppercase" class="flex items-center gap-2">
+              <span class="req-icon text-red-500 font-bold">✗</span>
+              <span class="req-text">At least <strong>one uppercase letter</strong></span>
+            </div>
+            <div id="req-number" class="flex items-center gap-2">
+              <span class="req-icon text-red-500 font-bold">✗</span>
+              <span class="req-text">At least <strong>one number</strong></span>
+            </div>
+            <div id="req-special" class="flex items-center gap-2">
+              <span class="req-icon text-red-500 font-bold">✗</span>
+              <span class="req-text">At least <strong>one special character</strong></span>
+            </div>
+            <div id="req-length" class="flex items-center gap-2">
+              <span class="req-icon text-red-500 font-bold">✗</span>
+              <span class="req-text">Between <strong>8-12 characters</strong></span>
+            </div>
+          </div>
+          <div class="mt-3 pt-3 border-t border-gray-200">
+            <div class="flex items-center justify-between">
+              <span class="text-gray-600 text-xs">Password Strength:</span>
+              <span id="strengthLabel" class="font-semibold text-xs weak">Weak</span>
+            </div>
+          </div>
+        </div>
 
-    <div class="relative">
-    <input type="password" id="confirmPass" placeholder="Confirm New Password" class="w-full border rounded-xl px-4 py-2 text-sm mt-2" />
-    <button type="button" class="toggle-pass absolute right-2 top-1/2 -translate-y-1/2 text-gray-500" data-target="confirmPass" aria-label="Show password">
-    <svg class="eye" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-    <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"></path>
-    <circle cx="12" cy="12" r="3"></circle>
-    </svg>
-    </button>
-    <span id="passMatchMsg" class="text-xs text-red-500 hidden">Passwords do not match.</span>
-  </div>
-  <button onclick="validatePassword()" class="mt-2 bg-[#222] text-white thin-btn hover:bg-black transition w-28">Save</button>
-  </div>
+        <input type="password" id="confirmPass" placeholder="Confirm New Password" class="w-full border rounded-xl px-4 py-2 text-sm" />
+        <span id="passMatchMsg" class="text-xs text-red-500 hidden">Passwords do not match.</span>
+        <span id="passMatchSuccess" class="text-xs text-green-600 hidden">✓ Passwords match!</span>
+        <button onclick="validatePassword()" class="mt-2 bg-[#222] text-white thin-btn hover:bg-black transition w-28">Save</button>
+        </div>
 
         <!-- UPDATE EMAIL -->
       <div class="flex flex-col gap-3" id="emailSection">
       <h3 class="text-base font-semibold">Update Email</h3>
       <input type="email" id="currentEmail" placeholder="Current Email" value="angelvenice@gmail.com" class="w-full border rounded-xl px-4 py-2 text-sm" />
-      <input type="email" id="newEmail" placeholder="New Email" class="w-full border rounded-xl px-4 py-2 text-sm" />
-     <span id="emailFormatMsg" class="text-xs text-red-500 hidden">Please enter a valid email format.</span>
+      <input type="email" id="newEmail" placeholder="New Email (e.g., angelvenice@gmail.com)" class="w-full border rounded-xl px-4 py-2 text-sm" />
+     <span id="emailFormatMsg" class="text-xs text-red-500 hidden">✗ Please enter a valid email format (e.g., angelvenice@gmail.com)</span>
+     <span id="emailFormatSuccess" class="text-xs text-green-600 hidden">✓ Valid email format</span>
      <input type="email" id="confirmEmail" placeholder="Confirm New Email" class="w-full border rounded-xl px-4 py-2 text-sm" />
-    <span id="emailMatchMsg" class="text-xs text-red-500 hidden">Emails do not match.</span>
+    <span id="emailMatchMsg" class="text-xs text-red-500 hidden">✗ Emails do not match.</span>
+    <span id="emailMatchSuccess" class="text-xs text-green-600 hidden">✓ Emails match!</span>
     <button onclick="validateEmail()" class="mt-2 bg-[#222] text-white thin-btn hover:bg-black transition w-28">Verify</button>
     </div>
 
@@ -399,8 +415,8 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
             <!-- PREFERENCES SECTION -->
             <div>
               <h3 class="text-lg font-semibold mb-4">Preferences</h3>
-              <div class="flex items-center gap-1">
-                <span class="font-family text-black-700">Appearance</span>
+              <div class="flex items-center gap-4">
+                <span class="font-medium text-gray-700 dark:text-gray-300">Appearance</span>
 
                 <!-- DARKMODE/LIGHTMODE -->
                 <div id="appearanceSwitch" class="appearance-switch">
@@ -671,88 +687,268 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
 
 <!--PASSWORD & EMAIL VALIDATION -->
   <script>
+  // REAL-TIME PASSWORD VALIDATION
+  const oldPassInput = document.getElementById("oldPass");
+  const newPassInput = document.getElementById("newPass");
+  const confirmPassInput = document.getElementById("confirmPass");
+  const passwordRequirements = document.getElementById("passwordRequirements");
+  const passMatchMsg = document.getElementById("passMatchMsg");
+  const passMatchSuccess = document.getElementById("passMatchSuccess");
+
+  // Show validation box only when user starts typing in New password field
+  newPassInput?.addEventListener('input', () => {
+    const password = newPassInput.value;
+    
+    // Show requirements box only when there's input in the new password field
+    if (password.length > 0) {
+      passwordRequirements?.classList.remove('hidden');
+    } else {
+      passwordRequirements?.classList.add('hidden');
+    }
+    
+    // Check requirements
+    const hasLowerCase = /[a-z]/.test(password);
+    const hasUpperCase = /[A-Z]/.test(password);
+    const hasNumber = /[0-9]/.test(password);
+    const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>\-=+\/]/.test(password);
+    const isValidLength = password.length >= 8 && password.length <= 12;
+    
+    // Update UI for each requirement
+    const reqLowercase = document.getElementById('req-lowercase');
+    const reqUppercase = document.getElementById('req-uppercase');
+    const reqNumber = document.getElementById('req-number');
+    const reqSpecial = document.getElementById('req-special');
+    const reqLength = document.getElementById('req-length');
+    
+    if (hasLowerCase) {
+      reqLowercase.classList.add('req-valid');
+      reqLowercase.querySelector('.req-icon').textContent = '✓';
+    } else {
+      reqLowercase.classList.remove('req-valid');
+      reqLowercase.querySelector('.req-icon').textContent = '✗';
+    }
+    
+    if (hasUpperCase) {
+      reqUppercase.classList.add('req-valid');
+      reqUppercase.querySelector('.req-icon').textContent = '✓';
+    } else {
+      reqUppercase.classList.remove('req-valid');
+      reqUppercase.querySelector('.req-icon').textContent = '✗';
+    }
+    
+    if (hasNumber) {
+      reqNumber.classList.add('req-valid');
+      reqNumber.querySelector('.req-icon').textContent = '✓';
+    } else {
+      reqNumber.classList.remove('req-valid');
+      reqNumber.querySelector('.req-icon').textContent = '✗';
+    }
+    
+    if (hasSpecialChar) {
+      reqSpecial.classList.add('req-valid');
+      reqSpecial.querySelector('.req-icon').textContent = '✓';
+    } else {
+      reqSpecial.classList.remove('req-valid');
+      reqSpecial.querySelector('.req-icon').textContent = '✗';
+    }
+    
+    if (isValidLength) {
+      reqLength.classList.add('req-valid');
+      reqLength.querySelector('.req-icon').textContent = '✓';
+    } else {
+      reqLength.classList.remove('req-valid');
+      reqLength.querySelector('.req-icon').textContent = '✗';
+    }
+    
+    // Calculate strength
+    const strengthLabel = document.getElementById('strengthLabel');
+    const validCount = [hasLowerCase, hasUpperCase, hasNumber, hasSpecialChar, isValidLength].filter(Boolean).length;
+    
+    strengthLabel.className = '';
+    if (validCount === 5) {
+      strengthLabel.textContent = 'Strong';
+      strengthLabel.classList.add('strong');
+      
+      // Hide validation box after 1 second when all requirements are met
+      setTimeout(() => {
+        if (validCount === 5) {
+          passwordRequirements?.classList.add('hidden');
+        }
+      }, 1000);
+    } else if (validCount >= 3) {
+      strengthLabel.textContent = 'Medium';
+      strengthLabel.classList.add('medium');
+    } else {
+      strengthLabel.textContent = 'Weak';
+      strengthLabel.classList.add('weak');
+    }
+    
+    // Check password match
+    checkPasswordMatch();
+  });
+
+  confirmPassInput?.addEventListener('input', checkPasswordMatch);
+
+  // Hide validation box when clicking on Current password field or anywhere else
+  oldPassInput?.addEventListener('focus', () => {
+    passwordRequirements?.classList.add('hidden');
+  });
+
+  confirmPassInput?.addEventListener('focus', () => {
+    // Keep validation visible if there's text in new password field
+    if (!newPassInput?.value) {
+      passwordRequirements?.classList.add('hidden');
+    }
+  });
+
+  function checkPasswordMatch() {
+    const newPass = newPassInput?.value || '';
+    const confirmPass = confirmPassInput?.value || '';
+    
+    if (confirmPass) {
+      if (newPass !== confirmPass) {
+        passMatchMsg?.classList.remove('hidden');
+        passMatchSuccess?.classList.add('hidden');
+      } else {
+        passMatchMsg?.classList.add('hidden');
+        passMatchSuccess?.classList.remove('hidden');
+      }
+    } else {
+      passMatchMsg?.classList.add('hidden');
+      passMatchSuccess?.classList.add('hidden');
+    }
+  }
+
   function validatePassword() {
+    let oldPass = document.getElementById("oldPass").value;
     let newPass = document.getElementById("newPass").value;
     let confirmPass = document.getElementById("confirmPass").value;
 
-    let passStrengthMsg = document.getElementById("passStrengthMsg");
-    let passMatchMsg = document.getElementById("passMatchMsg");
-
-    passStrengthMsg.classList.add("hidden");
-    passMatchMsg.classList.add("hidden");
-
     let isValid = true;
 
-    if (newPass.length < 8) {
-      passStrengthMsg.classList.remove("hidden");
-      isValid = false;
+    // Validation checks
+    const hasUpperCase = /[A-Z]/.test(newPass);
+    const hasLowerCase = /[a-z]/.test(newPass);
+    const hasNumber = /[0-9]/.test(newPass);
+    const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>\-=+\/]/.test(newPass);
+    const isValidLength = newPass.length >= 8 && newPass.length <= 12;
+
+    if (!oldPass) {
+      alert("Please enter your current password");
+      return;
     }
 
-    if (newPass !== confirmPass || confirmPass === "") {
-      passMatchMsg.classList.remove("hidden");
-      isValid = false;
+    if (!isValidLength || !hasUpperCase || !hasLowerCase || !hasNumber || !hasSpecialChar) {
+      alert("Password does not meet all requirements");
+      return;
     }
 
-    if (isValid) alert("Password updated successfully!");
+    if (newPass !== confirmPass) {
+      alert("Passwords do not match");
+      return;
+    }
+
+    if (oldPass === newPass) {
+      alert("New password must be different from old password");
+      return;
+    }
+
+    // Hide validation box before showing success
+    passwordRequirements?.classList.add('hidden');
+    
+    alert("Password updated successfully!");
+    // Reset fields
+    document.getElementById("oldPass").value = '';
+    document.getElementById("newPass").value = '';
+    document.getElementById("confirmPass").value = '';
+  }
+
+  // REAL-TIME EMAIL VALIDATION
+  const newEmailInput = document.getElementById("newEmail");
+  const confirmEmailInput = document.getElementById("confirmEmail");
+  const emailFormatMsg = document.getElementById("emailFormatMsg");
+  const emailFormatSuccess = document.getElementById("emailFormatSuccess");
+  const emailMatchMsg = document.getElementById("emailMatchMsg");
+  const emailMatchSuccess = document.getElementById("emailMatchSuccess");
+
+  newEmailInput?.addEventListener('input', () => {
+    const email = newEmailInput.value;
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    
+    if (email.length > 0) {
+      if (emailRegex.test(email)) {
+        emailFormatMsg?.classList.add('hidden');
+        emailFormatSuccess?.classList.remove('hidden');
+      } else {
+        emailFormatMsg?.classList.remove('hidden');
+        emailFormatSuccess?.classList.add('hidden');
+      }
+    } else {
+      emailFormatMsg?.classList.add('hidden');
+      emailFormatSuccess?.classList.add('hidden');
+    }
+    
+    checkEmailMatch();
+  });
+
+  confirmEmailInput?.addEventListener('input', checkEmailMatch);
+
+  function checkEmailMatch() {
+    const newEmail = newEmailInput?.value || '';
+    const confirmEmail = confirmEmailInput?.value || '';
+    
+    if (confirmEmail.length > 0) {
+      if (newEmail === confirmEmail) {
+        emailMatchMsg?.classList.add('hidden');
+        emailMatchSuccess?.classList.remove('hidden');
+      } else {
+        emailMatchMsg?.classList.remove('hidden');
+        emailMatchSuccess?.classList.add('hidden');
+      }
+    } else {
+      emailMatchMsg?.classList.add('hidden');
+      emailMatchSuccess?.classList.add('hidden');
+    }
   }
 
   function validateEmail() {
     let newEmail = document.getElementById("newEmail").value;
     let confirmEmail = document.getElementById("confirmEmail").value;
+    let currentEmail = document.getElementById("currentEmail").value;
 
-    let emailFormatMsg = document.getElementById("emailFormatMsg");
-    let emailMatchMsg = document.getElementById("emailMatchMsg");
-
+    // EMAIL
     let emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-    // RESET VISIBILTY
-    emailFormatMsg.classList.add("hidden");
-    emailMatchMsg.classList.add("hidden");
-
-    let isValid = true;
+    if (!currentEmail) {
+      alert("Please enter your current email");
+      return;
+    }
 
     if (!emailRegex.test(newEmail)) {
-      emailFormatMsg.classList.remove("hidden");
-      isValid = false;
+      alert("Please enter a valid email format (e.g., angelvenice@gmail.com)");
+      return;
     }
 
     if (newEmail !== confirmEmail || confirmEmail === "") {
-      emailMatchMsg.classList.remove("hidden");
-      isValid = false;
+      alert("Emails do not match");
+      return;
     }
 
-    if (isValid) alert("Email verified and updated!");
+    if (newEmail === currentEmail) {
+      alert("New email must be different from current email");
+      return;
+    }
+
+    alert("Email verified and updated!");
+    // Reset fields
+    document.getElementById("newEmail").value = '';
+    document.getElementById("confirmEmail").value = '';
+    emailFormatMsg?.classList.add('hidden');
+    emailFormatSuccess?.classList.add('hidden');
+    emailMatchMsg?.classList.add('hidden');
+    emailMatchSuccess?.classList.add('hidden');
   }
-</script>
-<!--VISIBILITY TOGGLE -->
-<script>
-  document.querySelectorAll('.toggle-pass').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const targetId = btn.getAttribute('data-target');
-      const input = document.getElementById(targetId);
-      if (!input) return;
-      const isPassword = input.type === 'password';
-      input.type = isPassword ? 'text' : 'password';
-      btn.setAttribute('aria-pressed', String(isPassword));
-    
-      if (isPassword) {
-        btn.innerHTML = `
-          <svg class="eye-off" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M17.94 17.94A10.94 10.94 0 0112 19c-7 0-11-7-11-7a21.58 21.58 0 014.11-5.12"></path>
-            <path d="M1 1l22 22"></path>
-            <path d="M9.88 9.88A3 3 0 0114.12 14.12"></path>
-          </svg>`;
-      } else {
-        btn.innerHTML = `
-          <svg class="eye" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"></path>
-            <circle cx="12" cy="12" r="3"></circle>
-          </svg>`;
-      }
-    });
-  });
 </script>
 
 </body>
 </html>
-
