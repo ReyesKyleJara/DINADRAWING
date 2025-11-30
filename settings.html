@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Settings | DiNaDrawing</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { font-family: 'Poppins', sans-serif; background-color: #fffaf2; color: #222; }
+    .tab-content {
+      opacity: 0;
+      transform: translateY(6px);
+      transition: opacity 240ms ease, transform 240ms ease;
+      will-change: opacity, transform;
+    }
+
+    .tab-content.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .soft-shadow {
+      box-shadow: 0 6px 14px rgba(0,0,0,0.06);
+    }
+    
+    .tab-btn {
+      background: transparent;
+      color: #6b7280; 
+      font-weight: 600;
+      padding: 6px 18px;
+      border-radius: 6px;
+      border: none;
+      transition: color 160ms ease, background 160ms ease, transform 160ms ease;
+    }
+
+    .tab-btn:hover { color: #374151; }
+    .tab-selected {
+      background: #f4b41a !important; 
+      color: #111 !important;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+      padding: 4px 20px !important; 
+      border-radius: 10px !important; 
+      transform: translateY(-1px);
+    }
+    
+    .thin-btn {
+      padding: 4px 12px !important;
+      border-radius: 8px !important;
+      font-weight: 600;
+      font-size: 0.95rem;
+      height: 32px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .thin-danger { 
+      padding: 4px 12px !important;
+      border-radius: 8px !important;
+      font-weight: 600;
+      font-size: 0.95rem;
+      height: 32px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .appearance-switch {
+      position: relative;
+      width: 140px;            
+      height: 34px;
+      background: #e5e7eb;     
+      padding: 3px;
+      border-radius: 9999px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .appearance-switch .option {
+      width: 44px;
+      height: 28px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 20px;
+      cursor: pointer;
+    }
+
+    .appearance-switch .option.left svg { color: #9ca3af; }
+    .appearance-switch .option.right svg { color: #9ca3af; }
+    .appearance-switch .option.active {
+      background: #ffffff;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.08);
+      border: 1px solid rgba(0,0,0,0.04);
+    }
+
+    .appearance-switch .option.left.active svg { color: #f59e0b; }
+    .appearance-switch .option.right.active svg { color: #374151; }
+  </style>
+</head>
+<body class="flex bg-[#fffaf2]">
+
+<!-- SIDEBAR -->
+<aside id="sidebar"
+class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
+       bg-[#f4b41a] rounded-tr-3xl
+       p-6 shadow
+       hidden md:flex md:flex-col md:gap-6">
+
+  <!-- HEADER -->
+  <div class="flex items-center gap-2">
+    <img src="Assets/dinadrawing-logo.png" alt="Logo" class="w-14">
+    <h2 class="text-xl font-bold text-[#222]">DiNaDrawing</h2>
+  </div>
+
+  <!-- NAVIGATIONS -->
+  <nav>
+    <ul class="space-y-5">
+      <li><a href="dashboard.html" class="block px-4 py-2 rounded-lg font-medium text-[#222] hover:bg-[#222] hover:text-white transition">Home</a></li>
+      <li><a href="myplans.html" class="block px-4 py-2 rounded-lg font-medium text-[#222] hover:bg-[#222] hover:text-white transition">My Plans</a></li>
+      <li><a href="help.html" class="block px-4 py-2 rounded-lg font-medium text-[#222] hover:bg-[#222] hover:text-white transition">Help</a></li>
+      <li><a href="settings.html" class="block px-4 py-2 rounded-lg font-medium bg-[#222] text-white hover:bg-[#111] transition" aria-current="page">Settings</a></li>
+    </ul>
+  </nav>
+</aside>
+
+  <!-- MAIN CONTENT -->
+  <main class="ml-0 md:ml-64 flex-1 min-h-screen px-4 sm:px-8 md:px-12 py-10">
+
+    <!-- PAGE TITLE -->
+    <div class="flex items-center justify-between">
+      <div class="flex flex-col">
+        <h1 class="text-3xl font-bold">Settings</h1>
+        <span class="text-gray-600 text-sm">Manage your account settings and preferences</span>
+      </div>
+       <div class="flex items-center gap-3">
+            
+  <!-- PROFILE -->
+  <div class="relative">
+    <button id="profileBtn" class="flex items-center gap-2 bg-[#f4b41a]/30 border border-[#222] rounded-full px-3 py-1.5 hover:bg-[#f4b41a]/50 transition">
+      <img src="Assets/Profile Icon/profile.png" alt="Profile" class="w-8 h-8 rounded-full border-2 border-[#f4b41a]">
+      <span class="font-medium text-[#222] hidden md:inline">Venice</span>
+    </button>
+
+    <!-- PROFILE DROPDOWN -->
+    <div id="profileDropdown" class="absolute right-0 mt-2 w-60 bg-white shadow-lg rounded-2xl border border-gray-200 hidden z-50">
+      <div class="p-4 border-b border-gray-200 text-center bg-[#fffaf2] rounded-t-2xl">
+        <img src="Assets/Profile Icon/profile.png" alt="Profile" class="w-12 h-12 mx-auto rounded-full border-2 border-[#f4b41a] mb-2 shadow">
+        <h2 class="text-sm font-semibold text-[#222]">Venice</h2>
+      </div>
+      <div class="py-2">
+        <a href="help.html" class="block px-4 py-2 text-sm hover:bg-gray-50">Help</a>
+        <a href="aboutus.html" class="block px-4 py-2 text-sm hover:bg-gray-50">About Us</a>
+        <a href="settings.html" class="block px-4 py-2 text-sm hover:bg-gray-50">Settings</a>
+        <button id="logoutProfile" class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50">Log out</button>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+    <!-- DIVIDER -->
+    <hr class="mt-4 mb-6 border-t-2 border-gray-200" />
+
+    <!-- TAB HEADERS -->
+    <div class="w-full">
+        <div class="bg-white rounded-2xl soft-shadow overflow-hidden">
+          <div class="tab-strip bg-gray-100 px-4 py-2">
+            <div class="w-full flex flex-wrap items-center gap-2 justify-start">
+              <button data-tab="profile" class="tab-btn tab-selected">Profile</button>
+              <button data-tab="security" class="tab-btn">Account &amp; Security</button>
+              <button data-tab="prefs" class="tab-btn">Preferences</button>
+            </div>
+          </div>
+          <div class="p-6">
+
+        <!-- PROFILE TAB -->
+        <div id="profile" class="tab-content show" role="tabpanel" aria-labelledby="profile-tab">
+          <div class="flex flex-col gap-6 px-6">
+            <div class="flex items-center gap-6 mt-4">
+
+              <!-- PROFILE IMAGE -->
+              <div class="w-20 h-20 md:w-24 md:h-24 rounded-full overflow-hidden border border-black shadow-md">
+                <img id="profileImage" src="Assets/Profile Icon/profile.png" alt="avatar" class="w-full h-full object-cover">
+              </div>
+
+              <!-- CHANGE/REMOVE PHOTO BUTTONS -->
+              <div class="flex flex-col gap-2">
+                <div class="flex gap-3">
+                  <button id="changeImageBtn" class="bg-[#2a2a2a] text-white px-4 py-2 rounded-xl hover:bg-black">+ Change Profile Photo</button>
+                </div>
+                <p class="text-xs text-gray-500 mt-1">We support PNGs and JPGs under 300MB</p>
+              </div>
+            </div>
+
+            <!-- NAME -->
+            <div class="flex-1">
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-y-6 md:gap-x-4 md:[grid-template-columns:repeat(2,min-content)]">
+
+                <!-- CHANGE NAME -->
+                <div class="flex flex-col items-start">
+                  <label class="text-sm text-gray-700 block mb-1">Name</label>
+                  <div class="relative">
+                    <input
+                      id="nameInput"
+                      type="text"
+                      value="Venice"
+                      class="w-80 max-w-full border border-gray-300 text-sm rounded-xl px-4 py-2 pr-10 focus:outline-none focus:ring-2 focus:ring-[#f4b41a]"
+                    />
+                    <button aria-label="edit name" class="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center text-gray-500 hover:text-gray-700 rounded-md">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536M4 13v4h4l11-11a2.828 2.828 0 00-4-4L4 13z" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+
+                <!-- CHANGE USERNAME -->
+                <div class="flex flex-col items-start">
+                  <label class="text-sm text-gray-700 block mb-1">Username</label>
+                  <div class="relative">
+                    <input
+                      id="usernameInput"
+                      type="text"
+                      value="@gel"
+                      class="w-80 max-w-full border border-gray-300 text-sm rounded-xl px-4 py-2 pr-10 focus:outline-none focus:ring-2 focus:ring-[#f4b41a]"
+                    />
+                    <button aria-label="edit username" class="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center text-gray-500 hover:text-gray-700 rounded-md">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536M4 13v4h4l11-11a2.828 2.828 0 00-4-4L4 13z" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- SINGLE SAVE BUTTON FOR BOTH NAME AND USERNAME -->
+              <div class="mt-4">
+                <button id="saveProfileBtn" class="bg-[#222] text-white thin-btn hover:bg-black transition">Save Changes</button>
+              </div>
+            </div>
+          </div>
+        </div> 
+        
+<!-- CHANGE PROFILE MODAL -->
+<div
+  id="changeProfileModal"
+  class="fixed inset-0 flex items-center justify-center bg-black/40 backdrop-blur-sm z-50 hidden"
+>
+  <div class="bg-white rounded-2xl p-6 w-full max-w-md shadow-xl relative">
+    <button id="cancelBtn" class="absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-xl">
+      &times;
+    </button>
+    <h2 class="text-2xl font-bold mb-1">Change Profile Photo</h2>
+    <p class="text-sm text-gray-500 mb-4">Choose or upload a new profile photo</p>
+
+    <!-- PROFILE PREVIEW -->
+    <div class="flex justify-center mb-4">
+      <img
+        id="profilePreview"
+        src="Assets/Profile Icon/profile.png"
+        alt="Profile Preview"
+        class="w-32 h-32 rounded-full object-cover border shadow-md"
+        style="border-color: #090404;"
+      />
+    </div>
+
+    <!-- UPLOAD BUTTON -->
+    <div class="flex justify-center gap-4 mb-4">
+      <div id="uploadBtn" class="w-8 h-8 rounded-full border flex items-center justify-center cursor-pointer hover:bg-gray-100 transition" style="border-color: #090404;">
+        <img src="Assets/upload.png" alt="Upload" class="w-6 h-6 opacity-70">
+      </div>
+      <div id="takePhotoBtn" class="w-8 h-8 rounded-full border flex items-center justify-center cursor-pointer hover:bg-gray-100 transition" style="border-color: #090404;">
+        <img src="Assets/camera.png" alt="Take Photo" class="w-6 h-6 opacity-70">
+      </div>
+    </div>
+
+    <input type="file" id="uploadInput" accept="image/*" class="hidden">
+    <hr class="my-4" />
+
+    <!-- PROFILE AVATAR GRID -->
+    <div class="grid grid-cols-5 gap-3 mb-6">
+      <img src="Assets/Profile Icon/Profile.png" class="w-12 h-12 rounded-full cursor-pointer border hover:border-yellow-500" />
+      <img src="Assets/Profile Icon/Profile2.png" class="w-12 h-12 rounded-full cursor-pointer border hover:border-yellow-500" />
+      <img src="Assets/Profile Icon/Profile3.png" class="w-12 h-12 rounded-full cursor-pointer border hover:border-yellow-500" />
+      <img src="Assets/Profile Icon/Profile4.png" class="w-12 h-12 rounded-full cursor-pointer border hover:border-yellow-500" />
+      <img src="Assets/Profile Icon/Profile5.png" class="w-12 h-12 rounded-full cursor-pointer border hover:border-yellow-500" />
+      <img src="Assets/Profile Icon/Profile6.png" class="w-12 h-12 rounded-full cursor-pointer border hover:border-yellow-500" />
+      <img src="Assets/Profile Icon/Profile7.png" class="w-12 h-12 rounded-full cursor-pointer border hover:border-yellow-500" />
+      <img src="Assets/Profile Icon/Profile8.png" class="w-12 h-12 rounded-full cursor-pointer border hover:border-yellow-500" />
+    </div>
+
+    <!-- CANCEL & SAVE BUTTONS -->
+    <div class="flex justify-end gap-3">
+      <button class="px-4 py-2 rounded-lg border border-gray-300 hover:bg-gray-100 transition" id="cancelBtnFooter">
+        Cancel
+      </button>
+      <button class="bg-[#f4b41a] px-4 py-2 rounded-lg text-black hover:bg-[#e0a419] transition" id="saveChangesBtn">
+        Save Changes
+      </button>
+    </div>
+  </div>
+</div>
+
+        <!-- ACCOUNT & SECURITY TAB -->
+        <div id="security" class="tab-content" role="tabpanel" aria-labelledby="security-tab" hidden>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-2 px-6">
+
+            <!-- CHANGE PASSWORD -->
+        <div class="flex flex-col gap-3" id="passwordSection">
+        <h3 class="text-base font-semibold">Change Password</h3>
+
+        <div class="relative">
+        <input type="password" id="oldPass" placeholder="Old Password" class="w-full border rounded-xl px-4 py-2 text-sm" />
+        <button type="button" class="toggle-pass absolute right-2 top-1/2 -translate-y-1/2 text-gray-500" data-target="oldPass" aria-label="Show password">
+        <!-- VISIBILTY TOGGLE -->
+        <svg class="eye" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"></path>
+        <circle cx="12" cy="12" r="3"></circle>
+       </svg>
+      </button>
+       </div>
+      <div class="relative">
+      <input type="password" id="newPass" placeholder="New Password" class="w-full border rounded-xl px-4 py-2 text-sm mt-2" />
+      <button type="button" class="toggle-pass absolute right-2 top-1/2 -translate-y-1/2 text-gray-500" data-target="newPass" aria-label="Show password">
+      <svg class="eye" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"></path>
+      <circle cx="12" cy="12" r="3"></circle>
+      </svg>
+     </button>
+    <span id="passStrengthMsg" class="text-xs text-red-500 hidden">Password must be at least 8 characters long.</span>
+  </div>
+
+    <div class="relative">
+    <input type="password" id="confirmPass" placeholder="Confirm New Password" class="w-full border rounded-xl px-4 py-2 text-sm mt-2" />
+    <button type="button" class="toggle-pass absolute right-2 top-1/2 -translate-y-1/2 text-gray-500" data-target="confirmPass" aria-label="Show password">
+    <svg class="eye" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+    <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"></path>
+    <circle cx="12" cy="12" r="3"></circle>
+    </svg>
+    </button>
+    <span id="passMatchMsg" class="text-xs text-red-500 hidden">Passwords do not match.</span>
+  </div>
+  <button onclick="validatePassword()" class="mt-2 bg-[#222] text-white thin-btn hover:bg-black transition w-28">Save</button>
+  </div>
+
+        <!-- UPDATE EMAIL -->
+      <div class="flex flex-col gap-3" id="emailSection">
+      <h3 class="text-base font-semibold">Update Email</h3>
+      <input type="email" id="currentEmail" placeholder="Current Email" value="angelvenice@gmail.com" class="w-full border rounded-xl px-4 py-2 text-sm" />
+      <input type="email" id="newEmail" placeholder="New Email" class="w-full border rounded-xl px-4 py-2 text-sm" />
+     <span id="emailFormatMsg" class="text-xs text-red-500 hidden">Please enter a valid email format.</span>
+     <input type="email" id="confirmEmail" placeholder="Confirm New Email" class="w-full border rounded-xl px-4 py-2 text-sm" />
+    <span id="emailMatchMsg" class="text-xs text-red-500 hidden">Emails do not match.</span>
+    <button onclick="validateEmail()" class="mt-2 bg-[#222] text-white thin-btn hover:bg-black transition w-28">Verify</button>
+    </div>
+
+            <!-- MISC SETTINGS -->
+            <div class="md:col-span-2 mt-4 space-y-3">
+              <div class="flex justify-between items-center">
+                <label class="text-sm font-medium">Manage who can invite you to events</label>
+                <select class="border rounded-xl px-3 py-1 text-sm w-44 text-sm">
+                  <option>Anyone with link</option>
+                  <option>Only friends</option>
+                  <option>Invite code only</option>
+                </select>
+              </div>
+              <div class="flex justify-between items-center">
+                <label class="text-sm font-medium">Profile Visibility</label>
+                <select class="border rounded-xl px-3 py-1 text-sm w-44 text-sm">
+                  <option>Public</option>
+                  <option>Friends</option>
+                  <option>Private</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- DELETE ACCOUNT -->
+            <div class="md:col-span-2 mt-4 space-y-3">
+              <div class="flex justify-between items-center">
+                <div>
+                  <p class="text-sm font-semibold">Delete Account</p>
+                  <p class="text-xs text-gray-500">permanently delete account</p>
+                </div>
+                <div class="ml-auto">
+                  <button class="mt-2 bg-red-600 text-white thin-danger hover:bg-red-700 transition whitespace-nowrap">Delete Account</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- PREFERENCES TAB -->
+        <div id="prefs" class="tab-content" role="tabpanel" aria-labelledby="prefs-tab" hidden>
+          <div class="p-6 md:p-8 space-y-8">
+
+            <!-- PREFERENCES SECTION -->
+            <div>
+              <h3 class="text-lg font-semibold mb-4">Preferences</h3>
+              <div class="flex items-center gap-1">
+                <span class="font-family text-black-700">Appearance</span>
+
+                <!-- DARKMODE/LIGHTMODE -->
+                <div id="appearanceSwitch" class="appearance-switch">
+                  <div class="option left active" aria-hidden="true">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="w-4 h-4">
+                      <g fill="currentColor">
+                        <circle cx="12" cy="12" r="3" />
+                        <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                      </g>
+                    </svg>
+                  </div>
+                  <div class="option right" aria-hidden="true">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="w-4 h-4">
+                      <path fill="currentColor" d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- NOTIFICATIONS SECTION -->
+            <div>
+              <h3 class="text-lg font-semibold mb-3">Notifications</h3>
+              <div class="space-y-4">
+
+                <!-- EMAIL REMINDERS -->
+                <div class="flex justify-between items-center">
+                  <span>Email reminders</span>
+                  <label class="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" checked class="sr-only peer" />
+                    <div class="w-11 h-6 bg-gray-300 rounded-full peer peer-checked:bg-green-500 transition-all duration-200"></div>
+                    <div class="absolute left-[2px] top-[2px] bg-white w-5 h-5 rounded-full transition-all duration-200 peer-checked:translate-x-full"></div>
+                  </label>
+                </div>
+
+                <!-- PUSH NOTIFICATIONS -->
+                <div class="flex justify-between items-center">
+                  <span>Push notifications</span>
+                  <label class="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" checked class="sr-only peer" />
+                    <div class="w-11 h-6 bg-gray-300 rounded-full peer peer-checked:bg-green-500 transition-all duration-200"></div>
+                    <div class="absolute left-[2px] top-[2px] bg-white w-5 h-5 rounded-full transition-all duration-200 peer-checked:translate-x-full"></div>
+                  </label>
+                </div>
+                
+                <!-- IN-APP ALERTS -->
+                <div class="flex justify-between items-center">
+                  <span>In-app alerts</span>
+                  <label class="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" checked class="sr-only peer" />
+                    <div class="w-11 h-6 bg-gray-300 rounded-full peer peer-checked:bg-green-500 transition-all duration-200"></div>
+                    <div class="absolute left-[2px] top-[2px] bg-white w-5 h-5 rounded-full transition-all duration-200 peer-checked:translate-x-full"></div>
+                  </label>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    </div>
+  </div>
+  </main>
+
+    <!-- SCRIPTS -->
+    <script>
+      // SINGLE SAVE BUTTON FOR NAME AND USERNAME
+      const nameInput = document.getElementById('nameInput');
+      const usernameInput = document.getElementById('usernameInput');
+      const saveProfileBtn = document.getElementById('saveProfileBtn');
+
+      saveProfileBtn?.addEventListener('click', () => {
+        const name = nameInput.value;
+        const username = usernameInput.value;
+        
+        if (name && username) {
+          alert('Profile updated successfully!\nName: ' + name + '\nUsername: ' + username);
+        } else {
+          alert('Please fill in both Name and Username.');
+        }
+      });
+
+      // TAB HEADERS
+      const tabButtons = document.querySelectorAll('.tab-btn');
+      const tabContents = document.querySelectorAll('.tab-content');
+      function activateTab(tabName) {
+        tabButtons.forEach(btn => {
+          if (btn.dataset.tab === tabName) {
+            btn.classList.add('tab-selected');
+          } else {
+            btn.classList.remove('tab-selected');
+          }
+        });
+        tabContents.forEach(content => {
+          if (content.id === tabName) {
+            content.hidden = false;
+            void content.offsetWidth;
+            content.classList.add('show');
+          } else {
+            content.classList.remove('show');
+            setTimeout(() => { content.hidden = true; }, 260);
+          }
+        });
+      }
+  activateTab('profile');
+      tabButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+          activateTab(btn.dataset.tab);
+        });
+      });
+    </script>
+
+  <script>
+  // CHANGE PROFILE MODAL
+  const modal = document.getElementById("changeProfileModal");
+  const cancelBtn = document.getElementById("cancelBtn");
+  const cancelBtnFooter = document.getElementById("cancelBtnFooter");
+  const previewImg = document.getElementById("profilePreview");
+  const uploadBtn = document.getElementById("uploadBtn");
+  const uploadInput = document.getElementById("uploadInput");
+  const saveChangesBtn = document.getElementById("saveChangesBtn");
+  const avatarImages = document.querySelectorAll("#changeProfileModal .grid img");
+  const takePhotoBtn = document.getElementById("takePhotoBtn");
+  const mainProfileImg = document.getElementById("profileImage");
+
+  function closeModal(){ modal?.classList.add("hidden"); }
+  cancelBtn?.addEventListener("click", closeModal);
+  cancelBtnFooter?.addEventListener("click", closeModal);
+
+  let originalSrc = previewImg?.src || '';
+  let selectedSrc = originalSrc;
+
+  avatarImages.forEach(avatar => {
+    avatar.addEventListener("click", () => {
+      selectedSrc = avatar.src;
+      if (previewImg) previewImg.src = avatar.src;
+    });
+  });
+  uploadBtn?.addEventListener("click", () => uploadInput?.click());
+  uploadInput?.addEventListener("change", (e) => {
+    const file = e.target.files[0]; if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => { if (previewImg){ previewImg.src = ev.target.result; selectedSrc = ev.target.result; } };
+    reader.readAsDataURL(file);
+  });
+  saveChangesBtn?.addEventListener("click", () => {
+    if (mainProfileImg) mainProfileImg.src = selectedSrc;
+    const navProfile = document.getElementById("navProfileImage");
+    if (navProfile) navProfile.src = selectedSrc;
+    closeModal();
+  });
+  document.getElementById("changeImageBtn")?.addEventListener("click", () => {
+    originalSrc = previewImg?.src || '';
+    selectedSrc = originalSrc;
+    modal?.classList.remove("hidden");
+  });
+  modal?.addEventListener("click", (e) => {
+    if (e.target === modal) { if (previewImg) previewImg.src = originalSrc; closeModal(); }
+  });
+
+  // CAMERA CAPTURE
+  takePhotoBtn?.addEventListener("click", async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user", width: { ideal: 640 }, height: { ideal: 480 } } });
+      const cameraModal = document.createElement("div");
+      cameraModal.className = "fixed inset-0 flex items-center justify-center bg-black/40 backdrop-blur-sm z-50";
+      cameraModal.innerHTML = `
+        <div class="bg-white rounded-2xl p-6 w-full max-w-md shadow-xl relative">
+          <button id="closeCamera" class="absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-xl">&times;</button>
+          <h2 class="text-2xl font-bold mb-4">Take a Photo</h2>
+          <div class="relative mb-4">
+            <video id="cameraVideo" autoplay playsinline class="w-full h-auto rounded-lg"></video>
+          </div>
+          <div class="flex justify-center gap-3">
+            <button id="captureBtn" class="bg-[#f4b41a] px-4 py-2 rounded-lg text-black hover:bg-[#e0a419] transition">Capture</button>
+          </div>
+          <div class="text-center text-gray-500 mt-2">Camera ready. Click capture to take photo.</div>
+        </div>`;
+      document.body.appendChild(cameraModal);
+      const video = cameraModal.querySelector("#cameraVideo");
+      const closeCamera = cameraModal.querySelector("#closeCamera");
+      const captureBtn = cameraModal.querySelector("#captureBtn");
+      video.srcObject = stream;
+      closeCamera.addEventListener("click", () => { stream.getTracks().forEach(t=>t.stop()); cameraModal.remove(); });
+      captureBtn.addEventListener("click", () => {
+        const canvas = document.createElement("canvas");
+        canvas.width = video.videoWidth; canvas.height = video.videoHeight;
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(video, 0, 0);
+        const captured = canvas.toDataURL("image/png");
+        if (previewImg){ previewImg.src = captured; selectedSrc = captured; }
+        stream.getTracks().forEach(t=>t.stop());
+        cameraModal.remove();
+      });
+    } catch (err) {
+      alert("Failed to access camera: " + err.message);
+    }
+  });
+  </script>
+
+<!--PROFILE DROPDOWN-->
+<script>
+  const profileBtn = document.getElementById('profileBtn');
+  const profileDropdown = document.getElementById('profileDropdown');
+
+  profileBtn.addEventListener('click', () => {
+    profileDropdown.classList.toggle('hidden');
+  });
+  document.addEventListener('click', (e) => {
+    if (!profileBtn.contains(e.target) && !profileDropdown.contains(e.target)) {
+      profileDropdown.classList.add('hidden');
+    }
+  });
+</script>
+
+<!-- DARKMODE/LIGHTMODE -->
+<script>
+  (function(){
+    const switchEl = document.getElementById('appearanceSwitch');
+    if (!switchEl) return;
+    const left = switchEl.querySelector('.option.left');
+    const right = switchEl.querySelector('.option.right');
+    left.classList.add('active');
+    function setActive(isLeft) {
+      if (isLeft) {
+        left.classList.add('active');
+        right.classList.remove('active');
+      } else {
+        left.classList.remove('active');
+        right.classList.add('active');
+      }
+    }
+    left.addEventListener('click', (e) => { e.stopPropagation(); setActive(true); });
+    right.addEventListener('click', (e) => { e.stopPropagation(); setActive(false); });
+    switchEl.addEventListener('click', () => {
+      setActive(!left.classList.contains('active'));
+    });
+  })();
+</script>
+
+<!-- LOGOUT FUNCTION -->
+<script type="module">
+    import { auth } from './firebase-config.js'; 
+    import { signOut } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+
+    document.addEventListener('DOMContentLoaded', function() {
+      const logoutSidebar = document.getElementById('logoutBtn');
+      const logoutProfile = document.getElementById('logoutProfile');
+
+      function handleLogout() {
+        signOut(auth).then(() => {
+          console.log('User signed out successfully');
+          window.location.href = 'index.html';
+        }).catch((error) => {
+          console.error('Logout error:', error);
+          alert('Logout failed. Please try again.');
+        });
+      }
+
+      if (logoutSidebar) {
+        logoutSidebar.addEventListener('click', handleLogout);
+      }
+      if (logoutProfile) {
+        logoutProfile.addEventListener('click', handleLogout);
+      }
+    });
+  </script>
+
+<!--PASSWORD & EMAIL VALIDATION -->
+  <script>
+  function validatePassword() {
+    let newPass = document.getElementById("newPass").value;
+    let confirmPass = document.getElementById("confirmPass").value;
+
+    let passStrengthMsg = document.getElementById("passStrengthMsg");
+    let passMatchMsg = document.getElementById("passMatchMsg");
+
+    passStrengthMsg.classList.add("hidden");
+    passMatchMsg.classList.add("hidden");
+
+    let isValid = true;
+
+    if (newPass.length < 8) {
+      passStrengthMsg.classList.remove("hidden");
+      isValid = false;
+    }
+
+    if (newPass !== confirmPass || confirmPass === "") {
+      passMatchMsg.classList.remove("hidden");
+      isValid = false;
+    }
+
+    if (isValid) alert("Password updated successfully!");
+  }
+
+  function validateEmail() {
+    let newEmail = document.getElementById("newEmail").value;
+    let confirmEmail = document.getElementById("confirmEmail").value;
+
+    let emailFormatMsg = document.getElementById("emailFormatMsg");
+    let emailMatchMsg = document.getElementById("emailMatchMsg");
+
+    let emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    // RESET VISIBILTY
+    emailFormatMsg.classList.add("hidden");
+    emailMatchMsg.classList.add("hidden");
+
+    let isValid = true;
+
+    if (!emailRegex.test(newEmail)) {
+      emailFormatMsg.classList.remove("hidden");
+      isValid = false;
+    }
+
+    if (newEmail !== confirmEmail || confirmEmail === "") {
+      emailMatchMsg.classList.remove("hidden");
+      isValid = false;
+    }
+
+    if (isValid) alert("Email verified and updated!");
+  }
+</script>
+<!--VISIBILITY TOGGLE -->
+<script>
+  document.querySelectorAll('.toggle-pass').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const targetId = btn.getAttribute('data-target');
+      const input = document.getElementById(targetId);
+      if (!input) return;
+      const isPassword = input.type === 'password';
+      input.type = isPassword ? 'text' : 'password';
+      btn.setAttribute('aria-pressed', String(isPassword));
+    
+      if (isPassword) {
+        btn.innerHTML = `
+          <svg class="eye-off" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M17.94 17.94A10.94 10.94 0 0112 19c-7 0-11-7-11-7a21.58 21.58 0 014.11-5.12"></path>
+            <path d="M1 1l22 22"></path>
+            <path d="M9.88 9.88A3 3 0 0114.12 14.12"></path>
+          </svg>`;
+      } else {
+        btn.innerHTML = `
+          <svg class="eye" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"></path>
+            <circle cx="12" cy="12" r="3"></circle>
+          </svg>`;
+      }
+    });
+  });
+</script>
+
+</body>
+</html>
+

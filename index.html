@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DiNaDrawing!</title>
+
+  <!-- TAILWIND CDN,FONTS AND CSS-->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Rammetto+One&display=swap" rel="stylesheet">
+  <link rel = "stylesheet" href="style.css">
+  <script src="https://cdn.tailwindcss.com"></script>
+   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+  <!-- FIREBASE + JS -->
+  <script type="module" src="firebase-config.js"></script>
+  <script type="module" src="google-auth.js"></script>
+  <script type="module" src="main.js">
+  </script>
+  
+</head>
+  
+<body class="bg-white text-gray-800">
+  
+  <!-- LOADING SCREEN -->
+  <div id="loadingScreen" class="fixed inset-0 bg-white flex flex-col items-center justify-center z-[9999]">
+    <div class="loading-logo">
+      <img src="Assets/dinadrawing-logo.png" alt="DiNaDrawing Logo" class="h-32 w-auto mb-4">
+    </div>
+    <div class="loading-dots flex space-x-2">
+      <div class="w-3 h-3 bg-yellow-400 rounded-full animate-bounce"></div>
+      <div class="w-3 h-3 bg-yellow-400 rounded-full animate-bounce" style="animation-delay: 0.1s"></div>
+      <div class="w-3 h-3 bg-yellow-400 rounded-full animate-bounce" style="animation-delay: 0.2s"></div>
+    </div>
+    <p class="mt-4 text-gray-600 font-medium">Creating Plans...</p>
+  </div>
+
+  <!--  NAVIGATION -->
+ <nav 
+  class="flex items-center justify-between px-8 py-4 bg-cover bg-center bg-no-repeat shadow fixed w-full top-0 left-0 z-50 transition-all duration-500"
+  style="background-image: url('Assets/TARA NA!.jpg'); background-attachment: fixed;">
+  
+  <a href="#" class="flex items-center font-bold text-xl text-black drop-shadow-lg">
+    <img src="Assets/dinadrawing-logo.png" alt="Logo" class="h-14 w-auto mr-2">
+    DiNaDrawing
+  </a>
+
+  <ul class="hidden md:flex space-x-8 font-medium text-black drop-shadow-md">
+    <li><a href="#features" class="hover:text-yellow-400 transition">Features</a></li>
+    <li><a href="#about" class="hover:text-yellow-400 transition">About</a></li>
+    <li><a href="#support" class="hover:text-yellow-400 transition">Support</a></li>
+  </ul>
+
+  <div class="font-semibold space-x-3">
+ <button onclick="openSignupModal()" class="bg-yellow-400 hover:bg-yellow-500 text-black px-4 py-2 rounded-md text-sm">Sign Up</button>
+  <button onclick="openLoginModal()" id="loginBtn" class="bg-yellow-400 hover:bg-yellow-500 text-black px-4 py-2 rounded-md text-sm">Log In</button>
+</div>
+</nav>
+
+ <!-- MAKE EVERY TARA HAPPEN -->
+<section
+  class="hero-bg h-screen flex flex-col justify-center items-center text-center bg-cover bg-fixed bg-center relative pt-16"
+  style="background-image: url('./Assets/TARA NA!.jpg'); margin-top: 0;">
+  <div class="absolute top-0 left-0 w-full h-48 bg-white"></div>
+  <div class="relative mt-8">
+    <p class="uppercase text-sm tracking-wide font-medium text-black drop-shadow">
+      It's Time To
+   <div class="max-w-4xl mx-auto text-center">
+        <h2 class="text-6xl md:text-7xl lg:text-8xl font-bold mt-2 text-black drop-shadow-lg rammetto-one-regular">
+        Make Every<br><span class="text-orange-300">'Tara'</span> Happen
+    </h2>
+   <button onclick="openSignupModal()" class="mt-6 bg-yellow-400 hover:bg-yellow-500 text-black font-semibold px-6 py-3 rounded-lg shadow-md transition">
+  START PLANNING
+</button>
+    <p
+      class="mt-6 text-black text-center mx-auto leading-relaxed drop-shadow text-base sm:text-lg"
+      style="max-width: 35ch;"
+    >
+      Your barkada plans have been pending since forever. Stop saying "next time"
+      and start saying "see you there" — DiNaDrawing makes sure your gala finally
+      happens. No more paasa.
+    </p>
+  </div>
+</section>
+
+  <!-- FEATURES -->
+<section id="features" class="relative min-h-screen bg-gradient-to-b from-orange-200 to-red-400 py-20 px-6 text-center">
+  <h3 class="text-3xl font-bold mb-10">No More Drawing — Here's How</h3>
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
+
+    <!-- GROUP PLANNING -->
+    <div class="bg-white p-6 rounded-2xl shadow hover:shadow-lg transition transform hover:-translate-y-1">
+      <h5 class="font-semibold text-lg mb-2">Group Planning</h5>
+      <p>Create plans in minutes! Set the date, time and activity or let the group decide.</p>
+    </div>
+
+    <!-- VOTING MADE SIMPLE -->
+    <div class="bg-white p-6 rounded-2xl shadow hover:shadow-lg transition transform hover:-translate-y-1">
+      <h5 class="font-semibold text-lg mb-2">Voting Made Simple</h5>
+      <p>Skip the endless GC debates, vote on venues, schedules, or even side-quests (after party).</p>
+    </div>
+
+    <!-- TASK & ROLE ASSIGNMENT -->
+    <div class="bg-white p-6 rounded-2xl shadow hover:shadow-lg transition transform hover:-translate-y-1">
+      <h5 class="font-semibold text-lg mb-2">Task & Role Assignment</h5>
+      <p>Assign who's bringing food, who's in charge, or who's just tagging along. Everyone's on the same page.</p>
+    </div>
+
+    <!-- FAIR EXPENSES SPLITTING -->
+    <div class="bg-white p-6 rounded-2xl shadow hover:shadow-lg transition transform hover:-translate-y-1">
+      <h5 class="font-semibold text-lg mb-2">Fair Expenses Splitting</h5>
+      <p>No more "palibre na lang"! Track expenses and contributions transparently, down to the last piso.</p>
+    </div>
+
+    <!-- QUICK POLLS -->
+    <div class="bg-white p-6 rounded-2xl shadow hover:shadow-lg transition transform hover:-translate-y-1">
+      <h5 class="font-semibold text-lg mb-2">Quick Polls</h5>
+      <p>Yes/No or multiple choice — perfect for deciding small things fast (like "Mang Inasal" or "Jollibee?").</p>
+    </div>
+
+    <!-- SMART REMINDERS -->
+    <div class="bg-white p-6 rounded-2xl shadow hover:shadow-lg transition transform hover:-translate-y-1">
+      <h5 class="font-semibold text-lg mb-2">Smart Reminders</h5>
+      <p>Get notified for deadlines, contributions, or meet-up time.</p>
+    </div>
+
+    <!-- ALL-IN-ONE EVENT PAGE -->
+    <div class="bg-white p-6 rounded-2xl shadow hover:shadow-lg transition transform hover:-translate-y-1">
+      <h5 class="font-semibold text-lg mb-2">All-In-One Event Page</h5>
+      <p>One link, one page. All details — schedule, tasks, budget — walang kalat sa chat.</p>
+    </div>
+
+    <!-- PLAN TRACKER -->
+    <div class="bg-white p-6 rounded-2xl shadow hover:shadow-lg transition transform hover:-translate-y-1">
+      <h5 class="font-semibold text-lg mb-2">Plan Tracker</h5>
+      <p>See if your plan is pending, confirmed, or finally happening at a glance.</p>
+    </div>
+  </div>
+</section>
+
+  <!--  ABOUT SECTION -->
+  <section id="about" class="min-h-screen flex flex-col md:flex-row items-center justify-between px-10 md:px-20 py-20 bg-[#F6F6F6] transition-all duration-700">
+  <!-- LEFT TEXT SECTION -->
+  <div class="md:w-1/2 text-left space-y-6">
+    <h2 class="text-5xl md:text-6xl font-extrabold text-black-900 leading-tight">
+      About <span class="text-black">DiNaDrawing</span>
+    </h2>
+
+    <p class="text-lg text-black-800 font-semibold ">
+      "Drawing na naman" — this is what we often say when plans with friends or family never really happen.
+    </p>
+
+    <p class="text-black-700 leading-relaxed">
+      We get excited with "outing tayo!" or "tara, dagat this Friday!" but when the day comes, there's no final place, no time, and sometimes no one shows up. 
+      A fun idea ends up as just words in the group chat.
+    </p>
+
+    <p class="text-black-700 leading-relaxed">
+      This "drawing culture" is something we laugh about, but it can also be disappointing. Canceled plans mean lost time with friends, wasted weekends, and fewer memories together.
+      Most of the time, it's not because people don't want to meet — it's because planning is messy. Too many chats, too many "sino ang pwede?" questions, and no clear decision about who will do what or how much everyone should contribute.
+    </p>
+
+    <p class="text-black-700 leading-relaxed">
+      That's why we created DiNaDrawing. We know how much Filipinos value being together — barkada nights, family reunions, school projects, or even simple food trips.
+      The problem isn't the desire to bond, it's the lack of an easy way to plan.
+    </p>
+
+    <p class="text-black-700 leading-relaxed">
+      DiNaDrawing is here to make that easier. It helps groups vote on dates and venues, assign tasks, split contributions, and remind everyone of their roles.
+      All details stay in one place, so nothing gets lost in the chat. Most importantly, it turns plans into reality. <br><br>
+      <span class="font-semibold text-gray-900">Our dream is simple: to help every Filipino barkada, family, and group proudly say, "Di na drawing, tuloy na."</span>
+    </p>
+  </div>
+
+  <!-- RIGHT IMAGE SECTION -->
+  <div class="md:w-1/2 flex justify-center mt-10 md:mt-0">
+    <img src="Assets/dinadrawing-logo.png" alt="About" class="w-[400px] md:w-[500px] h-auto drop-shadow-lg">
+  </div>
+</section>
+
+  <!--  FAQ SECTION (LEFT SIDE) -->
+  <section id="support" class="min-h-screen bg-[#f6f6f6] py-20 px-8 transition-all duration-700">
+  <div class="max-w-6xl mx-auto flex flex-col md:flex-row items-start gap-16">
+    <!-- LEFT SIDE HEADER -->
+    <div class="md:w-1/3 text-left">
+      <h2 class="text-6xl font-extrabold leading-tight text-gray-900">
+        FAQs/<br><span class="text-gray-900 font-bold">Support</span>
+      </h2>
+      
+    </div>
+
+    <!-- RIGHT SIDE FAQ ITEMS -->
+    <div class="md:w-2/3 space-y-4">
+      <!-- FAQ 1 - DO I NEED TO DOWNLOAD AN APP? -->
+      <details class="group bg-gray-200 rounded-2xl p-6 cursor-pointer transition-all duration-300">
+        <summary class="flex justify-between items-center font-semibold text-lg">
+          Do I need to download an app?
+          <span class="text-2xl transition-transform duration-300 group-open:rotate-45">+</span>
+        </summary>
+        <p class="mt-3 text-gray-700 leading-relaxed">
+          Nope! DiNaDrawing works straight from your browser. Just click the link or enter the code — no installs, no hassle.
+        </p>
+      </details>
+
+      <!-- FAQ 2 - HOW DO I JOIN AN EVENT? -->
+      <details class="group bg-gray-200 rounded-2xl p-6 cursor-pointer transition-all duration-300">
+        <summary class="flex justify-between items-center font-semibold text-lg">
+          How do I join an event?
+          <span class="text-2xl transition-transform duration-300 group-open:rotate-45">+</span>
+        </summary>
+        <p class="mt-3 text-gray-700 leading-relaxed">
+          You can join by entering the event code or clicking the invitation link from the host.
+        </p>
+      </details>
+
+      <!-- FAQ 3 - WHAT IF I FORGET MY TASK OR CONTRIBUTION? -->
+      <details class="group bg-gray-200 rounded-2xl p-6 cursor-pointer transition-all duration-300">
+        <summary class="flex justify-between items-center font-semibold text-lg">
+          What if I forget my task or contribution?
+          <span class="text-2xl transition-transform duration-300 group-open:rotate-45">+</span>
+        </summary>
+        <p class="mt-3 text-gray-700 leading-relaxed">
+          Don't worry — DiNaDrawing saves your progress automatically and sends reminders.
+        </p>
+      </details>
+
+      <!-- FAQ 4 - CAN I USE THIS ON MY PHONE? -->
+      <details class="group bg-gray-200 rounded-2xl p-6 cursor-pointer transition-all duration-300">
+        <summary class="flex justify-between items-center font-semibold text-lg">
+          Can I use this on my phone?
+          <span class="text-2xl transition-transform duration-300 group-open:rotate-45">+</span>
+        </summary>
+        <p class="mt-3 text-gray-700 leading-relaxed">
+          Yes! It's mobile-friendly and works on any modern browser.
+        </p>
+      </details>
+
+      <!-- FAQ 5 - IS THIS FREE? -->
+      <details class="group bg-gray-200 rounded-2xl p-6 cursor-pointer transition-all duration-300">
+        <summary class="flex justify-between items-center font-semibold text-lg">
+          Is this free?
+          <span class="text-2xl transition-transform duration-300 group-open:rotate-45">+</span>
+        </summary>
+        <p class="mt-3 text-gray-700 leading-relaxed">
+          Yes, DiNaDrawing is free to use for all users.
+        </p>
+      </details>
+
+      <!-- LEARN MORE BUTTON -->
+      <div class="pt-6">
+        <button class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-3 px-8 rounded-2xl flex items-center gap-2 transition-all duration-300">
+          Learn More
+          <span class="text-2xl">→</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</section>
+
+  <!-- LOGIN MODAL -->
+<div id="loginModal" class="hidden fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50">
+  <div class="bg-white rounded-2xl p-8 w-96 max-w-md text-center shadow-lg relative">
+    <button onclick="closeLoginModal()" class="absolute top-3 right-3 text-gray-500 hover:text-gray-700">X</button>
+    
+    <!-- WELCOME HEADER -->
+     <h2 class="text-2xl font-semibold text-gray-800">Welcome Back to</h2>
+     <h1 class="text-2xl font-bold text-gray-900">DiNaDrawing!</h1>    
+
+    
+    <!-- SUBTITLE -->
+    <p class="text-gray-600">Sign in to your account</p>
+    
+    <!-- LOGIN FORM -->
+    <form class="space-y-4 text-left mb-6">
+      <!-- EMAIL INPUT -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-3">Your Email</label>
+        <input 
+          type="email" 
+          id="loginEmail"
+          placeholder="info.yehey@mail.com" 
+          class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+        >
+      </div>
+      
+      <!-- PASSWORD INPUT -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2">Password</label>
+        <input 
+          type="password" 
+          id="loginPassword"
+          placeholder="Enter your password" 
+          class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+        >
+      </div>
+      
+      <!-- REMEMBER ME CHECKBOX-->
+      <div class="flex items-center justify-between">
+        <label class="flex items-center">
+          <input type="checkbox" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+          <span class="ml-2 text-sm text-gray-600">Remember Me</span>
+        </label>
+      </div>
+      
+      <!-- LOGIN BUTTON-->
+      <button 
+        type="button" 
+        onclick="signInWithEmail()"
+        class="w-full bg-yellow-400 hover:bg-yellow-500 text-black font-semibold py-3 rounded-lg transition mt-2"
+      >
+        Log In
+      </button>
+    </form>
+    
+    <!-- DIVIDER -->
+    <div class="flex items-center my-6">
+      <div class="flex-1 border-t border-gray-300"></div>
+      <span class="px-3 text-gray-500 text-sm">or continue with</span>
+      <div class="flex-1 border-t border-gray-300"></div>
+    </div>
+    
+    <!-- SOCIAL LOGIN BUTTONSs -->
+    <div class="space-y-3">
+      <!-- GOOGLE LOGIN BUTTON -->
+      <button id="googleLogin" class="flex items-center justify-center gap-2 border border-gray-300 hover:bg-gray-100 transition rounded-lg w-full py-3">
+        <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" class="h-5" alt="Google"> 
+        Continue with Google
+      </button>
+      
+      <!-- FACEBOOK LOGIN BUTTON -->
+      <button onclick="signInWithFacebook()" class="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white transition rounded-lg w-full py-3">
+        <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
+          <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+        </svg>
+        Continue with Facebook
+      </button>
+    </div>
+    
+    <!-- SIGN UP LINK -->
+    <p class="text-gray-600 text-sm mt-6">
+      Don't have any account? 
+      <button onclick="closeLoginModal(); openSignupModal();" class="text-yellow-500 font-medium">Sign Up</button>
+    </p>
+  </div>
+</div>
+
+
+  <!-- SIGNUP MODAL -->
+<div id="signupModal" class="hidden fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50">
+  <div class="bg-white rounded-2xl p-8 w-96 max-w-md text-center shadow-lg relative">
+    <button onclick="closeSignupModal()" class="absolute top-3 right-3 text-gray-500 hover:text-gray-700">✕</button>
+    
+    <h3 class="text-2xl font-bold mb-6">Create your account</h3>
+    
+    <!-- SIGNUP FORM -->
+    <form id="signupForm" class="space-y-4 text-left">
+      <!-- NAME INPUT -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Name</label>
+        <input 
+          type="text" 
+          id="signupName"
+          placeholder="Enter your name" 
+          class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+        >
+      </div>
+      
+      <!-- EMAIL INPUT -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Email*</label>
+        <input 
+          type="email" 
+          id="signupEmail"
+          placeholder="Enter your email" 
+          class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          required
+        >
+      </div>
+      
+      <!-- PASSWORD INPUT -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Password*</label>
+        <input 
+          type="password" 
+          id="signupPassword"
+          placeholder="Create password" 
+          class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          required
+        >
+        <p class="text-xs text-gray-500 mt-1">Must be at least 8 characters.</p>
+      </div>
+      
+      <!-- SIGN UP BUTTON -->
+     <button 
+  type="button" 
+  onclick="signUpWithEmail()"
+  class="w-full bg-yellow-400 hover:bg-yellow-500 text-black font-semibold py-3 rounded-lg transition mt-2"
+>
+  Sign Up
+</button>
+    </form>
+    
+    <!-- DIVIDER -->
+    <div class="flex items-center my-6">
+      <div class="flex-1 border-t border-gray-300"></div>
+      <span class="px-3 text-gray-500 text-sm">or continue with</span>
+      <div class="flex-1 border-t border-gray-300"></div>
+    </div>
+    
+    <!-- SOCIAL LOGIN BUTTONSS -->
+    <div class="flex gap-3 mb-6">
+      <!-- GOOGLE BUTTON-->
+      <button 
+        onclick="signInWithGoogle()"
+        class="flex-1 flex items-center justify-center gap-2 border border-gray-300 hover:bg-gray-50 transition rounded-lg py-2 px-4"
+      >
+        <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" class="h-5" alt="Google">
+        <span class="text-sm font-medium">Google</span>
+      </button>
+      
+      <!-- FACEBOOK BUTTON-->
+      <button 
+        onclick="signInWithFacebook()"
+        class="flex-1 flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white transition rounded-lg py-2 px-4"
+      >
+        <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
+          <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+        </svg>
+        <span class="text-sm font-medium">Facebook</span>
+      </button>
+    </div>
+    
+    <!-- SIGN IN LINK -->
+    <p class="text-gray-600 text-sm">
+  Already have an account? 
+  <button onclick="closeSignupModal(); openLoginModal();" class="text-yellow-500 font-medium">Log In</button>
+</p>
+  </div>
+</div>
+
+  <!-- FOOTER -->
+ <footer class="bg-white text-black py-10 border-t border-black-300">
+  <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center px-8 space-y-8 md:space-y-0">
+
+    <!-- LEFT: LOGO & COPYRIGHT -->
+    <div class="flex flex-col items-center md:items-start text-center md:text-left">
+      <div class="flex items-center mb-2">
+        <img src="Assets/dinadrawing-logo.png" alt="Logo" class="h-10 w-auto mr-2">
+        <span class="font-semibold text-lg">DiNaDrawing</span>
+      </div>
+      <p class="text-sm text-black-600">Copyright © 2025</p>
+    </div>
+
+    <!-- CENTER: LINKS -->
+    <div class="flex flex-col items-center space-y-2 text-sm font-medium">
+      <div class="space-x-6">
+        <a href="#" class="hover:text-yellow-500 transition">Home</a>
+        <a href="#features" class="hover:text-yellow-500 transition">Features</a>
+        <a href="#support" class="hover:text-yellow-500 transition">Support</a>
+        <a href="#faq" class="hover:text-yellow-500 transition">FAQs</a>
+      </div>
+      <div class="space-x-6">
+        <a href="#contact" class="hover:text-yellow-500 transition">Contact Us</a>
+        <a href="#" class="hover:text-yellow-500 transition">Privacy Policy</a>
+        <a href="#" class="hover:text-yellow-500 transition">Cookies</a>
+      </div>
+    </div>
+
+    <!-- RIGHT: SOCIAL ICONS -->
+    <div class="flex space-x-6 text-xl text-black-700">
+  <!-- FACEBOOK -->
+  <a href="#" class="hover:text-yellow-500 transition [&>svg]:h-6 [&>svg]:w-6">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512" fill="currentColor">
+      <path d="M80 299.3V512H196V299.3h86.5l18-97.8H196V166.9c0-51.7 20.3-71.5 72.7-71.5c16.3 0 29.4 .4 37 1.2V7.9C291.4 4 256.4 0 236.2 0C129.3 0 80 50.5 80 159.4v42.1H14v97.8H80z" />
+    </svg>
+  </a>
+  
+  <!-- INSTAGRAM -->
+  <a href="#" class="hover:text-yellow-500 transition [&>svg]:h-6 [&>svg]:w-6">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" fill="currentColor">
+      <path d="M224.1 141c-63.6 0-114.9 51.3-114.9 114.9s51.3 114.9 114.9 114.9S339 319.5 339 255.9 287.7 141 224.1 141zm0 189.6c-41.1 0-74.7-33.5-74.7-74.7s33.5-74.7 74.7-74.7 74.7 33.5 74.7 74.7-33.6 74.7-74.7 74.7zm146.4-194.3c0 14.9-12 26.8-26.8 26.8-14.9 0-26.8-12-26.8-26.8s12-26.8 26.8-26.8 26.8 12 26.8 26.8zm76.1 27.2c-1.7-35.9-9.9-67.7-36.2-93.9-26.2-26.2-58-34.4-93.9-36.2-37-2.1-147.9-2.1-184.9 0-35.8 1.7-67.6 9.9-93.9 36.1s-34.4 58-36.2 93.9c-2.1 37-2.1 147.9 0 184.9 1.7 35.9 9.9 67.7 36.2 93.9s58 34.4 93.9 36.2c37 2.1 147.9 2.1 184.9 0 35.9-1.7 67.7-9.9 93.9-36.2 26.2-26.2 34.4-58 36.2-93.9 2.1-37 2.1-147.8 0-184.8zM398.8 388c-7.8 19.6-22.9 34.7-42.6 42.6-29.5 11.7-99.5 9-132.1 9s-102.7 2.6-132.1-9c-19.6-7.8-34.7-22.9-42.6-42.6-11.7-29.5-9-99.5-9-132.1s-2.6-102.7 9-132.1c7.8-19.6 22.9-34.7 42.6-42.6 29.5-11.7 99.5-9 132.1-9s102.7-2.6 132.1 9c19.6 7.8 34.7 22.9 42.6 42.6 11.7 29.5 9 99.5 9 132.1s2.7 102.7-9 132.1z" />
+    </svg>
+  </a>
+  
+  <!-- TIKTOK -->
+  <a href="#" class="hover:text-yellow-500 transition [&>svg]:h-6 [&>svg]:w-6">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" fill="currentColor">
+      <path d="M448 209.9a210.1 210.1 0 0 1 -122.8-39.3V349.4A162.6 162.6 0 1 1 185 188.3V278.2a74.6 74.6 0 1 0 52.2 71.2V0l88 0a121.2 121.2 0 0 0 1.9 22.2h0A122.2 122.2 0 0 0 381 102.4a121.4 121.4 0 0 0 67 20.1z" />
+    </svg>
+  </a>
+</div>
+</div>
+</footer>
+
+<!-- SCRIPT -->
+<script>
+  // API Configuration
+  const API_BASE = '/DINADRAWING/backend/api';
+  let currentUser = null;
+
+  // Enhanced Email Login Function
+  async function signInWithEmail() {
+      const email = document.getElementById('loginEmail').value;
+      const password = document.getElementById('loginPassword').value;
+
+      if (!email || !password) {
+          alert("Please enter both email and password");
+          return;
+      }
+
+      try {
+          const response = await fetch(`${API_BASE}/DINADRAWING/Backend/api/auth.php`, {
+              method: 'POST',
+              headers: {
+                  'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                  email: email,
+                  password: password
+              })
+          });
+
+          const result = await response.json();
+
+          if (result.success) {
+              currentUser = result.user;
+              localStorage.setItem('currentUser', JSON.stringify(currentUser));
+              
+              alert(`Welcome back, ${result.user.name}!`);
+              closeLoginModal();
+              
+              setTimeout(() => {
+                  window.location.href = "dashboard.html";
+              }, 1000);
+          } else {
+              alert(result.message || "Login failed. Please try again.");
+          }
+      } catch (error) {
+          console.error('Login error:', error);
+          alert("Network error. Please check your connection.");
+      }
+  }
+
+  // Enhanced Email Signup Function
+  async function signUpWithEmail() {
+      const name = document.getElementById('signupName').value;
+      const email = document.getElementById('signupEmail').value;
+      const password = document.getElementById('signupPassword').value;
+
+      if (!name || !email || !password) {
+          alert("Please fill in all required fields");
+          return;
+      }
+
+      if (password.length < 8) {
+          alert("Password must be at least 8 characters");
+          return;
+      }
+
+      try {
+          const response = await fetch(`${API_BASE}/register.php`, {
+              method: 'POST',
+              headers: {
+                  'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                  name: name,
+                  email: email,
+                  password: password
+              })
+          });
+
+          const result = await response.json();
+
+          if (result.success) {
+              currentUser = result.user;
+              localStorage.setItem('currentUser', JSON.stringify(currentUser));
+              
+              alert(`Welcome to DiNaDrawing, ${result.user.name}!`);
+              closeSignupModal();
+              
+              setTimeout(() => {
+                  window.location.href = "dashboard.html";
+              }, 1000);
+          } else {
+              alert(result.message || "Registration failed. Please try again.");
+          }
+      } catch (error) {
+          console.error('Registration error:', error);
+          alert("Network error. Please check your connection.");
+      }
+  }
+
+  // Check if user is already logged in
+  function checkAuthStatus() {
+      const savedUser = localStorage.getItem('currentUser');
+      if (savedUser) {
+          currentUser = JSON.parse(savedUser);
+          // Update UI to show user is logged in
+          const loginBtn = document.getElementById('loginBtn');
+          if (loginBtn) {
+              loginBtn.textContent = `Hi, ${currentUser.name}`;
+              loginBtn.onclick = () => {
+                  window.location.href = "dashboard.html";
+              };
+          }
+      }
+  }
+
+  // Logout function
+  function logout() {
+      localStorage.removeItem('currentUser');
+      currentUser = null;
+      window.location.href = "index.html";
+  }
+
+  // Check authentication status when page loads
+  document.addEventListener('DOMContentLoaded', checkAuthStatus);
+
+  // PAGE FADE-IN
+  window.addEventListener("load", () => {
+    document.body.classList.add("loaded");
+  });
+
+  // SCROLL FADE FOR ELEMENTS
+  const observer = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add("visible");
+        } else {
+          entry.target.classList.remove("visible");
+        }
+      });
+    },
+    { threshold: 0.2 }
+  );
+  document.querySelectorAll(".fade-card").forEach((el) => observer.observe(el));
+
+  // MODAL CONTROLS
+  function openLoginModal() {
+    document.getElementById("loginModal").classList.remove("hidden");
+  }
+  
+  function closeLoginModal() {
+    document.getElementById("loginModal").classList.add("hidden");
+  }
+
+  // FACEBOOK TEMPORARY LOGIN
+  function signInWithFacebook() {
+    closeLoginModal();
+    console.log("Redirecting to dashboard...");
+    setTimeout(() => {
+      window.location.href = "dashboard.html";
+    }, 1000);
+  }
+
+  // BACKGROUND FADE-IN EFFECT
+  window.addEventListener('scroll', () => {
+    const bg = document.querySelector('.bg-cover');
+    const scrollY = window.scrollY;
+    bg.style.opacity = 1 - scrollY / 600;
+  });
+
+  // SIMPLE LOADING SCREEN THAT WILL WORK
+  console.log('Script started - loading screen should hide in 3 seconds');
+  
+  // HIDE LOADING SCREEN
+  setTimeout(function() {
+    const loadingScreen = document.getElementById('loadingScreen');
+    console.log('Attempting to hide loading screen...');
+    
+    if (loadingScreen) {
+      console.log('Loading screen found, hiding it now');
+      loadingScreen.style.opacity = '0';
+      
+      // REMOVE COMPLETELY AFTER FADE-OUT
+      setTimeout(function() {
+        loadingScreen.style.display = 'none';
+        console.log('Loading screen hidden successfully!');
+      }, 500);
+    } else {
+      console.error('Loading screen element not found!');
+    }
+  }, 3000);
+
+// SIGNUP MODAL
+function openSignupModal() {
+  document.getElementById("signupModal").classList.remove("hidden");
+}
+
+function closeSignupModal() {
+  document.getElementById("signupModal").classList.add("hidden");
+}
+
+  // BACKGROUND FADE EFFECT
+  window.addEventListener('scroll', function() {
+    const bg = document.querySelector('.bg-cover');
+    if (bg) {
+      const scrollY = window.scrollY;
+      bg.style.opacity = 1 - scrollY / 600;
+    }
+  });
+  console.log('All functions defined, waiting for timeout...');
+</script>
+
+</body>
+</html>

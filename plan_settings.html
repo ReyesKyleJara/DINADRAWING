@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ongoing Plans | DiNaDrawing</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.css" rel="stylesheet">
+<style>
+      body { font-family: 'Poppins', sans-serif; background-color: #fffaf2; }
+    #postInput:empty::before { content: attr(data-placeholder); color: #9ca3af; pointer-events: none; }
+    #cropImage { max-width: 100%; display: block; }
+
+    /* EDIT BANNER MODAL UI */
+    .edit-modal-grid {
+      --swatch-size: 36px;
+      display: grid;
+      grid-template-columns: repeat(6, var(--swatch-size));
+      gap: 10px;
+      justify-content: center;
+      align-items: center;
+    }
+    .gradient-circle, .color-picker-circle {
+      width: var(--swatch-size); height: var(--swatch-size); border-radius: 9999px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.12);
+      border: 2px solid rgba(255,255,255,0.75);
+      display:flex; align-items:center; justify-content:center; cursor:pointer; overflow:hidden;
+      transition: transform .12s ease;
+    }
+    .gradient-circle:hover, .color-picker-circle:hover { transform: scale(1.06); }
+    .edit-modal { max-width: 520px; width: 92%; }
+    #colorPicker {
+      appearance: none; width: var(--swatch-size); height: var(--swatch-size); border-radius: 9999px;
+      border: 2px solid rgba(255,255,255,0.75); padding: 0; cursor: pointer; background: transparent;
+    }
+    #colorPicker::-webkit-color-swatch { border: none; border-radius: 9999px; }
+    #colorPicker::-moz-color-swatch { border: none; border-radius: 9999px; }
+    .crop-aspect { aspect-ratio: 21/9; }
+
+    /* SCROLLBAR STYLING + UTILITIES */
+    html, body { scrollbar-gutter: stable; }
+    * { scrollbar-width: thin; scrollbar-color: #f4b41a transparent; }
+    *::-webkit-scrollbar { width: 8px; height: 8px; }
+    *::-webkit-scrollbar-track { background: transparent; }
+    *::-webkit-scrollbar-thumb { background-color: #f4b41a; border-radius: 9999px; border: 2px solid transparent; background-clip: padding-box; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+
+    /* NEW COLOR PICKER POPOVER STYLES*/
+    .swatch-popover {
+      position: absolute;
+      top: calc(var(--swatch-size) + 8px);
+      left: 50%;
+      transform: translateX(-50%);
+      background: #fff;
+      border: 1px solid #e5e7eb;
+      border-radius: 10px;
+      padding: 8px;
+      box-shadow: 0 10px 20px rgba(0,0,0,.12);
+      z-index: 20;
+    }
+    .picker-donut {
+      position: relative;
+      background: conic-gradient(red, yellow, lime, cyan, blue, magenta, red);
+    }
+    .picker-donut::after {
+      content: "";
+      position: absolute;
+      inset: 25%;
+      background: white;
+      border-radius: 9999px;
+      box-shadow: inset 0 0 0 2px rgba(0,0,0,0.06);
+    }
+  </style>
+</head>
+<body class="flex bg-[#fffaf2]">
+
+<!-- SIDEBAR -->
+<aside id="sidebar"
+class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
+       bg-[#f4b41a] rounded-tr-3xl
+       p-6 shadow
+       hidden md:flex md:flex-col md:gap-6">
+
+  <!-- HEADER -->
+  <div class="flex items-center gap-2">
+    <img src="Assets/dinadrawing-logo.png" alt="Logo" class="w-14">
+    <h2 class="text-xl font-bold text-[#222]">DiNaDrawing</h2>
+  </div>
+
+  <!-- NAVIGATIONS -->
+  <nav>
+    <ul class="space-y-5">
+      <li><a href="dashboard.html" class="block px-4 py-2 rounded-lg font-medium text-[#222] hover:bg-[#222] hover:text-white transition">Home</a></li>
+      <li><a href="myplans.html" class="block px-4 py-2 rounded-lg font-medium text-[#222] hover:bg-[#222] hover:text-white transition">My Plans</a></li>
+      <li><a href="help.html" class="block px-4 py-2 rounded-lg font-medium text-[#222] hover:bg-[#222] hover:text-white transition">Help</a></li>
+      <li><a href="settings.html" class="block px-4 py-2 rounded-lg font-medium text-[#222] hover:bg-[#222] hover:text-white transition">Settings</a></li>
+    </ul>
+  </nav>
+</aside>
+
+<!-- MAIN CONTENT -->
+  <main class="ml-0 md:ml-64 flex-1 min-h-screen px-12 py-10 lg:mr-[23rem] lg:pr-4">
+    <div
+      class="fixed top-0 left-0 md:left-64 right-0 lg:right-[23rem] h-10 bg-[#fffaf2] z-30 pointer-events-none"
+      aria-hidden="true"
+    ></div>
+    <div class="flex-1 w-full min-w-0">
+
+      <!-- STICKY HEADER -->
+      <div id="stickyHeader" class="sticky top-10 z-50 bg-[#fffaf2]">
+
+        <!-- PLAN BANNER -->
+        <div
+          id="planBanner"
+          class="group relative rounded-2xl px-8 font-bold text-3xl mb-3 shadow w-full overflow-hidden transition-colors duration-300 bg-cover bg-center py-20 lg:py-24 min-h-[12rem]"
+          style="background: linear-gradient(to right, #3b82f6, #9333ea); color: #fff;"
+        >
+          <a href="myplans.html"
+             class="absolute top-5 left-8 inline-flex items-center justify-center w-8 h-8 rounded-lg hover:bg-white/30 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#f4b41a]"
+             style="color: inherit;"
+             aria-label="Back to My Plans">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+                 class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2"
+                 stroke-linecap="round" stroke-linejoin="round">
+              <path d="M15 18l-6-6 6-6"/>
+            </svg>
+          </a>
+          <span id="bannerText" class="absolute bottom-5 left-8">Dagat naaa!</span>
+          <button
+            id="editBannerBtn"
+            class="absolute top-5 right-5 z-10 bg-white/90 text-[#222] px-3 py-1.5 rounded-lg text-sm font-semibold opacity-0 group-hover:opacity-100 transition pointer-events-auto"
+          >
+            Edit Banner
+          </button>
+          <div id="bannerMenu" class="absolute top-14 right-5 bg-white shadow-lg rounded-lg w-44 p-2 space-y-1 hidden z-50">
+            <button id="uploadImageBtn" class="w-full text-left px-3 py-2 rounded hover:bg-gray-100 text-sm font-medium">Upload Image</button>
+          </div>
+          <input type="file" id="bannerImageUpload" accept="image/*" class="hidden" />
+        </div>
+
+      <!-- PLAN TABS -->
+      <div class="flex bg-white rounded-lg shadow p-0.5 mb-2 w-full">
+        <a href="plan_feed.html" class="flex-1 text-gray-600 font-medium py-2 text-center hover:text-[#222] hover:bg-gray-100 rounded-lg">Feed</a>
+        <a href="plan_budget.html" class="flex-1 text-gray-600 font-medium py-2 text-center hover:text-[#222] hover:bg-gray-100 rounded-lg">Budget</a>
+        <a href="plan_settings.html" class="flex-1 bg-[#f4b41a] text-[#222] font-semibold py-2 text-center rounded-lg">Settings</a>
+      </div>
+    </div>
+
+      <!-- SETTINGS PANEL -->
+      <section id="settingsPanel" class="bg-white p-6 rounded-2xl shadow">
+
+        <!-- EVENT DETAILS -->
+         <h3 class="text-xl font-semibold mb-4">Event Details</h3>
+        <div class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium">Event name</label>
+            <input id="eventName" type="text" value="Dagat naaa!" class="w-full border rounded-lg p-2 focus:ring focus:ring-blue-200">
+          </div>
+
+          <!-- EVENT DESCRIPTION -->
+          <div>
+            <label class="block text-sm font-medium">Event description</label>
+            <textarea id="eventDesc" rows="3" placeholder="Type your event description..." maxlength="270" class="w-full border rounded-lg p-2 focus:ring focus:ring-blue-200"></textarea>
+          </div>
+
+          <!-- EVENT DATE & TIME -->
+          <div>
+            <label class="block text-sm font-medium">Event date & time</label>
+            <input id="eventDate" type="datetime-local" class="w-full border rounded-lg p-2 focus:ring focus:ring-blue-200">
+          </div>
+
+          <!-- EVENT PLACE -->
+          <div>
+            <label class="block text-sm font-medium">Event place</label>
+            <input id="eventPlace" type="text" placeholder="Saan ba kasi?" class="w-full border rounded-lg p-2 focus:ring focus:ring-blue-200">
+          </div>
+        </div>
+
+        <hr class="my-6">
+
+        <!-- EVENT VISIBILITY & PRIVACY -->
+        <h3 class="text-xl font-semibold mb-3">Event Visibility & Privacy</h3>
+        <div class="space-y-4">
+          <label class="flex items-center space-x-2">
+            <input id="allowInvites" type="checkbox" class="w-5 h-5 text-blue-600 rounded focus:ring-blue-400">
+            <span>Allow members to invite others</span>
+          </label>
+
+          <div>
+            <label class="block text-sm font-medium mb-1">Event visibility</label>
+            <select id="visibility" class="w-full border rounded-lg p-2 focus:ring focus:ring-blue-200">
+              <option value="public">Public (anyone can view)</option>
+              <option value="private">Private (members only)</option>
+              <option value="invite-only">Invite-only (only invited can access)</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium mb-1">Who can edit event details?</label>
+            <select id="editPermission" class="w-full border rounded-lg p-2 focus:ring focus:ring-blue-200">
+              <option value="owner">Only event creator</option>
+              <option value="admins">Admins only</option>
+              <option value="members">All members</option>
+            </select>
+          </div>
+        </div>
+        <button id="saveBtn" class="mt-6 bg-[#F4B63F] px-6 py-2 rounded-lg font-semibold hover:bg-yellow-400">
+          Save Changes
+        </button>
+        <div class="mt-8 border border-red-200 bg-red-50 rounded-xl p-4">
+          <h4 class="font-semibold text-red-700 mb-3">Danger zone</h4>
+          <div class="flex flex-col sm:flex-row gap-3">
+            <button id="leaveEventBtn" class="px-4 py-2 rounded-lg border border-red-300 text-red-700 hover:bg-red-100 transition">
+              Leave Event
+            </button>
+            <button id="deleteEventBtn" class="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 transition sm:ml-auto">
+              Delete Event
+            </button>
+          </div>
+          <p class="text-xs text-red-600 mt-2">Deleting removes all data. This action cannot be undone.</p>
+        </div>
+      </section>
+    </div>
+
+<!-- RIGHT SIDEBAR -->
+    <aside class="hidden lg:flex fixed top-10 right-12 bottom-4 w-80 flex-col space-y-4 z-40 overflow-y-auto no-scrollbar">
+      
+      <!-- MEMBERS -->
+      <div id="membersCard" class="bg-white p-4 rounded-lg shadow">
+        <h3 class="font-semibold mb-2">Members (9)</h3>
+        <div class="grid grid-cols-5 gap-2 mb-3">
+          <img src="Assets/Profile Icon/profile.png" class="w-8 h-8 rounded-full border" alt="">
+          <img src="Assets/Profile Icon/profile2.png" class="w-8 h-8 rounded-full border" alt="">
+          <img src="Assets/Profile Icon/profile3.png" class="w-8 h-8 rounded-full border" alt="">
+          <img src="Assets/Profile Icon/profile4.png" class="w-8 h-8 rounded-full border" alt="">
+          <img src="Assets/Profile Icon/profile5.png" class="w-8 h-8 rounded-full border" alt="">
+          <img src="Assets/Profile Icon/profile6.png" class="w-8 h-8 rounded-full border" alt="">
+          <img src="Assets/Profile Icon/profile7.png" class="w-8 h-8 rounded-full border" alt="">
+          <img src="Assets/Profile Icon/profile8.png" class="w-8 h-8 rounded-full border" alt="">
+          <img src="Assets/Profile Icon/profile.png" class="w-8 h-8 rounded-full border" alt="">
+          <span class="w-8 h-8 flex items-center justify-center rounded-full bg-gray-200 text-sm font-medium">+2</span>
+        </div>
+        <button onclick="openInvite()" class="w-full bg-[#f4b41a] text-[#222] py-2 rounded-lg font-medium hover:bg-[#e3a918] transition">
+          Invite People
+        </button>
+      </div>
+
+      <!-- PINNED -->
+      <div class="bg-white p-4 rounded-lg shadow">
+        <h3 class="font-semibold mb-2 flex items-center gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-black" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M14 2l-1 1-5 5-4 1 6 6-5 5 1 1 5-5 6 6 1-4 5-5 1-1-10-10z" />
+          </svg>
+          Pinned
+        </h3>
+        <p class="text-sm text-gray-500">No pinned items yet.</p>
+      </div>
+    </aside>
+  </main>
+
+  <!-- INVITE PEOPLE MODAL -->
+  <div id="inviteModal" class="fixed inset-0 bg-black/40 hidden items-center justify-center z-[60]">
+    <div class="bg-white w-96 rounded-xl shadow-lg p-6 relative">
+      <h2 class="text-lg font-semibold mb-3">Invite People</h2>
+      <button onclick="closeInvite()" class="absolute top-3 right-3 text-gray-500 hover:text-black">✕</button>
+      <p class="text-sm text-gray-600 mb-3">Share this link with your friends to invite them to this plan:</p>
+
+      <!-- GENERATE LINK -->
+      <div class="flex items-center justify-between bg-gray-100 rounded-lg px-3 py-2 mb-3 border border-gray-300">
+        <input id="inviteLink" type="text" readonly class="bg-transparent text-sm w-full focus:outline-none" value="" />
+        <button onclick="copyLink()" class="ml-2 text-[#f4b41a] font-medium hover:underline">Copy</button>
+      </div>
+
+      <button onclick="generateLink()" class="w-full bg-[#f4b41a] text-[#222] py-2 rounded-lg font-medium hover:bg-[#e3a918] transition">Generate New Link</button>
+    </div>
+  </div>
+
+  <!-- ADD: EDIT BANNER MODAL -->
+  <div id="editBannerModal" class="fixed inset-0 bg-black/40 hidden items-center justify-center z-[60]">
+    <div class="edit-modal bg-white rounded-2xl shadow-xl p-5 relative">
+      <button id="closeEditModal" class="absolute top-3 right-3 text-gray-500 hover:text-black">✕</button>
+
+      <h3 class="text-lg font-semibold">Customize Banner</h3>
+      <p class="text-sm text-gray-500 mb-4">Choose a color or upload an image for your banner</p>
+
+      <p class="text-sm font-medium mb-2">Colors</p>
+      <div id="colorSwatches" class="edit-modal-grid mb-4 relative"></div>
+
+      <p class="text-sm font-medium mb-2">Image</p>
+      <button id="uploadIconBtn" class="px-3 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 text-sm mb-4">Upload image</button>
+
+      <p class="text-sm font-medium mb-2">Preview</p>
+      <div id="bannerPreview" class="crop-aspect w-full rounded-lg overflow-hidden border border-gray-200 bg-gray-100 mb-4 flex items-end">
+        <span class="m-3 text-white font-semibold drop-shadow">Banner preview</span>
+      </div>
+
+      <div class="flex justify-end gap-2">
+        <button id="applyBannerBtn" class="px-4 py-2 rounded-lg bg-[#f4b41a] text-[#222] text-sm font-medium hover:bg-[#e3a918]">Apply</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ADD: CROP MODAL -->
+  <div id="cropModal" class="fixed inset-0 bg-black/40 hidden items-center justify-center z-[70]">
+    <div class="bg-white rounded-2xl shadow-xl p-5 w-[min(90vw,820px)]">
+      <h3 class="text-lg font-semibold mb-3">Crop Banner</h3>
+      <div class="crop-aspect bg-gray-100 rounded-lg overflow-hidden">
+        <img id="cropImage" alt="To crop" />
+      </div>
+      <div class="flex justify-end gap-2 mt-4">
+        <button onclick="closeCropModal()" class="px-4 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 text-sm">Cancel</button>
+        <button id="applyCropBtn" class="px-4 py-2 rounded-lg bg-[#f4b41a] text-[#222] text-sm font-medium hover:bg-[#e3a918]">Done</button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- ADD: EDIT BANNER MODAL -->
+  <div id="editBannerModal" class="fixed inset-0 bg-black/40 hidden items-center justify-center z-[60]">
+    <div class="edit-modal bg-white rounded-2xl shadow-xl p-5 relative">
+      <button id="closeEditModal" class="absolute top-3 right-3 text-gray-500 hover:text-black">✕</button>
+
+      <h3 class="text-lg font-semibold">Customize Banner</h3>
+      <p class="text-sm text-gray-500 mb-4">Choose a color or upload an image for your banner</p>
+
+      <p class="text-sm font-medium mb-2">Colors</p>
+      <div id="colorSwatches" class="edit-modal-grid mb-4 relative"></div>
+
+      <p class="text-sm font-medium mb-2">Image</p>
+      <button id="uploadIconBtn" class="px-3 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 text-sm mb-4">Upload image</button>
+
+      <p class="text-sm font-medium mb-2">Preview</p>
+      <div id="bannerPreview" class="crop-aspect w-full rounded-lg overflow-hidden border border-gray-200 bg-gray-100 mb-4 flex items-end">
+        <span class="m-3 text-white font-semibold drop-shadow">Banner preview</span>
+      </div>
+
+      <div class="flex justify-end gap-2">
+        <button id="applyBannerBtn" class="px-4 py-2 rounded-lg bg-[#f4b41a] text-[#222] text-sm font-medium hover:bg-[#e3a918]">Apply</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ADD: CROP MODAL -->
+  <div id="cropModal" class="fixed inset-0 bg-black/40 hidden items-center justify-center z-[70]">
+    <div class="bg-white rounded-2xl shadow-xl p-5 w-[min(90vw,820px)]">
+      <h3 class="text-lg font-semibold mb-3">Crop Banner</h3>
+      <div class="crop-aspect bg-gray-100 rounded-lg overflow-hidden">
+        <img id="cropImage" alt="To crop" />
+      </div>
+      <div class="flex justify-end gap-2 mt-4">
+        <button onclick="closeCropModal()" class="px-4 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 text-sm">Cancel</button>
+        <button id="applyCropBtn" class="px-4 py-2 rounded-lg bg-[#f4b41a] text-[#222] text-sm font-medium hover:bg-[#e3a918]">Done</button>
+      </div>
+    </div>
+  </div>
+
+<!-- SCRIPTS -->
+  <script src="https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.js"></script>
+
+      <script>
+    // BANNER
+    const banner = document.getElementById('planBanner');
+    const bannerText = document.getElementById('bannerText');
+    const editBannerBtn = document.getElementById('editBannerBtn');
+    const bannerMenu = document.getElementById('bannerMenu');
+    const bannerImageUpload = document.getElementById('bannerImageUpload');
+    const resetBannerBtn = document.getElementById('resetBannerBtn');
+
+    // MODAL ELEMENTS
+    const editBannerModal = document.getElementById('editBannerModal');
+    const closeEditModal = document.getElementById('closeEditModal');
+    const colorSwatches = document.getElementById('colorSwatches');
+    const uploadIconBtn = document.getElementById('uploadIconBtn');
+    const bannerPreview = document.getElementById('bannerPreview');
+    const applyBannerBtn = document.getElementById('applyBannerBtn');
+
+    // MODAL HELPERS
+    function initBannerPreviewFromCurrent() {
+      if (!banner || !bannerPreview) return;
+      const cs = getComputedStyle(banner);
+      const bgImg = cs.backgroundImage;
+      const bgCol = cs.backgroundColor;
+      if (bgImg && bgImg !== 'none') {
+        pending.type = 'image';
+        pending.image = bgImg;
+        pending.hex = null;
+        pending.gradient = null;
+        bannerPreview.style.backgroundImage = bgImg;
+        bannerPreview.style.background = '';
+      } else {
+        pending.type = 'color';
+        pending.hex = bgCol && bgCol !== 'rgba(0, 0, 0, 0)' ? bgCol : DEFAULT_SOLID;
+        pending.image = null;
+        pending.gradient = null;
+        bannerPreview.style.backgroundImage = '';
+        bannerPreview.style.background = pending.hex;
+      }
+      bannerPreview.style.backgroundSize = 'cover';
+      bannerPreview.style.backgroundPosition = 'center';
+    }
+    function openEditModal() {
+      if (!editBannerModal) return;
+      editBannerModal.classList.remove('hidden');
+      editBannerModal.classList.add('flex');
+      initBannerPreviewFromCurrent();
+    }
+    function closeEditModalIfOpen() {
+      if (!editBannerModal) return;
+      editBannerModal.classList.add('hidden');
+      editBannerModal.classList.remove('flex');
+    }
+    function closeCropModal() {
+      if (!cropModal) return;
+      cropModal.classList.add('hidden');
+      cropModal.classList.remove('flex');
+      if (cropper) { cropper.destroy(); cropper = null; }
+    }
+
+    // PENDING SELECTION STATE FOR MODAL
+    const pending = { type: 'color', hex: '#3b82f6', image: null };
+
+    // CROPPER MODAL
+    let cropper;
+    const cropModal = document.getElementById('cropModal');
+    const cropImage = document.getElementById('cropImage');
+    const applyCropBtn = document.getElementById('applyCropBtn');
+
+    // DEFAULT ONLY IF NOTHING SET INLINE
+    const DEFAULT_SOLID = '#3b82f6';
+    (function ensureBannerHasBackground() {
+      const cs0 = getComputedStyle(banner);
+      const noImg = !cs0.backgroundImage || cs0.backgroundImage === 'none';
+      const noCol = !cs0.backgroundColor || cs0.backgroundColor === 'rgba(0, 0, 0, 0)';
+      if (noImg && noCol) {
+        banner.style.background = DEFAULT_SOLID;
+        banner.style.backgroundSize = 'cover';
+        banner.style.backgroundPosition = 'center';
+        banner.style.color = '#fff';
+      }
+    })();
+
+    // HELPERS
+    function hexToRgb(hex) {
+      const h = hex.replace('#',''); const n = parseInt(h,16);
+      if (h.length === 6) return { r:(n>>16)&255, g:(n>>8)&255, b:n&255 };
+      if (h.length === 3) return { r:parseInt(h[0]+h[0],16), g:parseInt(h[1]+h[1],16), b:parseInt(h[2]+h[2],16) };
+      return { r:0,g:0,b:0 };
+    }
+    function getBrightnessFromRgb({r,g,b}) { return (r*299+g*587+b*114)/1000; }
+    function setTextColorForHex(hex) { banner.style.color = getBrightnessFromRgb(hexToRgb(hex)) < 140 ? '#fff' : '#222'; }
+    function setTextColorForGradient(fromHex,toHex){
+      const a=hexToRgb(fromHex), b=hexToRgb(toHex);
+      const avg={r:((a.r+b.r)/2)|0, g:((a.g+b.g)/2)|0, b:((a.b+b.b)/2)|0};
+      banner.style.color = getBrightnessFromRgb(avg) < 140 ? '#fff' : '#222';
+    }
+
+    // CLOSE SMALL MENU ON OUTSIDE CLICK
+    document.addEventListener('click', (e) => { if (banner && !banner.contains(e.target)) bannerMenu.classList.add('hidden'); });
+    // OPEN MODAL FROM EDIT BUTTON
+    editBannerBtn?.addEventListener('click', (e) => { e.stopPropagation(); openEditModal(); });
+
+    // PRESETS
+    const gradients = [
+      { name: "Ocean Breeze", from: "#00c6ff", to: "#0072ff" },
+      { name: "Sunset Glow", from: "#ff7e5f", to: "#feb47b" },
+      { name: "Royal Purple", from: "#8360c3", to: "#2ebf91" },
+      { name: "Pink Dream", from: "#ff9a9e", to: "#fad0c4" },
+      { name: "Mango Fiesta", from: "#f9d423", to: "#ff4e50" },
+      { name: "Aqua Chill", from: "#13547a", to: "#80d0c7" },
+      { name: "Midnight Sky", from: "#2c3e50", to: "#4ca1af" },
+      { name: "Lush Meadow", from: "#56ab2f", to: "#a8e063" },
+      { name: "Berry Punch", from: "#ff416c", to: "#ff4b2b" },
+      { name: "Cosmic Violet", from: "#8e2de2", to: "#4a00e0" },
+      { name: "Aurora Mist", from: "#f7971e", to: "#ffd200" },
+      { name: "Minty Sky", from: "#83a4d4", to: "#b6fbff" }
+    ];
+    const solidColors = [
+      '#222222','#000000','#ffffff','#f4b41a','#ef4444',
+      '#22c55e','#06b6d4','#3b82f6','#8b5cf6','#94a3b8',
+      '#10b981'
+    ];
+
+     // UNIFIED GRID
+    if (colorSwatches) {
+      const wrap = document.createElement('div');
+      wrap.style.width = 'var(--swatch-size)';
+      wrap.style.height = 'var(--swatch-size)';
+      wrap.style.position = 'relative';
+
+      const pickerBtn = document.createElement('button');
+      pickerBtn.className = 'color-picker-circle picker-donut';
+      pickerBtn.title = 'Custom color';
+      wrap.appendChild(pickerBtn);
+
+      const pop = document.createElement('div');
+      pop.className = 'swatch-popover hidden';
+      pop.innerHTML = `<input id="inlinePicker" type="color" value="#3b82f6" style="width: 160px; height: 36px; border: 0; background: transparent; padding: 0;"/>`;
+      wrap.appendChild(pop);
+      colorSwatches.appendChild(wrap);
+
+      const inlinePicker = pop.querySelector('#inlinePicker');
+
+      function hidePop() { pop.classList.add('hidden'); }
+      function showPop() { pop.classList.remove('hidden'); inlinePicker?.focus(); }
+
+      pickerBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        pop.classList.toggle('hidden');
+      });
+      document.addEventListener('click', (e) => {
+        if (!pop.contains(e.target) && e.target !== pickerBtn) hidePop();
+      });
+
+      inlinePicker?.addEventListener('input', () => {
+        const hex = inlinePicker.value;
+        pending.type = 'color';
+        pending.hex = hex;
+        pending.image = null;
+        pending.gradient = null;
+        if (bannerPreview) {
+          bannerPreview.style.backgroundImage = '';
+          bannerPreview.style.background = hex;
+          bannerPreview.style.backgroundSize = 'cover';
+          bannerPreview.style.backgroundPosition = 'center';
+        }
+      });
+      inlinePicker?.addEventListener('change', hidePop);
+
+      solidColors.slice(0,12).forEach((hex) => {
+        const sw = document.createElement('button');
+        sw.className = 'color-picker-circle';
+        sw.title = hex;
+        sw.style.background = hex;
+        sw.addEventListener('click', () => {
+          pending.type = 'color';
+          pending.hex = hex;
+          pending.image = null;
+          pending.gradient = null;
+          if (bannerPreview) {
+            bannerPreview.style.backgroundImage = '';
+            bannerPreview.style.background = hex;
+            bannerPreview.style.backgroundSize = 'cover';
+            bannerPreview.style.backgroundPosition = 'center';
+          }
+          hidePop();
+        });
+        colorSwatches.appendChild(sw);
+      });
+
+      gradients.slice(0,12).forEach(g => {
+        const btn = document.createElement('button');
+        btn.className = 'gradient-circle';
+        btn.title = g.name;
+        btn.style.background = `linear-gradient(90deg, ${g.from}, ${g.to})`;
+        btn.addEventListener('click', () => {
+          pending.type = 'gradient';
+          pending.gradient = `linear-gradient(to right, ${g.from}, ${g.to})`;
+          pending.hex = null; pending.image = null; pending.from = g.from; pending.to = g.to;
+          if (bannerPreview) {
+            bannerPreview.style.backgroundImage = 'none';
+            bannerPreview.style.background = pending.gradient;
+            bannerPreview.style.backgroundSize = 'cover';
+            bannerPreview.style.backgroundPosition = 'center';
+          }
+          hidePop();
+        });
+        colorSwatches.appendChild(btn);
+      });
+    }
+
+    // CLOSE SMALL MENU ON OUTSIDE CLICK
+    document.addEventListener('click', (e) => { if (banner && !banner.contains(e.target)) bannerMenu.classList.add('hidden'); });
+    // OPEN MODAL FROM EDIT BUTTON
+    editBannerBtn?.addEventListener('click', (e) => { e.stopPropagation(); openEditModal(); });
+
+    // UPLOAD, CROP, PREVIEW
+    uploadIconBtn?.addEventListener('click', () => { bannerImageUpload?.click(); });
+
+    bannerImageUpload?.addEventListener('change', (e) => {
+      const file = e.target.files?.[0]; if (!file || !cropImage) return;
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        cropImage.src = ev.target.result;
+        cropModal.classList.remove('hidden'); cropModal.classList.add('flex');
+        if (cropper) cropper.destroy();
+        cropper = new Cropper(cropImage, { aspectRatio: 21/9, viewMode: 1, autoCropArea: 1, responsive: true, background: false, dragMode: 'move' });
+      };
+      reader.readAsDataURL(file);
+    });
+
+    applyCropBtn?.addEventListener('click', () => {
+      if (!cropper || !bannerPreview) return;
+      const canvas = cropper.getCroppedCanvas({ width: 2000, height: 800 });
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
+      pending.type = 'image';
+      pending.image = `url("${dataUrl}")`;
+
+     // LOAD DATAURL INTO IMAGE FIRST
+     const img = new Image();
+     img.onload = () => {
+       bannerPreview.style.backgroundImage = `url("${dataUrl}")`;
+       bannerPreview.style.backgroundColor = 'transparent';
+       bannerPreview.style.backgroundRepeat = 'no-repeat';
+       bannerPreview.style.backgroundSize = 'cover';
+       bannerPreview.style.backgroundPosition = 'center';
+       bannerPreview.style.minHeight = '120px';
+       bannerPreview.classList.remove('bg-gray-100');
+       const txt = bannerPreview.querySelector('span');
+       if (txt) txt.style.display = 'none';
+     };
+     img.onerror = () => showToast('Failed to generate preview');
+     img.src = dataUrl;
+      closeCropModal();
+    });
+    // WIRE MODAL CLOSE BEHAVIORS
+   closeEditModal?.addEventListener('click', closeEditModalIfOpen);
+   editBannerModal?.addEventListener('click', (e)=>{ if (e.target === editBannerModal) closeEditModalIfOpen(); });
+   document.addEventListener('keydown', (e)=>{ if (e.key === 'Escape') closeEditModalIfOpen(); });
+
+    // APPLY, WRITE PREVIEW TO THE BANNER; DONE, JUST CLOSE
+   applyBannerBtn?.addEventListener('click', () => {
+     if (!banner) return;
+     if (pending.type === 'image' && pending.image) {
+       banner.style.background = '';
+       banner.style.backgroundImage = pending.image;
+       banner.style.backgroundRepeat = 'no-repeat';
+       banner.style.backgroundSize = 'cover';
+       banner.style.backgroundPosition = 'center';
+       banner.style.color = '#fff';
+     } else if (pending.type === 'color' && pending.hex) {
+       banner.style.backgroundImage = 'none';
+       banner.style.background = pending.hex;
+       banner.style.backgroundSize = 'cover';
+       banner.style.backgroundPosition = 'center';
+       setTextColorForHex(pending.hex);
+     } else if (pending.type === 'gradient' && pending.gradient) {
+       banner.style.backgroundImage = 'none';
+       banner.style.background = pending.gradient;
+       banner.style.backgroundSize = 'cover';
+       banner.style.backgroundPosition = 'center';
+       if (pending.from && pending.to) setTextColorForGradient(pending.from, pending.to);
+       else banner.style.color = '#fff';
+     }
+     closeEditModalIfOpen();
+   });
+</script>
+
+<script>
+    // INVITE PEOPLE
+    const inviteModal = document.getElementById('inviteModal');
+    const inviteLinkInput = document.getElementById('inviteLink');
+
+    function openInvite() {
+      inviteModal?.classList.remove('hidden');
+      inviteModal?.classList.add('flex');
+      generateLink();
+    }
+
+    function closeInvite() {
+      inviteModal?.classList.add('hidden');
+      inviteModal?.classList.remove('flex');
+    }
+
+    function generateLink() {
+      const uniqueCode = Math.random().toString(36).substring(2, 10);
+      const inviteLink = `https://dinadrawing.com/invite/${uniqueCode}`;
+      if (inviteLinkInput) inviteLinkInput.value = inviteLink;
+    }
+
+    function copyLink() {
+      const text = inviteLinkInput?.value || '';
+      if (navigator.clipboard?.writeText) {
+        navigator.clipboard.writeText(text).then(() => alert('Copied to clipboard!'));
+      } else if (inviteLinkInput) {
+        inviteLinkInput.select();
+        document.execCommand('copy');
+        alert('Copied to clipboard!');
+      }
+    }
+
+    // EVENT DETAILS SAVE BUTTON
+    document.getElementById("saveBtn").addEventListener("click", () => {
+      const name = document.getElementById("eventName").value;
+      const desc = document.getElementById("eventDesc").value;
+      const date = document.getElementById("eventDate").value;
+      const place = document.getElementById("eventPlace").value;
+      const invites = document.getElementById("allowInvites").checked;
+      const visibility = document.getElementById("visibility").value;
+      const editPermission = document.getElementById("editPermission").value;
+      alert(`
+      Event Updated!
+      Name: ${name}
+      Description: ${desc}
+      Date: ${date}
+      Place: ${place}
+      Allow Invites: ${invites}
+      Visibility: ${visibility}
+      Edit Permission: ${editPermission}
+      `);
+    });
+
+    // LEAVE & DELETE EVENT MODALS
+    const leaveEventBtn = document.getElementById('leaveEventBtn');
+    const deleteEventBtn = document.getElementById('deleteEventBtn');
+    const leaveEventModal = document.getElementById('leaveEventModal');
+    const deleteEventModal = document.getElementById('deleteEventModal');
+    const cancelLeaveEvent = document.getElementById('cancelLeaveEvent');
+    const confirmLeaveEvent = document.getElementById('confirmLeaveEvent');
+    const cancelDeleteEvent = document.getElementById('cancelDeleteEvent');
+    const confirmDeleteEvent = document.getElementById('confirmDeleteEvent');
+
+    function toggleModal(el, show){ if(!el) return; el.classList.toggle('hidden', !show); el.classList.toggle('flex', show); }
+
+    leaveEventBtn?.addEventListener('click', ()=> toggleModal(leaveEventModal, true));
+    deleteEventBtn?.addEventListener('click', ()=> toggleModal(deleteEventModal, true));
+    cancelLeaveEvent?.addEventListener('click', ()=> toggleModal(leaveEventModal, false));
+    cancelDeleteEvent?.addEventListener('click', ()=> toggleModal(deleteEventModal, false));
+    leaveEventModal?.addEventListener('click', (e)=>{ if(e.target===leaveEventModal) toggleModal(leaveEventModal,false); });
+    deleteEventModal?.addEventListener('click', (e)=>{ if(e.target===deleteEventModal) toggleModal(deleteEventModal,false); });
+    document.addEventListener('keydown', (e)=>{ if(e.key==='Escape'){ toggleModal(leaveEventModal,false); toggleModal(deleteEventModal,false); }});
+
+    confirmLeaveEvent?.addEventListener('click', ()=>{
+      toggleModal(leaveEventModal, false);
+      window.location.href = 'myplans.html';
+    });
+
+    confirmDeleteEvent?.addEventListener('click', ()=>{
+      toggleModal(deleteEventModal, false);
+      window.location.href = 'myplans.html';
+    });
+  </script>
+
+</body>
+</html>

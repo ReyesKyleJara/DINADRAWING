@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DinaDrawing</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Cropper.js CSS -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.css"/>
+</head>
+<body class="bg-gray-100 font-sans">
+
+<main class="max-w-7xl mx-auto p-4">
+
+  <!-- BANNER -->
+  <div id="planBanner" class="h-40 rounded-xl flex items-end p-4 text-white bg-[#3b82f6]">
+    <h1 id="bannerText" class="text-2xl font-bold">Project Plan</h1>
+    <button id="editBannerBtn" class="ml-auto px-3 py-1 bg-white text-[#222] rounded-lg text-sm font-medium hover:bg-gray-200">
+      Edit Banner
+    </button>
+  </div>
+
+  <!-- TASK LIST -->
+  <div class="mt-4 bg-gray-50 rounded-xl p-4">
+    <p class="font-semibold mb-3 text-sm text-center text-gray-800">Tasks ;p</p>
+    <div id="taskList" class="space-y-2">
+      <div class="flex items-center justify-between bg-white rounded-full border px-4 py-1.5">
+        <span class="text-sm font-medium text-gray-700">Cake sa Red Ribbon</span>
+        <span class="text-xs text-gray-500">@Andrea</span>
+      </div>
+      <div class="flex items-center justify-between bg-white rounded-full border px-4 py-1.5">
+        <span class="text-sm font-medium text-gray-700">Liempo</span>
+        <span class="text-xs text-gray-500">@Kyle</span>
+      </div>
+      <div class="flex items-center justify-between bg-white rounded-full border px-4 py-1.5">
+        <span class="text-sm font-medium text-gray-700">Cottage</span>
+        <span class="text-xs text-gray-500">@Ken</span>
+      </div>
+      <div class="flex items-center justify-between bg-white rounded-full border px-4 py-1.5">
+        <span class="text-sm font-medium text-gray-700">Salbabida</span>
+        <span class="text-xs text-gray-500">@Jovan</span>
+      </div>
+      <div class="flex items-center justify-between bg-white rounded-full border px-4 py-1.5">
+        <span class="text-sm font-medium text-gray-700">New Task</span>
+        <span class="text-xs text-gray-500">@mention</span>
+      </div>
+    </div>
+    <button id="addTaskBtn" class="w-full bg-gray-100 hover:bg-gray-200 rounded-full h-7 text-xs text-gray-400 font-medium flex items-center justify-start pl-3 transition mt-3">
+      + Add option
+    </button>
+  </div>
+
+  <!-- COMMENT BOX -->
+  <div class="mt-4 flex items-center border rounded-full px-3 py-1.5">
+    <img src="Assets/Profile Icon/profile.png" class="w-8 h-8 rounded-full mr-2" alt="">
+    <input type="text" placeholder="Add comment..." class="flex-1 text-sm border-none focus:ring-0 focus:outline-none bg-transparent">
+    <button class="text-gray-500 hover:text-black flex items-center justify-center rotate-0">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" class="w-5 h-5">
+        <path d="M2 21L23 12 2 3v7l15 2-15 2v7z"/>
+      </svg>
+    </button>
+  </div>
+
+  <!-- RIGHT SIDEBAR -->
+  <aside class="hidden lg:flex fixed top-10 right-12 bottom-4 w-80 flex-col space-y-4 z-40 overflow-y-auto no-scrollbar">
+
+    <!-- MEMBERS -->
+    <div id="membersCard" class="bg-white p-4 rounded-lg shadow">
+      <h3 class="font-semibold mb-2">Members (9)</h3>
+      <div class="grid grid-cols-5 gap-2 mb-3">
+        <img src="Assets/Profile Icon/profile.png" class="w-8 h-8 rounded-full border" alt="">
+        <img src="Assets/Profile Icon/profile2.png" class="w-8 h-8 rounded-full border" alt="">
+        <img src="Assets/Profile Icon/profile3.png" class="w-8 h-8 rounded-full border" alt="">
+        <img src="Assets/Profile Icon/profile4.png" class="w-8 h-8 rounded-full border" alt="">
+        <img src="Assets/Profile Icon/profile5.png" class="w-8 h-8 rounded-full border" alt="">
+        <img src="Assets/Profile Icon/profile6.png" class="w-8 h-8 rounded-full border" alt="">
+        <img src="Assets/Profile Icon/profile7.png" class="w-8 h-8 rounded-full border" alt="">
+        <img src="Assets/Profile Icon/profile8.png" class="w-8 h-8 rounded-full border" alt="">
+        <img src="Assets/Profile Icon/profile.png" class="w-8 h-8 rounded-full border" alt="">
+        <span class="w-8 h-8 flex items-center justify-center rounded-full bg-gray-200 text-sm font-medium">+2</span>
+      </div>
+      <button onclick="openInvite()" class="w-full bg-[#f4b41a] text-[#222] py-2 rounded-lg font-medium hover:bg-[#e3a918] transition">
+        Invite People
+      </button>
+    </div>
+
+    <!-- PINNED -->
+    <div class="bg-white p-4 rounded-lg shadow">
+      <h3 class="font-semibold mb-2 flex items-center gap-2">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-black" fill="currentColor" viewBox="0 0 24 24">
+          <path d="M14 2l-1 1-5 5-4 1 6 6-5 5 1 1 5-5 6 6 1-4 5-5 1-1-10-10z" />
+        </svg>
+        Pinned
+      </h3>
+      <p class="text-sm text-gray-500">No pinned items yet.</p>
+    </div>
+  </aside>
+
+</main>
+
+<!-- INVITE PEOPLE MODAL -->
+<div id="inviteModal" class="fixed inset-0 bg-black/40 hidden items-center justify-center z-[60]">
+  <div class="bg-white w-96 rounded-xl shadow-lg p-6 relative">
+    <h2 class="text-lg font-semibold mb-3">Invite People</h2>
+    <button onclick="closeInvite()" class="absolute top-3 right-3 text-gray-500 hover:text-black">✕</button>
+    <p class="text-sm text-gray-600 mb-3">Share this link with your friends to invite them to this plan:</p>
+
+    <!-- GENERATE LINK -->
+    <div class="flex items-center justify-between bg-gray-100 rounded-lg px-3 py-2 mb-3 border border-gray-300">
+      <input id="inviteLink" type="text" readonly class="bg-transparent text-sm w-full focus:outline-none" value="" />
+      <button onclick="copyLink()" class="ml-2 text-[#f4b41a] font-medium hover:underline">Copy</button>
+    </div>
+
+    <button onclick="generateLink()" class="w-full bg-[#f4b41a] text-[#222] py-2 rounded-lg font-medium hover:bg-[#e3a918] transition">Generate New Link</button>
+  </div>
+</div>
+
+<!-- EDIT BANNER MODAL -->
+<div id="editBannerModal" class="fixed inset-0 bg-black/40 hidden items-center justify-center z-[60]">
+  <div class="edit-modal bg-white rounded-2xl shadow-xl p-5 relative">
+    <button id="closeEditModal" class="absolute top-3 right-3 text-gray-500 hover:text-black">✕</button>
+
+    <h3 class="text-lg font-semibold">Customize Banner</h3>
+    <p class="text-sm text-gray-500 mb-4">Choose a color or upload an image for your banner</p>
+
+    <p class="text-sm font-medium mb-2">Colors</p>
+    <div id="colorSwatches" class="edit-modal-grid mb-4 relative"></div>
+
+    <p class="text-sm font-medium mb-2">Image</p>
+    <button id="uploadIconBtn" class="px-3 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 text-sm mb-4">Upload image</button>
+
+    <p class="text-sm font-medium mb-2">Preview</p>
+    <div id="bannerPreview" class="crop-aspect w-full rounded-lg overflow-hidden border border-gray-200 bg-gray-100 mb-4 flex items-end">
+      <span class="m-3 text-white font-semibold drop-shadow">Banner preview</span>
+    </div>
+
+    <div class="flex justify-end gap-2">
+      <button id="applyBannerBtn" class="px-4 py-2 rounded-lg bg-[#f4b41a] text-[#222] text-sm font-medium hover:bg-[#e3a918]">Apply</button>
+    </div>
+  </div>
+</div>
+
+<!-- CROP MODAL -->
+<div id="cropModal" class="fixed inset-0 bg-black/40 hidden items-center justify-center z-[70]">
+  <div class="bg-white rounded-2xl shadow-xl p-5 w-[min(90vw,820px)]">
+    <h3 class="text-lg font-semibold mb-3">Crop Banner</h3>
+    <div class="crop-aspect bg-gray-100 rounded-lg overflow-hidden">
+      <img id="cropImage" alt="To crop" />
+    </div>
+    <div class="flex justify-end gap-2 mt-4">
+      <button onclick="closeCropModal()" class="px-4 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 text-sm">Cancel</button>
+      <button id="applyCropBtn" class="px-4 py-2 rounded-lg bg-[#f4b41a] text-[#222] text-sm font-medium hover:bg-[#e3a918]">Done</button>
+    </div>
+  </div>
+</div>
+
+<!-- SCRIPTS -->
+<script src="https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.js"></script>
+
+<script>
+/* === JS LOGIC FOR TASKS, POST BOX, BANNER, INVITE === */
+
+/* Banner edit logic... (same as your code) */
+
+/* Task list add logic */
+const addTaskBtn = document.getElementById('addTaskBtn');
+const taskList = document.getElementById('taskList');
+addTaskBtn?.addEventListener('click', ()=>{
+  const row = document.createElement('div');
+  row.className = 'flex items-center justify-between bg-white rounded-full border px-4 py-1.5';
+  row.innerHTML = `
+    <span contenteditable="true" class="text-sm font-medium text-gray-700 outline-none">New Task</span>
+    <span contenteditable="true" class="text-xs text-gray-500 outline-none">@mention</span>
+  `;
+  taskList?.appendChild(row);
+});
+
+/* Invite modal */
+const inviteModal = document.getElementById('inviteModal');
+const inviteLinkInput = document.getElementById('inviteLink');
+function openInvite() { inviteModal?.classList.remove('hidden'); inviteModal?.classList.add('flex'); generateLink(); }
+function closeInvite() { inviteModal?.classList.add('hidden'); inviteModal?.classList.remove('flex'); }
+function generateLink() { const uniqueCode = Math.random().toString(36).substring(2,10); if(inviteLinkInput) inviteLinkInput.value = `https://dinadrawing.com/invite/${uniqueCode}`; }
+function copyLink() { if(inviteLinkInput){ navigator.clipboard.writeText(inviteLinkInput.value).then(()=>alert('Copied!')); } }
+
+</script>
+</body>
+</html>

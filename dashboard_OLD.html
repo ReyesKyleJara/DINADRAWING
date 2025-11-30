@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Home | DiNaDrawing</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      background-color: #fffaf2;
+      color: #222;
+    }
+  </style>
+</head>
+<body class="flex bg-[#fffaf2]">
+
+<aside id="sidebar"
+class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
+       bg-[#f4b41a] rounded-tr-3xl
+       p-6 shadow
+       hidden md:flex md:flex-col md:gap-6">
+
+  <div class="flex items-center gap-2">
+    <img src="Assets/dinadrawing-logo.png" alt="Logo" class="w-14">
+    <h2 class="text-xl font-bold text-[#222]">DiNaDrawing</h2>
+  </div>
+
+  <nav>
+    <ul class="space-y-5">
+      <li><a href="dashboard.html" class="block px-4 py-2 rounded-lg font-medium bg-[#222] text-white hover:bg-[#111] transition">Home</a></li>
+      <li><a href="myplans.html" class="block px-4 py-2 rounded-lg font-medium text-[#222] hover:bg-[#222] hover:text-white transition">My Plans</a></li>
+      <li><a href="help.html" class="block px-4 py-2 rounded-lg font-medium text-[#222] hover:bg-[#222] hover:text-white transition">Help</a></li>
+      <li><a href="settings.html" class="block px-4 py-2 rounded-lg font-medium text-[#222] hover:bg-[#222] hover:text-white transition">Settings</a></li>
+    </ul>
+  </nav>
+</aside>
+
+  <main class="ml-0 md:ml-64 flex-1 min-h-screen px-12 py-10">
+
+<div class="sticky top-0 z-40 bg-[#fffaf2] pb-4 mb-6 border-b-2 border-gray-200">
+  <div class="flex justify-between items-center pt-10">
+    
+    <div class="flex flex-col">
+      <h1 class="text-3xl font-bold">Welcome, Venice!</h1>
+      <span class="text-gray-600 text-sm">Your personal event planner assistant.</span>
+    </div>
+
+    <div class="flex items-center gap-3">
+
+    <button id="openCreateEvent"
+        class="border border-[#222] bg-white px-4 py-2 rounded-2xl font-medium hover:bg-[#222] hover:text-white transition">
+        <span class="hidden md:inline">+ Create Event</span>
+        <span class="md:hidden">Create</span>
+      </button>
+    
+    <button id="openJoinEvent"
+        class="border border-[#222] bg-white px-4 py-2 rounded-2xl font-medium hover:bg-[#222] hover:text-white transition">
+        <span class="hidden md:inline">Join Event</span>
+        <span class="md:hidden">Join</span>
+      </button>
+       
+<div class="flex items-center gap-4 relative">
+
+  <div id="createEventModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center hidden z-50">
+  <div class="bg-white rounded-2xl p-6 w-[500px] shadow-xl relative">
+    <button id="closeCreateEvent" class="absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-xl">
+      &times;
+    </button>
+
+    <h2 class="text-2xl font-bold mb-1">Create Event</h2>
+    <p class="text-sm text-gray-500 mb-4">
+      Fill in the details to start planning your event.
+    </p>
+
+    <label class="block text-sm font-medium mb-1">Event Name <span class="text-gray-400 text-xs">(required)</span> </label>
+    <input type="text" id="eventName" class="w-full border border-gray-300 rounded-lg px-3 py-2 mb-4" placeholder="Enter event name">
+
+    <label class="block text-sm font-medium mb-1">Description </label>
+    <textarea id="eventDescription" maxlength="200" class="w-full border border-gray-300 rounded-lg px-3 py-2 mb-1 resize-none h-20" placeholder="Write a short description..."></textarea>
+    <div class="text-right text-xs text-gray-500 mb-4">
+      <span id="charCount">0</span>/200
+    </div>
+
+    <div class="grid grid-cols-2 gap-4 mb-4">
+      <div>
+        <label class="block text-sm font-medium mb-1">Date</label>
+        <input type="date" id="eventDate" class="w-full border border-gray-300 rounded-lg px-3 py-2">
+      </div>
+      <div>
+        <label class="block text-sm font-medium mb-1">Time</label>
+        <input type="time" id="eventTime" class="w-full border border-gray-300 rounded-lg px-3 py-2">
+      </div>
+    </div>
+
+    <label class="block text-sm font-medium mb-1">Location</label>
+    <input type="text" id="eventLocation" class="w-full border border-gray-300 rounded-lg px-3 py-2 mb-6" placeholder="Enter location">
+
+    <p class="text-gray-500 text-xs mb-4">
+      Only Event Name is required. You can leave Date or Location blank and create a poll for your attendees to vote on these details.
+    </p>
+
+    <div class="flex justify-end gap-3">
+      <button id="cancelCreateEvent" class="px-4 py-2 rounded-lg border border-gray-300 hover:bg-gray-100 transition">
+        Cancel
+      </button>
+      <button id="saveCreateEvent" class="bg-[#f4b41a] px-4 py-2 rounded-lg font-medium hover:bg-[#e0a419] transition">
+        Save & Continue
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<div id="joinEventModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center hidden z-50">
+  <div class="bg-white rounded-2xl p-6 w-[500px] shadow-xl relative">
+    <button id="closeJoinEvent" class="absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-xl">
+      &times;
+    </button>
+
+    <h2 class="text-2xl font-bold mb-1">Join Event</h2>
+    <p class="text-sm text-gray-500 mb-4">
+      Enter the event code or link to join.
+    </p>
+
+    <label class="block text-sm font-medium mb-1">Event Code / Link</label>
+    <input type="text" class="w-full border border-gray-300 rounded-lg px-3 py-2 mb-6" placeholder="Paste code or link here">
+
+    <div class="flex justify-end gap-3">
+      <button id="cancelJoinEvent" class="px-4 py-2 rounded-lg border border-gray-300 hover:bg-gray-100 transition">
+        Cancel
+      </button>
+      <button id="joinJoinEvent" class="bg-[#f4b41a] px-4 py-2 rounded-lg font-medium hover:bg-[#e0a419] transition">
+        Join
+      </button>
+    </div>
+  </div>
+</div>
+
+  <div>
+          <button id="notificationBtn"
+            class="relative w-9 h-9 flex items-center justify-center rounded-full bg-white border border-[#222] hover:bg-[#222] hover:text-white transition">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24"
+              stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3c0 .386-.146.735-.395 1.002L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+            </svg>
+            <span id="notificationDot"
+              class="absolute top-1 right-1 w-2.5 h-2.5 bg-[#f4b41a] rounded-full"></span>
+          </button>
+        </div>
+
+  <div class="relative">
+          <button id="profileBtn"
+            class="flex items-center gap-2 bg-[#f4b41a]/30 border border-[#222] rounded-full px-3 py-1.5 hover:bg-[#f4b41a]/50 transition">
+            <img src="Assets/Profile Icon/profile.png" alt="Profile"
+              class="w-8 h-8 rounded-full border-2 border-[#f4b41a]">
+            <span class="font-medium text-[#222] hidden md:inline">Venice</span>
+          </button>
+        </div>
+
+    <div id="profileDropdown" class="absolute right-0 mt-2 w-60 bg-white shadow-lg rounded-2xl border border-gray-200 hidden z-50">
+      <div class="p-4 border-b border-gray-200 text-center bg-[#fffaf2] rounded-t-2xl">
+        <img src="Assets/Profile Icon/profile.png" alt="Profile" class="w-12 h-12 mx-auto rounded-full border-2 border-[#f4b41a] mb-2 shadow">
+        <h2 class="text-sm font-semibold text-[#222]">Venice</h2>
+      </div>
+      <div class="py-2">
+        <a href="help.html" class="block px-4 py-2 text-sm hover:bg-gray-50">Help</a>
+        <a href="aboutus.html" class="block px-4 py-2 text-sm hover:bg-gray-50">About Us</a>
+        <a href="settings.html" class="block px-4 py-2 text-sm hover:bg-gray-50">Settings</a>
+        <button id="logoutProfile" class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50">Log out</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="notificationPanel"
+       class="absolute top-full right-0 mt-2 w-[90vw] md:w-60 lg:w-80 max-w-[28rem]
+              bg-white shadow-lg rounded-2xl border border-gray-200 hidden z-50">
+    <div class="p-4 border-b border-gray-200 flex justify-between items-center">
+      <h4 class="font-semibold">Notifications</h4>
+      <a href="#" id="clearNotificationsTop" class="text-sm text-[#2563eb] hover:underline">Mark all as read</a>
+    </div>
+    <ul id="notificationList" class="p-4 space-y-3 max-h-64 overflow-y-auto">
+      <li class="flex items-start gap-3 bg-white hover:bg-gray-50 p-2 rounded-lg cursor-pointer">
+        <img src="Assets/Profile Icon/profile2.png" onerror="this.src='Assets/profile2.png'" alt="User" class="w-10 h-10 rounded-full border border-gray-200">
+        <p class="text-sm"><strong>Kyle</strong> added 'Rice' to Assigned Tasks in <strong>Family Reunion.</strong></p>
+      </li>
+      <li class="flex items-start gap-3 bg-white hover:bg-gray-50 p-2 rounded-lg cursor-pointer">
+        <img src="Assets/Profile Icon/profile4.png" alt="User" class="w-10 h-10 rounded-full border border-gray-200">
+        <p class="text-sm"><strong>Ken</strong> voted for <strong>Oct 16</strong> as the final date for <strong>Birthday Trip.</strong></p>
+      </li>
+      <li class="flex items-start gap-3 bg-white hover:bg-gray-50 p-2 rounded-lg cursor-pointer">
+        <img src="Assets/Profile Icon/profile3.png" alt="User" class="w-10 h-10 rounded-full border border-gray-200">
+        <p class="text-sm"><strong>Andrea</strong> added 'Japan' to Poll in <strong>Birthday Trip.</strong></p>
+      </li>
+    </ul>
+    <div class="border-t border-gray-200 p-3 text-center">
+      <a href="#" id="clearNotificationsBottom" class="text-sm text-[#2563eb] hover:underline">Clear All Notifications</a>
+    </div>
+  </div>
+</div>
+  </div>
+</div>
+
+    <div class="mt-4">
+      <img src="Assets/banner.jpg" alt="Banner" class="w-full h-64 object-flex rounded-2xl shadow-md">
+    </div>
+
+    <div class="mt-8">
+      
+<section class="col-span-2 bg-white rounded-2xl shadow p-6 flex flex-col">
+  <div class="flex justify-between items-center mb-4">
+    <h3 class="font-semibold text-lg">Your Upcoming Plans</h3>
+    <div class="flex gap-2">
+      <button id="listViewBtn" class="bg-[#f4b41a] text-[#222] text-sm px-4 py-1.5 rounded-lg font-medium">List</button>
+      <button id="calendarViewBtn" class="text-gray-600 hover:text-[#222] text-sm px-4 py-1.5 rounded-lg font-medium">Calendar</button>
+    </div>
+  </div>
+
+  <div id="listView" class="space-y-4">
+
+    <div class="flex items-stretch rounded-2xl overflow-hidden shadow border border-gray-300">
+      <div class="bg-white flex flex-col items-center justify-center w-24 py-4 border-r border-gray-200">
+        <p class="text-gray-500 text-lg">Oct</p>
+        <p class="text-4xl font-bold text-[#222] leading-none">16</p>
+      </div>
+      <div class="flex-1 bg-[#E5B94A] text-[#222] p-4 flex flex-col justify-between">
+        <div>
+          <p class="text-xl font-bold leading-tight">Birthday Trip</p>
+          <p class="text-sm opacity-90">Japan</p>
+        </div>
+        <div class="flex justify-end">
+          <button class="bg-[#222] text-white text-sm py-1 px-6 rounded-full hover:bg-[#444] transition mt-2">View</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="flex items-stretch rounded-2xl overflow-hidden shadow border border-gray-300">
+      <div class="bg-white flex flex-col items-center justify-center w-24 py-4 border-r border-gray-200">
+        <p class="text-gray-500 text-lg">Oct</p>
+        <p class="text-4xl font-bold text-[#222] leading-none">18</p>
+      </div>
+      <div class="flex-1 bg-[#0D8A4A] text-[#222] p-4 flex flex-col justify-between">
+        <div>
+          <p class="text-xl font-bold leading-tight">Family Reunion</p>
+          <p class="text-sm opacity-90">Davao City</p>
+        </div>
+        <div class="flex justify-end">
+          <button class="bg-[#222] text-white text-sm py-1 px-6 rounded-full hover:bg-[#444] transition mt-2">View</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="mt-6 bg-white border border-gray-200 rounded-2xl p-4">
+      <h3 class="font-semibold mb-2 text-lg">Recent Plan</h3>
+      <ul class="space-y-1 text-sm">
+        <li class="flex justify-between border-b border-gray-100 py-1">
+          <span>Baguio Trip</span>
+          <span class="text-red-500 text-xs">last January 20, 2025</span>
+        </li>
+        <li class="flex justify-between border-b border-gray-100 py-1">
+          <span>Palawan Trip</span>
+          <span class="text-red-500 text-xs">last February 14, 2025</span>
+        </li>
+      </ul>
+    </div>
+  </div>
+
+  <div id="calendarView" class="hidden">
+    <iframe 
+      src="https://calendar.google.com/calendar/embed?src=en.philippines%23holiday%40group.v.calendar.google.com&ctz=Asia%2FManila"
+      frameborder="0" scrolling="no"
+      class="w-full rounded-xl h-[360px] border-none">
+    </iframe>
+  </div>
+</section>
+  </div>
+</main>
+
+<script>
+  // --- VIEW TOGGLES (List vs Calendar) ---
+  const listViewBtn = document.getElementById("listViewBtn");
+  const calendarViewBtn = document.getElementById("calendarViewBtn");
+  const listView = document.getElementById("listView");
+  const calendarView = document.getElementById("calendarView");
+
+  listViewBtn.addEventListener("click", () => {
+    listView.classList.remove("hidden");
+    calendarView.classList.add("hidden");
+    listViewBtn.classList.add("bg-[#f4b41a]", "text-[#222]");
+    calendarViewBtn.classList.remove("bg-[#f4b41a]", "text-[#222]");
+    calendarViewBtn.classList.add("text-gray-600");
+  });
+
+  calendarViewBtn.addEventListener("click", () => {
+    listView.classList.add("hidden");
+    calendarView.classList.remove("hidden");
+    calendarViewBtn.classList.add("bg-[#f4b41a]", "text-[#222]");
+    listViewBtn.classList.remove("bg-[#f4b41a]", "text-[#222]");
+    listViewBtn.classList.add("text-gray-600");
+  });
+
+  // --- MODAL HANDLERS ---
+  
+  // Open Create Modal
+  document.getElementById("openCreateEvent").addEventListener("click", function () {
+    document.getElementById("createEventModal").classList.remove("hidden");
+  });
+  
+  // Close Create Modal (X Button)
+  document.getElementById("closeCreateEvent").addEventListener("click", function () {
+    document.getElementById("createEventModal").classList.add("hidden");
+  });
+  
+  // Close Create Modal (Cancel Button)
+  document.getElementById("cancelCreateEvent").addEventListener("click", function () {
+    document.getElementById("createEventModal").classList.add("hidden");
+  });
+
+  // Close Create Modal (Backdrop Click)
+  document.getElementById("createEventModal").addEventListener("click", function (e) {
+    if (e.target === this) {
+      this.classList.add("hidden");
+    }
+  });
+  
+  // Char Count
+  const desc = document.getElementById("eventDescription");
+  const charCount = document.getElementById("charCount");
+  desc.addEventListener("input", function () {
+    charCount.textContent = desc.value.length;
+  });
+
+  // Join Event Modal Handlers
+  document.getElementById("openJoinEvent").addEventListener("click", function () {
+    document.getElementById("joinEventModal").classList.remove("hidden");
+  });
+  document.getElementById("closeJoinEvent").addEventListener("click", function () {
+    document.getElementById("joinEventModal").classList.add("hidden");
+  });
+  document.getElementById("cancelJoinEvent").addEventListener("click", function () {
+    document.getElementById("joinEventModal").classList.add("hidden");
+  });
+  document.getElementById("joinJoinEvent").addEventListener("click", function () {
+    document.getElementById("joinEventModal").classList.add("hidden");
+  });
+  document.getElementById("joinEventModal").addEventListener("click", function (e) {
+    if (e.target === this) {
+      this.classList.add("hidden");
+    }
+  });
+
+  // --- NOTIFICATIONS & PROFILE DROPDOWN ---
+  const notificationBtn = document.getElementById("notificationBtn");
+  const notificationPanel = document.getElementById("notificationPanel");
+  const notificationDot = document.getElementById("notificationDot");
+  const clearTop = document.getElementById("clearNotificationsTop");
+  const clearBottom = document.getElementById("clearNotificationsBottom");
+  const notifList = document.getElementById("notificationList");
+
+  notificationBtn?.addEventListener("click", (e) => {
+    e.stopPropagation();
+    document.getElementById('profileDropdown')?.classList.add('hidden');
+    notificationPanel?.classList.toggle("hidden");
+    if (!notificationPanel?.classList.contains("hidden")) {
+      notificationDot?.classList.add("hidden");
+    }
+  });
+  function clearNotifications(e){
+    e?.preventDefault();
+    if (notifList) notifList.innerHTML = '<li class="text-center text-gray-500 text-sm py-4">No notifications</li>';
+    notificationDot?.classList.add("hidden");
+  }
+  clearTop?.addEventListener("click", clearNotifications);
+  clearBottom?.addEventListener("click", clearNotifications);
+
+  const profileBtn = document.getElementById('profileBtn');
+  const profileDropdown = document.getElementById('profileDropdown');
+  profileBtn?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    notificationPanel?.classList.add('hidden');
+    profileDropdown?.classList.toggle('hidden');
+  });
+  document.addEventListener('click', (e) => {
+    if (!profileBtn?.contains(e.target) && !profileDropdown?.contains(e.target)) {
+      profileDropdown?.classList.add('hidden');
+    }
+    if (!notificationBtn?.contains(e.target) && !notificationPanel?.contains(e.target)) {
+      notificationPanel?.classList.add('hidden');
+    }
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      profileDropdown?.classList.add('hidden');
+      notificationPanel?.classList.add('hidden');
+    }
+  });
+
+  // --- DATABASE SAVE HANDLER (Consolidated) ---
+document.addEventListener('DOMContentLoaded', function() {
+    
+    // 1. Grab the button
+    const saveBtn = document.getElementById("saveCreateEvent");
+    const createModal = document.getElementById('createEventModal');
+
+    // Safety check
+    if (!saveBtn) return;
+
+    // 2. The Event Listener
+    saveBtn.addEventListener("click", async function () {
+        
+        // CHECK: Are we on Localhost?
+        if (window.location.protocol === 'file:') {
+            alert('Open this page via http://localhost/DINADRAWING/dashboard.html (start XAMPP Apache).');
+            return;
+        }
+
+        const btn = this;
+        const prevText = btn.textContent;
+
+        // 3. Get Elements
+        const nameEl = document.getElementById('eventName');
+        const descEl = document.getElementById('eventDescription');
+        const dateEl = document.getElementById('eventDate');
+        const timeEl = document.getElementById('eventTime');
+        const locEl = document.getElementById('eventLocation');
+
+        // 4. Get Values
+        const name = nameEl?.value.trim() || '';
+        const description = descEl?.value.trim() || '';
+        const date = dateEl?.value || '';
+        const time = timeEl?.value || '';
+        
+        // --- THE FIX IS HERE ---
+        const locValue = locEl?.value.trim() || ''; 
+
+        // Validation
+        if (!name) {
+            alert('Event name is required.');
+            return;
+        }
+
+        // Payload
+        const payload = { 
+            name, 
+            description, 
+            date, 
+            time, 
+            location: locValue 
+        };
+
+        // Show saving state
+        btn.disabled = true;
+        btn.textContent = 'Saving...';
+
+        console.log('Saving event payload:', payload);
+
+        try {
+            // 5. Send to Backend
+            const resp = await fetch('Backend/api/event/create.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            console.log('Response status:', resp.status, resp.statusText);
+            
+            const text = await resp.text();
+            console.log('Response text:', text);
+
+            let json = {};
+            try { 
+                json = text ? JSON.parse(text) : {}; 
+            } catch (e) { 
+                console.warn('Invalid JSON response', e); 
+            }
+
+            // 6. Handle Success
+            if (resp.ok && json.success && json.id) {
+                // Optional: close modal first
+                if (createModal) createModal.classList.add('hidden');
+                // Redirect straight to the plan
+                window.location.href = `/DINADRAWING/plan.php?id=${json.id}`;
+            } else {
+                 const msg = json.message || resp.statusText || 'Failed to save event.';
+                 alert(msg);
+            }
+
+        } catch (err) {
+            console.error('Save error', err);
+            alert('Network error. Check Console (F12).');
+        } finally {
+            btn.disabled = false;
+            btn.textContent = prevText;
+        }
+    });
+});
+</script>
+
+<script type="module">
+    import { auth } from './firebase-config.js'; 
+    import { signOut } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+
+    document.addEventListener('DOMContentLoaded', function() {
+      const logoutSidebar = document.getElementById('logoutBtn'); // Note: ID 'logoutBtn' is not in your HTML above (sidebar), check ID.
+      const logoutProfile = document.getElementById('logoutProfile');
+
+      function handleLogout() {
+        signOut(auth).then(() => {
+          window.location.href = 'index.html';
+        }).catch((error) => {
+          console.error('Logout error:', error);
+        });
+      }
+
+      if (logoutSidebar) logoutSidebar.addEventListener('click', handleLogout);
+      if (logoutProfile) logoutProfile.addEventListener('click', handleLogout);
+    });
+</script>
+</body>
+</html>
