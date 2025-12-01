@@ -12,6 +12,9 @@ $pdo = new PDO(
   ]
 );
 
+$showArchived = !empty($_GET['archived']);
+$where = $showArchived ? "archived IS TRUE" : "archived IS NOT TRUE";
+
 $stmt = $pdo->query("
   SELECT
     id,
@@ -23,9 +26,11 @@ $stmt = $pdo->query("
       WHEN time IS NOT NULL THEN time::text
       ELSE NULL
     END AS dt,
-    location AS loc,              -- removed place (column does not exist)
-    banner_type, banner_color, banner_from, banner_to, banner_image
+    location AS loc,
+    banner_type, banner_color, banner_from, banner_to, banner_image,
+    archived
   FROM events
+  WHERE $where
   ORDER BY date NULLS LAST, id DESC
 ");
 $events = $stmt->fetchAll();
@@ -632,6 +637,20 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
       alert('Network error');
     }
   });
+
+  // ARCHIVE TOGGLE: archive or unarchive plan
+  async function archivePlan(id, archived){
+    try{
+      const r = await fetch('/DINADRAWING/Backend/api/event/archive_toggle.php',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ id, archived })
+      });
+      const j = await r.json();
+      if(!r.ok || !j.success){ alert(j.error||'Failed'); return; }
+      location.reload();
+    }catch(e){ alert('Network error'); }
+  }
 </script>
 
 <!-- LOGOUT FUNCTION -->
