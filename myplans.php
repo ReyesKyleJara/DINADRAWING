@@ -86,15 +86,17 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
 </aside>
 
   <!-- MAIN CONTENT -->
-  <main class="ml-0 md:ml-64 flex-1 min-h-screen px-12 py-10 overflow-y-auto">
+  <main class="ml-0 md:ml-64 flex-1 min-h-screen px-12 py-10 pt-28">
 
-    <!-- PAGE TITLE -->
-    <div class="flex justify-between items-center border-b-2 border-gray-200 pb-4 mb-6">
-      <div class="flex flex-col">
-        <h1 class="text-3xl font-bold">My Plans</h1>
-        <span class="text-gray-600 text-sm">Manage, view, and edit your plans easily.</span>
-      </div>
-      <div class="flex items-center gap-3 relative">
+<!-- PAGE TITLE (STICKY HEADER) -->
+<div class="flex justify-between items-center border-b-2 border-gray-200 pb-4 mb-6 fixed top-0 md:left-64 left-0 w-[calc(100%-0rem)] md:w-[calc(100%-16rem)] bg-[#fffaf2] z-40 px-12 py-10">
+
+  <div class="flex flex-col">
+    <h1 class="text-3xl font-bold">My Plans</h1>
+    <span class="text-gray-600 text-sm">Manage, view, and edit your plans easily. </span>
+  </div>
+
+  <div class="flex items-center gap-3">
 
         <!-- CREATE EVENT -->
         <button id="openCreateEvent" class="border border-[#222] bg-white px-4 py-2 rounded-2xl font-medium hover:bg-[#222] hover:text-white transition">

@@ -951,23 +951,46 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
       reader.readAsDataURL(file);
     });
 
-    // When cropping finishes, keep the raw data URL for saving to server
+/// When cropping finishes, keep the raw data URL for saving to server
     applyCropBtn?.addEventListener('click', () => {
       if (!cropper) return;
       const canvas = cropper.getCroppedCanvas({ width: 2000, height: 800 });
       const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
-      // Mutate instead of reassign (const reassignment was breaking things)
+      
+      // --- IMPORTANT: Update the pending object ---
       pending.type = 'image';
-      pending.imageData = dataUrl;
+      
+      // 1. This is for the DATABASE (The Save functionality)
+      pending.imageData = dataUrl; 
+      
+      // 2. This is for the PREVIEW (The Visuals)
       pending.image = `url("${dataUrl}")`;
-      pending.hex = null; pending.gradient = null;
-      bannerPreview.style.backgroundImage = `url("${dataUrl}")`;
-      bannerPreview.style.background = 'none';
-      // Close crop modal & destroy cropper
+      pending.hex = null; 
+      pending.gradient = null;
+
+      // --- VISUAL FIX: Load image cleanly to prevent blank preview ---
+      const img = new Image();
+      img.onload = () => {
+         bannerPreview.style.background = 'none'; // Clear conflict
+         bannerPreview.style.backgroundImage = `url("${dataUrl}")`;
+         bannerPreview.style.backgroundColor = 'transparent';
+         bannerPreview.style.backgroundSize = 'cover';
+         bannerPreview.style.backgroundPosition = 'center';
+         
+         const txt = bannerPreview.querySelector('span');
+         if (txt) txt.style.display = 'none';
+      };
+      img.src = dataUrl;
+
+      // Debugging: Check console to ensure data is set
+      console.log("Crop applied. Image Data length:", pending.imageData.length);
+
+      // Cleanup
       if (cropper) { cropper.destroy(); cropper = null; }
       cropModal.classList.add('hidden');
       cropModal.classList.remove('flex');
     });
+    
     // WIRE MODAL CLOSE BEHAVIORS
    closeEditModal?.addEventListener('click', closeEditModalIfOpen);
    editBannerModal?.addEventListener('click', (e)=>{ if (e.target === editBannerModal) closeEditModalIfOpen(); });
