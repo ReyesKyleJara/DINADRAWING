@@ -56,6 +56,25 @@ if ($rawDate) {
         $event_date_val = date('Y-m-d\TH:i', $ts);
     }
 }
+
+$banner_type = $event['banner_type'] ?? null;
+$banner_color = $event['banner_color'] ?? null;
+$banner_from  = $event['banner_from'] ?? null;
+$banner_to    = $event['banner_to'] ?? null;
+$banner_image = $event['banner_image'] ?? null;
+
+function banner_style($type,$color,$from,$to,$image){
+  if ($type==='image' && $image){
+    $path = '/dinadrawing/'.ltrim($image,'/');
+    return "background-image:url('".htmlspecialchars($path,ENT_QUOTES,'UTF-8')."');background-size:cover;background-position:center;color:#fff;";
+  }
+  if ($type==='gradient' && $from && $to)
+    return "background:linear-gradient(to right,".htmlspecialchars($from,ENT_QUOTES,'UTF-8').",".htmlspecialchars($to,ENT_QUOTES,'UTF-8').");color:#111;";
+  if ($type==='color' && $color)
+    return "background:".htmlspecialchars($color,ENT_QUOTES,'UTF-8').";color:#fff;";
+  return "background:linear-gradient(to right,#3b82f6,#9333ea);color:#fff;";
+}
+$banner_inline = banner_style($banner_type,$banner_color,$banner_from,$banner_to,$banner_image);
 ?>
 
 <!DOCTYPE html>
@@ -243,7 +262,7 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
   <nav>
     <ul class="space-y-5">
       <li><a href="dashboard.html" class="block px-4 py-2 rounded-lg font-medium text-[#222] hover:bg-[#222] hover:text-white transition">Home</a></li>
-      <li><a href="myplans.html" class="block px-4 py-2 rounded-lg font-medium text-[#222] hover:bg-[#222] hover:text-white transition">My Plans</a></li>
+      <li><a href="myplans.php" class="block px-4 py-2 rounded-lg font-medium text-[#222] hover:bg-[#222] hover:text-white transition">My Plans</a></li>
       <li><a href="help.html" class="block px-4 py-2 rounded-lg font-medium text-[#222] hover:bg-[#222] hover:text-white transition">Help</a></li>
       <li><a href="settings.html" class="block px-4 py-2 rounded-lg font-medium text-[#222] hover:bg-[#222] hover:text-white transition">Settings</a></li>
     </ul>
@@ -264,9 +283,9 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
         <div
           id="planBanner"
           class="group relative rounded-2xl px-8 font-bold text-3xl mb-3 shadow w-full overflow-hidden transition-colors duration-300 bg-cover bg-center py-20 lg:py-24 min-h-[12rem]"
-          style="background: linear-gradient(to right, #3b82f6, #9333ea); color: #fff;"
+          style="<?php echo $banner_inline; ?>"
         >
-          <a href="myplans.html"
+          <a href="myplans.php"
              class="absolute top-5 left-8 inline-flex items-center justify-center w-8 h-8 rounded-lg hover:bg-white/30 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#f4b41a]"
              style="color: inherit;"
              aria-label="Back to My Plans">
@@ -760,7 +779,8 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
     }
 
     // PENDING SELECTION STATE FOR MODAL
-    const pending = { type: 'color', hex: '#3b82f6', image: null };
+    // Make pending mutable and include imageData & gradient parts
+    let pending = { type: 'color', hex: '#3b82f6', image: null, imageData: null, gradient: null, from: null, to: null };
 
    // CROPPER MODAL
     let cropper;
@@ -931,29 +951,22 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
       reader.readAsDataURL(file);
     });
 
+    // When cropping finishes, keep the raw data URL for saving to server
     applyCropBtn?.addEventListener('click', () => {
-      if (!cropper || !bannerPreview) return;
+      if (!cropper) return;
       const canvas = cropper.getCroppedCanvas({ width: 2000, height: 800 });
       const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
+      // Mutate instead of reassign (const reassignment was breaking things)
       pending.type = 'image';
+      pending.imageData = dataUrl;
       pending.image = `url("${dataUrl}")`;
-
-     // LOAD DATAURL INTO IMAGE FIRST
-     const img = new Image();
-     img.onload = () => {
-       bannerPreview.style.backgroundImage = `url("${dataUrl}")`;
-       bannerPreview.style.backgroundColor = 'transparent';
-       bannerPreview.style.backgroundRepeat = 'no-repeat';
-       bannerPreview.style.backgroundSize = 'cover';
-       bannerPreview.style.backgroundPosition = 'center';
-       bannerPreview.style.minHeight = '120px';
-       bannerPreview.classList.remove('bg-gray-100');
-       const txt = bannerPreview.querySelector('span');
-       if (txt) txt.style.display = 'none';
-     };
-     img.onerror = () => showToast('Failed to generate preview');
-     img.src = dataUrl;
-      closeCropModal();
+      pending.hex = null; pending.gradient = null;
+      bannerPreview.style.backgroundImage = `url("${dataUrl}")`;
+      bannerPreview.style.background = 'none';
+      // Close crop modal & destroy cropper
+      if (cropper) { cropper.destroy(); cropper = null; }
+      cropModal.classList.add('hidden');
+      cropModal.classList.remove('flex');
     });
     // WIRE MODAL CLOSE BEHAVIORS
    closeEditModal?.addEventListener('click', closeEditModalIfOpen);
@@ -961,34 +974,54 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
    document.addEventListener('keydown', (e)=>{ if (e.key === 'Escape') closeEditModalIfOpen(); });
 
     // APPLY, WRITE PREVIEW TO THE BANNER; DONE, JUST CLOSE
-   applyBannerBtn?.addEventListener('click', () => {
-     if (!banner) return;
-     if (pending.type === 'image' && pending.image) {
-       banner.style.background = '';
-       banner.style.backgroundImage = pending.image;
-       banner.style.backgroundRepeat = 'no-repeat';
-       banner.style.backgroundSize = 'cover';
-       banner.style.backgroundPosition = 'center';
-       banner.style.color = '#fff';
-     } else if (pending.type === 'color' && pending.hex) {
-       banner.style.backgroundImage = 'none';
-       banner.style.background = pending.hex;
-       banner.style.backgroundSize = 'cover';
-       banner.style.backgroundPosition = 'center';
-       setTextColorForHex(pending.hex);
-     } else if (pending.type === 'gradient' && pending.gradient) {
-       banner.style.backgroundImage = 'none';
-       banner.style.background = pending.gradient;
-       banner.style.backgroundSize = 'cover';
-       banner.style.backgroundPosition = 'center';
-       if (pending.from && pending.to) setTextColorForGradient(pending.from, pending.to);
-       else banner.style.color = '#fff';
-     }
-     closeEditModalIfOpen();
-   });
-</script>
+   applyBannerBtn?.addEventListener('click', async () => {
+       if (!pending?.type) return;
+       const payload = { id: <?php echo (int)$id; ?>, type: pending.type };
+       if (pending.type === 'image' && pending.imageData) payload.imageData = pending.imageData;
+       if (pending.type === 'color') payload.color = pending.hex;
+       if (pending.type === 'gradient') { payload.from = pending.from; payload.to = pending.to; }
+       console.log('Banner payload:', payload);
+       try {
+        // Use consistent path casing (adjust if your server expects uppercase)
+        const resp = await fetch('/DINADRAWING/Backend/api/event/save_banner.php', {
+           method:'POST',
+           headers:{'Content-Type':'application/json'},
+           body: JSON.stringify(payload)
+         });
+         const res = await resp.json();
+         console.log('Banner response:', res);
+         if (!resp.ok || !res.success) {
+           alert('Save failed: '+(res.detail||res.error||resp.status));
+           return;
+         }
+         if (res.banner?.type === 'image' && res.banner.imageUrl) {
+           const el = document.getElementById('planBanner');
+           if (el){
+             el.style.backgroundImage = `url("${res.banner.imageUrl}")`;
+             el.style.backgroundSize = 'cover';
+             el.style.backgroundPosition = 'center';
+             el.style.backgroundColor = 'transparent';
+             el.style.color = '#fff';
+           }
+         } else if (res.banner?.type === 'color' && payload.color) {
+          banner.style.backgroundImage = 'none';
+          banner.style.background = payload.color;
+          setTextColorForHex(payload.color);
+         } else if (res.banner?.type === 'gradient' && payload.from && payload.to) {
+          banner.style.backgroundImage = 'none';
+          banner.style.background = `linear-gradient(to right, ${payload.from}, ${payload.to})`;
+          setTextColorForGradient(payload.from, payload.to);
+         }
+        // Close edit modal after successful apply
+        closeEditModalIfOpen();
+       } catch(e){
+         console.error(e);
+         alert('Network error saving banner');
+       }
+     });
+  </script>
 
-<script>
+  <script>
     // POST BOX 
     const postInput = document.getElementById('postInput');
     const toolbar = document.getElementById('toolbar');
@@ -1006,7 +1039,7 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
     }
     postInput?.addEventListener('focus', expandPostBox);
     document.addEventListener('click', (e) => {
-      const postBox = document.getElementById('postBox');
+      const postBox = document.getElementById('postBox');s
       if (postBox && !postBox.contains(e.target) && (postInput?.innerText.trim() === '')) {
         collapsePostBox();
       }
@@ -1222,20 +1255,6 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
         <div id="uploadBtn" class="w-8 h-8 rounded-full border flex items-center justify-center cursor-pointer hover:bg-gray-100 transition" style="border-color: #090404;">
           <img src="Assets/upload.png" alt="Upload" class="w-6 h-6 opacity-70">
         </div>
-        <div id="takePhotoBtn" class="w-8 h-8 rounded-full border flex items-center justify-center cursor-pointer hover:bg-gray-100 transition" style="border-color: #090404;">
-          <img src="Assets/camera.png" alt="Take Photo" class="w-6 h-6 opacity-70">
-        </div>
-      </div>
-      <input type="file" id="uploadInput" accept="image/*" class="hidden">
-      <hr class="my-4" />
-      <div class="grid grid-cols-5 gap-3 mb-6">
-        <img src="Assets/Profile Icon/Profile.png" class="w-12 h-12 rounded-full cursor-pointer border hover:border-yellow-500" />
-        <img src="Assets/Profile Icon/Profile2.png" class="w-12 h-12 rounded-full cursor-pointer border hover:border-yellow-500" />
-        <img src="Assets/Profile Icon/Profile3.png" class="w-12 h-12 rounded-full cursor-pointer border hover:border-yellow-500" />
-        <img src="Assets/Profile Icon/Profile4.png" class="w-12 h-12 rounded-full cursor-pointer border hover:border-yellow-500" />
-        <img src="Assets/Profile Icon/Profile5.png" class="w-12 h-12 rounded-full cursor-pointer border hover:border-yellow-500" />
-        <img src="Assets/Profile Icon/Profile6.png" class="w-12 h-12 rounded-full cursor-pointer border hover:border-yellow-500" />
-        <img src="Assets/Profile Icon/Profile7.png" class="w-12 h-12 rounded-full cursor-pointer border hover:border-yellow-500" />
         <img src="Assets/Profile Icon/Profile8.png" class="w-12 h-12 rounded-full cursor-pointer border hover:border-yellow-500" />
       </div>
       <div class="flex justify-end gap-3">
@@ -1299,13 +1318,13 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
     document.getElementById('deleteEventBtn')?.addEventListener('click', () => {
       if (!confirm('Are you sure you want to delete this event? This action cannot be undone.')) return;
       fetch('delete_event.php', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: <?php echo (int)$id; ?> })
-      }).then r => r.json()).then(res => {
-        if (res.success) window.location.href = 'myplans.html';
-        else alert('Delete failed: ' + (res.error || 'unknown'));
-      }).catch(()=> alert('Delete failed'));
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({ id: <?php echo (int)$id; ?> })
+      }).then(r=>r.json()).then(res=>{
+        if (res.success) window.location.href='myplans.php';
+        else alert('Delete failed: '+(res.error||'unknown'));
+      }).catch(()=>alert('Delete failed'));
     });
   </script>
 
