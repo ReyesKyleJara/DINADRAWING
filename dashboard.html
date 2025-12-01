@@ -429,6 +429,19 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
 <!-- SCRIPTS -->
 <script>
 
+// Check auth status in dashboard
+window.addEventListener('DOMContentLoaded', function() {
+  const savedUser = localStorage.getItem('currentUser');
+  if (!savedUser) {
+    // No user found, redirect to login
+    window.location.href = "index.html";
+  } else {
+    // User is logged in, show welcome
+    const user = JSON.parse(savedUser);
+    console.log('Welcome, ' + user.name);
+  }
+});
+
   // YOUR UPCOMING PLANS
   const listViewBtn = document.getElementById("listViewBtn");
   const calendarViewBtn = document.getElementById("calendarViewBtn");

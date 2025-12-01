@@ -499,9 +499,13 @@
 <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
 
+<!-- SCRIPT -->
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
+
 <script>
-  // API Configuration - CHECK YOUR EXACT PATH
-  const API_BASE = 'http://localhost/DINADRAWING/backend/api'; // ADD FULL URL
+  // API Configuration for email auth
+  const API_BASE = '/DINADRAWING/backend/api';
   let currentUser = null;
 
   // Your Firebase configuration
@@ -515,14 +519,105 @@
     measurementId: "G-NC3ECPLG3Z"
   };
 
-  // Initialize Firebase (only if not already initialized)
+  // Initialize Firebase
   if (!firebase.apps.length) {
     firebase.initializeApp(firebaseConfig);
   }
 
-  // Get auth instance
   const auth = firebase.auth();
   const googleProvider = new firebase.auth.GoogleAuthProvider();
+
+  // ============= FIXED GOOGLE AUTH FUNCTION (Firebase Only) =============
+  async function signInWithGoogle() {
+    try {
+      console.log('Starting Google authentication...');
+      
+      // Show loading on all Google buttons
+      const googleBtns = document.querySelectorAll('.google-btn');
+      const originalTexts = [];
+      googleBtns.forEach((btn, index) => {
+        originalTexts[index] = btn.innerHTML;
+        btn.innerHTML = '<span>Connecting with Google...</span>';
+        btn.disabled = true;
+      });
+
+      // Sign in with Google via Firebase - NO BACKEND CALL NEEDED
+      const result = await auth.signInWithPopup(googleProvider);
+      const user = result.user;
+      console.log('Firebase auth successful:', user.email);
+      
+      // Create user object from Firebase data
+      const userData = {
+        id: user.uid,
+        name: user.displayName || user.email.split('@')[0],
+        email: user.email,
+        photoURL: user.photoURL || '',
+        provider: 'google',
+        created_at: new Date().toISOString()
+      };
+      
+      console.log('User data:', userData);
+      
+      // Store user data locally (Firebase handles the auth)
+      currentUser = userData;
+      localStorage.setItem('currentUser', JSON.stringify(userData));
+      localStorage.setItem('firebaseUser', JSON.stringify({
+        uid: user.uid,
+        email: user.email,
+        displayName: user.displayName,
+        photoURL: user.photoURL
+      }));
+      
+      // Optional: Try to sync with backend if you want (commented out)
+      // try {
+      //   await fetch(`${API_BASE}/sync-user.php`, {
+      //     method: 'POST',
+      //     headers: { 'Content-Type': 'application/json' },
+      //     body: JSON.stringify(userData)
+      //   });
+      // } catch (e) {
+      //   console.log('Backend sync optional:', e.message);
+      // }
+      
+      // Show success message
+      const message = `Welcome ${user.displayName || user.email.split('@')[0]}!`;
+      alert(message);
+      
+      // Close any open modals
+      closeLoginModal();
+      closeSignupModal();
+      
+      // Redirect to dashboard
+      setTimeout(() => {
+        window.location.href = "dashboard.html";
+      }, 1000);
+      
+    } catch (error) {
+      console.error('Google auth error:', error);
+      
+      // Reset buttons
+      const googleBtns = document.querySelectorAll('.google-btn');
+      googleBtns.forEach((btn, index) => {
+        btn.innerHTML = originalTexts && originalTexts[index] ? 
+          originalTexts[index] : 
+          '<span>Sign in with Google</span>';
+        btn.disabled = false;
+      });
+      
+      // Handle specific errors
+      if (error.code === 'auth/popup-closed-by-user') {
+        alert('Google sign-in was cancelled. Please try again.');
+      } else if (error.code === 'auth/popup-blocked') {
+        alert('Popup was blocked by your browser. Please:\n1. Click the popup blocker icon in your address bar\n2. Or try right-clicking the button and selecting "Open in new window"');
+      } else if (error.code === 'auth/cancelled-popup-request') {
+        alert('Multiple popups detected. Please wait and try again.');
+      } else if (error.code === 'auth/network-request-failed') {
+        alert('Network error. Please check your internet connection.');
+      } else {
+        alert('Google sign-in failed: ' + (error.message || 'Unknown error'));
+      }
+    }
+  }
 
   // Enhanced Email Login Function
   async function signInWithEmail() {
@@ -617,154 +712,6 @@
       }
   }
 
-  // ============= UPDATED GOOGLE AUTH FUNCTION =============
-  async function signInWithGoogle() {
-    try {
-      console.log('Starting Google authentication...');
-      console.log('API Base URL:', API_BASE);
-      
-      // Show loading state
-      const googleBtn = document.querySelector('.google-btn');
-      const originalText = googleBtn ? googleBtn.innerHTML : '';
-      if (googleBtn) {
-        googleBtn.innerHTML = '<span>Connecting with Google...</span>';
-        googleBtn.disabled = true;
-      }
-
-      // Sign in with Google via Firebase
-      const result = await auth.signInWithPopup(googleProvider);
-      const user = result.user;
-      console.log('Firebase auth successful. User:', user.email);
-      
-      // Prepare user data
-      const userData = {
-        uid: user.uid,
-        name: user.displayName || user.email.split('@')[0],
-        email: user.email,
-        photoURL: user.photoURL || ''
-      };
-      
-      console.log('User Data:', userData);
-      
-      // TEST: First check if the endpoint exists with a GET request
-      console.log('Testing endpoint...');
-      try {
-        const testResponse = await fetch(`${API_BASE}/google-auth.php`, {
-          method: 'GET'
-        });
-        console.log('GET Test Response:', testResponse.status, await testResponse.text());
-      } catch (testError) {
-        console.error('GET Test Error:', testError);
-      }
-      
-      // Now send POST request
-      console.log('Sending POST request to:', `${API_BASE}/google-auth.php`);
-      
-      const response = await fetch(`${API_BASE}/google-auth.php`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(userData)
-      });
-
-      console.log('Response status:', response.status);
-      console.log('Response status text:', response.statusText);
-      
-      const responseText = await response.text();
-      console.log('Raw response text:', responseText);
-      
-      let backendResult;
-      try {
-        backendResult = JSON.parse(responseText);
-        console.log('Parsed response:', backendResult);
-      } catch (e) {
-        console.error('Failed to parse JSON:', e);
-        
-        // Reset button
-        if (googleBtn) {
-          googleBtn.innerHTML = originalText;
-          googleBtn.disabled = false;
-        }
-        
-        if (response.status === 405) {
-          alert('Error 405: Method Not Allowed. The server is not accepting POST requests to this endpoint.');
-        } else if (response.status === 404) {
-          alert(`Error 404: File not found. Please check if google-auth.php exists at: ${API_BASE}/google-auth.php`);
-        } else if (!responseText) {
-          alert('Server returned empty response. Check server error logs.');
-        } else {
-          alert('Server returned invalid response. Please check console for details.');
-        }
-        return;
-      }
-
-      if (backendResult.success) {
-        console.log('Backend authentication successful');
-        
-        currentUser = backendResult.user;
-        localStorage.setItem('currentUser', JSON.stringify(currentUser));
-        localStorage.setItem('firebaseUser', JSON.stringify({
-          uid: user.uid,
-          email: user.email,
-          displayName: user.displayName || user.email.split('@')[0],
-          photoURL: user.photoURL
-        }));
-        
-        // Show appropriate message
-        const welcomeMessage = backendResult.isNewUser 
-          ? `Welcome to DiNaDrawing, ${user.displayName || user.email.split('@')[0]}!`
-          : `Welcome back, ${user.displayName || user.email.split('@')[0]}!`;
-        
-        alert(welcomeMessage);
-        
-        // Close any open modals
-        closeLoginModal();
-        closeSignupModal();
-        
-        // Redirect to dashboard
-        setTimeout(() => {
-          window.location.href = "dashboard.html";
-        }, 1000);
-        
-      } else {
-        console.error('Backend error:', backendResult);
-        
-        // Reset button
-        if (googleBtn) {
-          googleBtn.innerHTML = originalText;
-          googleBtn.disabled = false;
-        }
-        
-        alert(backendResult.message || "Authentication failed on server.");
-        
-        // Sign out from Firebase
-        await auth.signOut();
-      }
-      
-    } catch (error) {
-      console.error('Google auth error:', error);
-      
-      // Reset button
-      const googleBtn = document.querySelector('.google-btn');
-      if (googleBtn) {
-        googleBtn.innerHTML = originalText || '<span>Sign in with Google</span>';
-        googleBtn.disabled = false;
-      }
-      
-      // Handle specific errors
-      if (error.code === 'auth/popup-closed-by-user') {
-        alert('Google sign-in was cancelled. Please try again.');
-      } else if (error.code === 'auth/popup-blocked') {
-        alert('Popup was blocked. Please allow popups for this site.');
-      } else if (error.code === 'auth/network-request-failed') {
-        alert('Network error. Please check your internet connection.');
-      } else {
-        alert('Google sign-in failed: ' + (error.message || 'Unknown error'));
-      }
-    }
-  }
-
   // Check if user is already logged in
   function checkAuthStatus() {
       const savedUser = localStorage.getItem('currentUser');
@@ -781,7 +728,7 @@
       }
   }
 
-  // Logout function - enhanced to handle Firebase logout too
+  // Logout function
   async function logout() {
       try {
         // Sign out from Firebase if user was logged in via Google
@@ -844,7 +791,6 @@
   // FACEBOOK TEMPORARY LOGIN
   function signInWithFacebook() {
     closeLoginModal();
-    console.log("Redirecting to dashboard...");
     setTimeout(() => {
       window.location.href = "dashboard.html";
     }, 1000);
@@ -859,25 +805,14 @@
     }
   });
 
-  // SIMPLE LOADING SCREEN THAT WILL WORK
-  console.log('Script started - loading screen should hide in 3 seconds');
-  
   // HIDE LOADING SCREEN
   setTimeout(function() {
     const loadingScreen = document.getElementById('loadingScreen');
-    console.log('Attempting to hide loading screen...');
-    
     if (loadingScreen) {
-      console.log('Loading screen found, hiding it now');
       loadingScreen.style.opacity = '0';
-      
-      // REMOVE COMPLETELY AFTER FADE-OUT
       setTimeout(function() {
         loadingScreen.style.display = 'none';
-        console.log('Loading screen hidden successfully!');
       }, 500);
-    } else {
-      console.error('Loading screen element not found!');
     }
   }, 3000);
 
@@ -899,7 +834,7 @@
     }
   });
   
-  console.log('All functions defined, waiting for timeout...');
+  console.log('All functions defined');
 </script>
 
 </body>
