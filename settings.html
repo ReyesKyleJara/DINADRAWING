@@ -9,8 +9,8 @@
   <style>
     body { font-family: 'Poppins', sans-serif; background-color: #fffaf2; color: #222; }
     .tab-content {
-      opacity: 0;
-      transform: translateY(6px);
+      opacity: 1;
+      transform: translateY(0);
       transition: opacity 240ms ease, transform 240ms ease;
       will-change: opacity, transform;
     }
@@ -68,7 +68,7 @@
     
     .appearance-switch {
       position: relative;
-      width: 140px;            
+      width: 100px;            
       height: 34px;
       background: #e5e7eb;     
       padding: 3px;
@@ -79,7 +79,7 @@
     }
 
     .appearance-switch .option {
-      width: 44px;
+      width: 50px;
       height: 28px;
       display: inline-flex;
       align-items: center;
@@ -133,17 +133,19 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
   </nav>
 </aside>
 
-  <!-- MAIN CONTENT -->
-  <main class="ml-0 md:ml-64 flex-1 min-h-screen px-4 sm:px-8 md:px-12 py-10">
+<!-- MAIN CONTENT -->
+  <main class="ml-0 md:ml-64 flex-1 min-h-screen px-12 py-10 pt-28">
 
-    <!-- PAGE TITLE -->
-    <div class="flex items-center justify-between">
-      <div class="flex flex-col">
-        <h1 class="text-3xl font-bold">Settings</h1>
-        <span class="text-gray-600 text-sm">Manage your account settings and preferences</span>
-      </div>
-       <div class="flex items-center gap-3">
-            
+<!-- PAGE TITLE (STICKY HEADER) -->
+<div class="flex justify-between items-center border-b-2 border-gray-200 pb-4 mb-6 fixed top-0 md:left-64 left-0 w-[calc(100%-0rem)] md:w-[calc(100%-16rem)] bg-[#fffaf2] z-40 px-12 py-10">
+
+  <div class="flex flex-col">
+    <h1 class="text-3xl font-bold">Settings</h1>
+    <span class="text-gray-600 text-sm">Manage your account settings and preferences</span>
+  </div>
+
+  <div class="flex items-center gap-3">
+
   <!-- PROFILE -->
   <div class="relative">
     <button id="profileBtn" class="flex items-center gap-2 bg-[#f4b41a]/30 border border-[#222] rounded-full px-3 py-1.5 hover:bg-[#f4b41a]/50 transition">
@@ -168,23 +170,14 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
 </div>
 </div>
 
-    <!-- DIVIDER -->
-    <hr class="mt-4 mb-6 border-t-2 border-gray-200" />
-
-    <!-- TAB HEADERS -->
-    <div class="w-full">
+    <!-- UNIFIED SETTINGS FRAME -->
+    <div class="w-full mt-12">
         <div class="bg-white rounded-2xl soft-shadow overflow-hidden">
-          <div class="tab-strip bg-gray-100 px-4 py-2">
-            <div class="w-full flex flex-wrap items-center gap-2 justify-start">
-              <button data-tab="profile" class="tab-btn tab-selected">Profile</button>
-              <button data-tab="security" class="tab-btn">Account &amp; Security</button>
-              <button data-tab="prefs" class="tab-btn">Preferences</button>
-            </div>
-          </div>
-          <div class="p-6">
+          <div class="p-6 md:p-8 space-y-10">
 
-        <!-- PROFILE TAB -->
-        <div id="profile" class="tab-content show" role="tabpanel" aria-labelledby="profile-tab">
+        <!-- PROFILE SECTION -->
+        <div>
+          <h2 class="text-xl font-bold mb-6">Profile</h2>
           <div class="flex flex-col gap-6 px-6">
             <div class="flex items-center gap-6 mt-4">
 
@@ -249,8 +242,206 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
               </div>
             </div>
           </div>
-        </div> 
-        
+
+          <!-- DIVIDER -->
+          <hr class="my-8 border-t-2 border-gray-200" />
+
+        <!-- PREFERENCES SECTION -->
+        <div>
+          <h2 class="text-xl font-bold mb-6">Preferences</h2>
+          <div class="flex flex-col gap-8 px-6">
+            <!-- APPEARANCE SECTION -->
+            <div>
+              <h3 class="text-lg font-semibold mb-4">Appearance</h3>
+              <div class="flex items-center gap-[520px]">
+                <span class="font-medium text-gray-700 dark:text-gray-300">Theme</span>
+
+                <!-- DARKMODE/LIGHTMODE -->
+                <div id="appearanceSwitch" class="appearance-switch">
+                  <div class="option left active" aria-hidden="true">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="w-4 h-4">
+                      <g fill="currentColor">
+                        <circle cx="12" cy="12" r="3" />
+                        <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                      </g>
+                    </svg>
+                  </div>
+                  <div class="option right" aria-hidden="true">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="w-4 h-4">
+                      <path fill="currentColor" d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- NOTIFICATIONS SECTION -->
+            <div>
+              <h3 class="text-lg font-semibold mb-3">Notifications</h3>
+              <div class="space-y-4">
+
+                <!-- EMAIL REMINDERS -->
+                <div class="flex gap-[501px] items-center">
+                  <span>Email reminders</span>
+                  <label class="relative inline-flex items-center cursor-pointer">
+                   <input type="checkbox" class="sr-only peer">
+                   <div class="w-11 h-6 bg-gray-300 rounded-full peer peer-checked:bg-green-500 transition-all duration-200"></div>
+                    <div class="absolute left-[2px] top-[2px] bg-white w-5 h-5 rounded-full transition-all duration-200 peer-checked:translate-x-full"></div>
+                  </label>
+                </div>
+
+                <!-- PUSH NOTIFICATIONS -->
+                <div class="flex gap-[490px] items-center">
+                  <span>Push notifications</span>
+                  <label class="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" checked class="sr-only peer" />
+                    <div class="w-11 h-6 bg-gray-300 rounded-full peer peer-checked:bg-green-500 transition-all duration-200"></div>
+                    <div class="absolute left-[2px] top-[2px] bg-white w-5 h-5 rounded-full transition-all duration-200 peer-checked:translate-x-full"></div>
+                  </label>
+                </div>
+                
+                <!-- IN-APP ALERTS -->
+                <div class="flex gap-[527px] items-center">
+                  <span>In-app alerts</span>
+                  <label class="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" checked class="sr-only peer" />
+                    <div class="w-11 h-6 bg-gray-300 rounded-full peer peer-checked:bg-green-500 transition-all duration-200"></div>
+                    <div class="absolute left-[2px] top-[2px] bg-white w-5 h-5 rounded-full transition-all duration-200 peer-checked:translate-x-full"></div>
+                  </label>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+          <!-- DIVIDER -->
+          <hr class="my-8 border-t-2 border-gray-200" />
+
+        <!-- ACCOUNT & SECURITY SECTION -->
+        <div>
+          <h2 class="text-xl font-bold mb-6">Account & Security</h2>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-y-6 md:gap-x-4 md:[grid-template-columns:repeat(2,min-content)]">
+
+            <!-- CHANGE PASSWORD -->
+            <div class="flex flex-col gap-3 px-6">
+              <div class="grid grid-cols-1 md:grid-cols-2 items-start gap-y-3 md:gap-x-8 mb-2">
+                <div>
+                  <h3 class="text-lg font-semibold">Change Password</h3>
+                </div>
+                <div class="flex justify-start md:justify-start">
+                  <h3 class="text-lg font-semibold">Update Email</h3>
+                </div>
+              </div>
+              <div class="flex-1">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-y-6 md:gap-x-8 md:[grid-template-columns:repeat(2,min-content)]">
+
+                <!-- CHANGE PASSWORD -->
+                <div class="flex flex-col items-start">
+                  <div class="flex flex-col gap-2 w-full">
+                    <input type="password" id="oldPass" placeholder="Old Password" class="w-80 max-w-full border border-gray-300 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#f4b41a]" />
+                    <input type="password" id="newPass" placeholder="New Password" class="w-80 max-w-full border border-gray-300 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#f4b41a]" />
+                    <input type="password" id="confirmPass" placeholder="Confirm New Password" class="w-80 max-w-full border border-gray-300 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#f4b41a]" />
+                    <span id="passMatchMsg" class="text-xs text-red-500 hidden">Passwords do not match.</span>
+                    <span id="passMatchSuccess" class="text-xs text-green-600 hidden">✓ Passwords match!</span>
+                  </div>
+                  <button onclick="validatePassword()" class="mt-2 bg-[#222] text-white thin-btn hover:bg-black transition">Save</button>
+                  
+                  <!-- PASSWORD REQUIREMENTS VALIDATION BOX -->
+                  <div id="passwordRequirements" class="bg-gray-50 border border-gray-200 rounded-lg p-3 text-xs hidden shadow-sm mt-2 w-full">
+                    <h4 class="font-semibold mb-2 text-gray-700 text-xs">Requirements:</h4>
+                    <div class="space-y-1">
+                      <div id="req-lowercase" class="flex items-center gap-2">
+                        <span class="req-icon text-red-500 font-bold">✗</span>
+                        <span class="req-text text-xs">Lowercase</span>
+                      </div>
+                      <div id="req-uppercase" class="flex items-center gap-2">
+                        <span class="req-icon text-red-500 font-bold">✗</span>
+                        <span class="req-text text-xs">Uppercase</span>
+                      </div>
+                      <div id="req-number" class="flex items-center gap-2">
+                        <span class="req-icon text-red-500 font-bold">✗</span>
+                        <span class="req-text text-xs">Number</span>
+                      </div>
+                      <div id="req-special" class="flex items-center gap-2">
+                        <span class="req-icon text-red-500 font-bold">✗</span>
+                        <span class="req-text text-xs">Special char</span>
+                      </div>
+                      <div id="req-length" class="flex items-center gap-2">
+                        <span class="req-icon text-red-500 font-bold">✗</span>
+                        <span class="req-text text-xs">8-12 chars</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- UPDATE EMAIL -->
+                <div class="flex flex-col items-start">
+                  <div class="flex flex-col gap-2 w-full">
+                    <input type="email" id="currentEmail" placeholder="Current Email" value="angelvenice@gmail.com" class="w-80 max-w-full border border-gray-300 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#f4b41a]" />
+                    <input type="email" id="newEmail" placeholder="New Email" class="w-80 max-w-full border border-gray-300 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#f4b41a]" />
+                    <input type="email" id="confirmEmail" placeholder="Confirm New Email" class="w-80 max-w-full border border-gray-300 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#f4b41a]" />
+                    <span id="emailFormatMsg" class="text-xs text-red-500 hidden">Invalid email</span>
+                    <span id="emailFormatSuccess" class="text-xs text-green-600 hidden">✓ Valid email</span>
+                    <span id="emailMatchMsg" class="text-xs text-red-500 hidden">Emails do not match</span>
+                    <span id="emailMatchSuccess" class="text-xs text-green-600 hidden">✓ Match!</span>
+                  </div>
+                  <button onclick="validateEmail()" class="mt-2 bg-[#222] text-white thin-btn hover:bg-black transition">Verify</button>
+                  
+                  <!-- EMAIL VALIDATION BOX -->
+                  <div id="emailValidation" class="bg-gray-50 border border-gray-200 rounded-lg p-3 text-xs hidden shadow-sm mt-2 w-full">
+                    <h4 class="font-semibold mb-2 text-gray-700 text-xs">Validation:</h4>
+                    <div class="space-y-1">
+                      <div id="email-format-check" class="flex items-center gap-2">
+                        <span class="email-format-icon text-red-500 font-bold">✗</span>
+                        <span class="email-format-text text-xs">Valid email format</span>
+                      </div>
+                      <div id="email-match-check" class="flex items-center gap-2">
+                        <span class="email-match-icon text-red-500 font-bold">✗</span>
+                        <span class="email-match-text text-xs">Emails match</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- PRIVACY SETTINGS -->
+              <div class="mt-8">
+                <h3 class="text-lg font-semibold mb-3">Privacy</h3>
+                <div class="space-y-3">
+                  <div class="flex justify-between items-center">
+                    <label class="text-medium font-medium">Who can invite</label>
+                    <select class="border border-gray-300 rounded-xl px-3 py-2 text-medium focus:outline-none focus:ring-2 focus:ring-[#f4b41a]">
+                      <option>Anyone with link</option>
+                      <option>Only friends</option>
+                      <option>Invite code only</option>
+                    </select>
+                  </div>
+                  <div class="flex justify-between items-center">
+                    <label class="text-medium font-medium">Profile Visibility</label>
+                    <select class="border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#f4b41a]">
+                      <option>Public</option>
+                      <option>Friends</option>
+                      <option>Private</option>
+                    </select>
+                  </div>
+                  <div class="flex justify-between items-center pt-2">
+                    <div>
+                      <p class="text-medium font-semibold">Delete Account</p>
+                      <p class="text-medium text-gray-500">Permanently delete</p>
+                    </div>
+                    <button class="bg-red-600 text-white thin-danger hover:bg-red-700 transition whitespace-nowrap">Delete</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+          </div>
+        </div>
+    </div>
+
+    </div>
+
 <!-- CHANGE PROFILE MODAL -->
 <div
   id="changeProfileModal"
@@ -308,230 +499,7 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
         Save Changes
       </button>
     </div>
-  </div>
-</div>
-
-        <!-- ACCOUNT & SECURITY TAB -->
-        <div id="security" class="tab-content" role="tabpanel" aria-labelledby="security-tab" hidden>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-2 px-6">
-
-            <!-- CHANGE PASSWORD -->
-        <div class="flex flex-col gap-3" id="passwordSection">
-        <h3 class="text-base font-semibold">Change Password</h3>
-        <input type="password" id="oldPass" placeholder="Old Password" class="w-full border rounded-xl px-4 py-2 text-sm" />
-        <input type="password" id="newPass" placeholder="New Password" class="w-full border rounded-xl px-4 py-2 text-sm" />
-        
-        <!-- PASSWORD REQUIREMENTS VALIDATION BOX -->
-        <div id="passwordRequirements" class="bg-white border border-gray-200 rounded-lg p-4 text-sm hidden shadow-sm">
-          <h4 class="font-semibold mb-2 text-gray-700">PASSWORD MUST CONTAIN:</h4>
-          <div class="space-y-1.5">
-            <div id="req-lowercase" class="flex items-center gap-2">
-              <span class="req-icon text-red-500 font-bold">✗</span>
-              <span class="req-text">At least <strong>one lowercase letter</strong></span>
-            </div>
-            <div id="req-uppercase" class="flex items-center gap-2">
-              <span class="req-icon text-red-500 font-bold">✗</span>
-              <span class="req-text">At least <strong>one uppercase letter</strong></span>
-            </div>
-            <div id="req-number" class="flex items-center gap-2">
-              <span class="req-icon text-red-500 font-bold">✗</span>
-              <span class="req-text">At least <strong>one number</strong></span>
-            </div>
-            <div id="req-special" class="flex items-center gap-2">
-              <span class="req-icon text-red-500 font-bold">✗</span>
-              <span class="req-text">At least <strong>one special character</strong></span>
-            </div>
-            <div id="req-length" class="flex items-center gap-2">
-              <span class="req-icon text-red-500 font-bold">✗</span>
-              <span class="req-text">Between <strong>8-12 characters</strong></span>
-            </div>
-          </div>
-          <div class="mt-3 pt-3 border-t border-gray-200">
-            <div class="flex items-center justify-between">
-              <span class="text-gray-600 text-xs">Password Strength:</span>
-              <span id="strengthLabel" class="font-semibold text-xs weak">Weak</span>
-            </div>
-          </div>
-        </div>
-
-        <input type="password" id="confirmPass" placeholder="Confirm New Password" class="w-full border rounded-xl px-4 py-2 text-sm" />
-        <span id="passMatchMsg" class="text-xs text-red-500 hidden">Passwords do not match.</span>
-        <span id="passMatchSuccess" class="text-xs text-green-600 hidden">✓ Passwords match!</span>
-        <button onclick="validatePassword()" class="mt-2 bg-[#222] text-white thin-btn hover:bg-black transition w-28">Save</button>
-        </div>
-
-        <!-- UPDATE EMAIL -->
-      <div class="flex flex-col gap-3" id="emailSection">
-      <h3 class="text-base font-semibold">Update Email</h3>
-      <input type="email" id="currentEmail" placeholder="Current Email" value="angelvenice@gmail.com" class="w-full border rounded-xl px-4 py-2 text-sm" />
-      <input type="email" id="newEmail" placeholder="New Email (e.g., angelvenice@gmail.com)" class="w-full border rounded-xl px-4 py-2 text-sm" />
-     <span id="emailFormatMsg" class="text-xs text-red-500 hidden">✗ Please enter a valid email format (e.g., angelvenice@gmail.com)</span>
-     <span id="emailFormatSuccess" class="text-xs text-green-600 hidden">✓ Valid email format</span>
-     <input type="email" id="confirmEmail" placeholder="Confirm New Email" class="w-full border rounded-xl px-4 py-2 text-sm" />
-    <span id="emailMatchMsg" class="text-xs text-red-500 hidden">✗ Emails do not match.</span>
-    <span id="emailMatchSuccess" class="text-xs text-green-600 hidden">✓ Emails match!</span>
-    <button onclick="validateEmail()" class="mt-2 bg-[#222] text-white thin-btn hover:bg-black transition w-28">Verify</button>
-    </div>
-
-            <!-- MISC SETTINGS -->
-            <div class="md:col-span-2 mt-4 space-y-3">
-              <div class="flex justify-between items-center">
-                <label class="text-sm font-medium">Manage who can invite you to events</label>
-                <select class="border rounded-xl px-3 py-1 text-sm w-44 text-sm">
-                  <option>Anyone with link</option>
-                  <option>Only friends</option>
-                  <option>Invite code only</option>
-                </select>
-              </div>
-              <div class="flex justify-between items-center">
-                <label class="text-sm font-medium">Profile Visibility</label>
-                <select class="border rounded-xl px-3 py-1 text-sm w-44 text-sm">
-                  <option>Public</option>
-                  <option>Friends</option>
-                  <option>Private</option>
-                </select>
-              </div>
-            </div>
-
-            <!-- DELETE ACCOUNT -->
-            <div class="md:col-span-2 mt-4 space-y-3">
-              <div class="flex justify-between items-center">
-                <div>
-                  <p class="text-sm font-semibold">Delete Account</p>
-                  <p class="text-xs text-gray-500">permanently delete account</p>
-                </div>
-                <div class="ml-auto">
-                  <button class="mt-2 bg-red-600 text-white thin-danger hover:bg-red-700 transition whitespace-nowrap">Delete Account</button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- PREFERENCES TAB -->
-        <div id="prefs" class="tab-content" role="tabpanel" aria-labelledby="prefs-tab" hidden>
-          <div class="p-6 md:p-8 space-y-8">
-
-            <!-- PREFERENCES SECTION -->
-            <div>
-              <h3 class="text-lg font-semibold mb-4">Preferences</h3>
-              <div class="flex items-center gap-4">
-                <span class="font-medium text-gray-700 dark:text-gray-300">Appearance</span>
-
-                <!-- DARKMODE/LIGHTMODE -->
-                <div id="appearanceSwitch" class="appearance-switch">
-                  <div class="option left active" aria-hidden="true">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="w-4 h-4">
-                      <g fill="currentColor">
-                        <circle cx="12" cy="12" r="3" />
-                        <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-                      </g>
-                    </svg>
-                  </div>
-                  <div class="option right" aria-hidden="true">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="w-4 h-4">
-                      <path fill="currentColor" d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" />
-                    </svg>
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            <!-- NOTIFICATIONS SECTION -->
-            <div>
-              <h3 class="text-lg font-semibold mb-3">Notifications</h3>
-              <div class="space-y-4">
-
-                <!-- EMAIL REMINDERS -->
-                <div class="flex justify-between items-center">
-                  <span>Email reminders</span>
-                  <label class="relative inline-flex items-center cursor-pointer">
-                    <input type="checkbox" checked class="sr-only peer" />
-                    <div class="w-11 h-6 bg-gray-300 rounded-full peer peer-checked:bg-green-500 transition-all duration-200"></div>
-                    <div class="absolute left-[2px] top-[2px] bg-white w-5 h-5 rounded-full transition-all duration-200 peer-checked:translate-x-full"></div>
-                  </label>
-                </div>
-
-                <!-- PUSH NOTIFICATIONS -->
-                <div class="flex justify-between items-center">
-                  <span>Push notifications</span>
-                  <label class="relative inline-flex items-center cursor-pointer">
-                    <input type="checkbox" checked class="sr-only peer" />
-                    <div class="w-11 h-6 bg-gray-300 rounded-full peer peer-checked:bg-green-500 transition-all duration-200"></div>
-                    <div class="absolute left-[2px] top-[2px] bg-white w-5 h-5 rounded-full transition-all duration-200 peer-checked:translate-x-full"></div>
-                  </label>
-                </div>
-                
-                <!-- IN-APP ALERTS -->
-                <div class="flex justify-between items-center">
-                  <span>In-app alerts</span>
-                  <label class="relative inline-flex items-center cursor-pointer">
-                    <input type="checkbox" checked class="sr-only peer" />
-                    <div class="w-11 h-6 bg-gray-300 rounded-full peer peer-checked:bg-green-500 transition-all duration-200"></div>
-                    <div class="absolute left-[2px] top-[2px] bg-white w-5 h-5 rounded-full transition-all duration-200 peer-checked:translate-x-full"></div>
-                  </label>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-    </div>
-  </div>
   </main>
-
-  <!-- ABOUT US MODAL -->
-  <div id="aboutUsModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center hidden z-50 p-4">
-    <div class="bg-white rounded-2xl shadow-xl relative w-full max-w-2xl max-h-[90vh] overflow-y-auto p-8">
-      <button id="closeAboutUsModal" class="absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
-      <h1 class="text-3xl font-bold text-[#222] mb-4">About Us</h1>
-      <p class="text-gray-700 mb-6 leading-relaxed">
-        <span class="font-semibold text-[#f4b41a]">DiNaDrawing</span> is a collaborative planning platform designed to make organizing events and group activities easy, fun, and efficient. Whether you're preparing a trip, party, or project, DiNaDrawing helps you stay connected, assign tasks, and track your plans in one place.
-      </p>
-      <div class="grid md:grid-cols-2 gap-6 mt-8">
-        <div class="bg-[#fffaf2] p-6 rounded-xl border border-gray-200 shadow-sm">
-          <h2 class="text-xl font-semibold text-[#222] mb-3">Our Mission</h2>
-          <p class="text-gray-700 leading-relaxed text-sm">To simplify teamwork and planning by creating a space where collaboration feels effortless, ensuring every plan—big or small—gets drawn out perfectly.</p>
-        </div>
-        <div class="bg-[#fffaf2] p-6 rounded-xl border border-gray-200 shadow-sm">
-          <h2 class="text-xl font-semibold text-[#222] mb-3">Our Vision</h2>
-          <p class="text-gray-700 leading-relaxed text-sm">To become the go-to digital planner for creative teams and friend groups around the world, empowering people to turn their ideas into reality.</p>
-        </div>
-      </div>
-      <div class="mt-8">
-        <h2 class="text-2xl font-bold text-[#222] mb-4">Meet the Team</h2>
-        <div class="grid grid-cols-5 gap-4">
-          <div class="flex flex-col items-center bg-[#fffaf2] p-4 rounded-xl border border-gray-200 shadow-sm">
-            <img src="Assets/Profile Icon/Ken.jpg" alt="Ken" class="w-16 h-16 rounded-full border-2 border-[#f4b41a] shadow mb-2">
-            <h3 class="font-semibold text-[#222] text-sm">Ken Mendoza</h3>
-            <p class="text-xs text-gray-600">Front-End Dev</p>
-          </div>
-          <div class="flex flex-col items-center bg-[#fffaf2] p-4 rounded-xl border border-gray-200 shadow-sm">
-            <img src="Assets/Profile Icon/Andrea.jpg" alt="Andrea" class="w-16 h-16 rounded-full border-2 border-[#f4b41a] shadow mb-2">
-            <h3 class="font-semibold text-[#222] text-sm">Andrea Calilap</h3>
-            <p class="text-xs text-gray-600">Front-End Dev</p>
-          </div>
-          <div class="flex flex-col items-center bg-[#fffaf2] p-4 rounded-xl border border-gray-200 shadow-sm">
-            <img src="Assets/Profile Icon/Angel.jpg" alt="Venice" class="w-16 h-16 rounded-full border-2 border-[#f4b41a] shadow mb-2">
-            <h3 class="font-semibold text-[#222] text-sm">Angel Retabale</h3>
-            <p class="text-xs text-gray-600">Project Manager</p>
-          </div>
-          <div class="flex flex-col items-center bg-[#fffaf2] p-4 rounded-xl border border-gray-200 shadow-sm">
-            <img src="Assets/Profile Icon/Jara.jpg" alt="Kyle" class="w-16 h-16 rounded-full border-2 border-[#f4b41a] shadow mb-2">
-            <h3 class="font-semibold text-[#222] text-sm">Kyle Reyes</h3>
-            <p class="text-xs text-gray-600">Back-End Dev</p>
-          </div>
-          <div class="flex flex-col items-center bg-[#fffaf2] p-4 rounded-xl border border-gray-200 shadow-sm">
-            <img src="Assets/Profile Icon/Jovan.jpg" alt="Ralf" class="w-16 h-16 rounded-full border-2 border-[#f4b41a] shadow mb-2">
-            <h3 class="font-semibold text-[#222] text-sm">Ralf Sanchez</h3>
-            <p class="text-xs text-gray-600">Back-End Dev</p>
-          </div>
-        </div>
-      </div>
-      <footer class="mt-8 text-center text-gray-500 text-xs border-t border-gray-200 pt-4">© 2025 DiNaDrawing. All rights reserved.</footer>
-    </div>
-  </div>
 
     <!-- SCRIPTS -->
     <script>
@@ -551,34 +519,12 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
         }
       });
 
-      // TAB HEADERS
-      const tabButtons = document.querySelectorAll('.tab-btn');
-      const tabContents = document.querySelectorAll('.tab-content');
-      function activateTab(tabName) {
-        tabButtons.forEach(btn => {
-          if (btn.dataset.tab === tabName) {
-            btn.classList.add('tab-selected');
-          } else {
-            btn.classList.remove('tab-selected');
-          }
-        });
-        tabContents.forEach(content => {
-          if (content.id === tabName) {
-            content.hidden = false;
-            void content.offsetWidth;
-            content.classList.add('show');
-          } else {
-            content.classList.remove('show');
-            setTimeout(() => { content.hidden = true; }, 260);
-          }
-        });
-      }
-  activateTab('profile');
-      tabButtons.forEach(btn => {
-        btn.addEventListener('click', () => {
-          activateTab(btn.dataset.tab);
-        });
-      });
+      // TAB HEADERS - No longer needed with unified layout
+      // const tabButtons = document.querySelectorAll('.tab-btn');
+      // const tabContents = document.querySelectorAll('.tab-content');
+      // function activateTab(tabName) { ... }
+      // activateTab('profile');
+      // tabButtons.forEach(btn => { ... });
     </script>
 
   <script>
@@ -943,26 +889,34 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
   // REAL-TIME EMAIL VALIDATION
   const newEmailInput = document.getElementById("newEmail");
   const confirmEmailInput = document.getElementById("confirmEmail");
-  const emailFormatMsg = document.getElementById("emailFormatMsg");
-  const emailFormatSuccess = document.getElementById("emailFormatSuccess");
-  const emailMatchMsg = document.getElementById("emailMatchMsg");
-  const emailMatchSuccess = document.getElementById("emailMatchSuccess");
+  const emailValidation = document.getElementById("emailValidation");
+  const emailFormatCheck = document.getElementById("email-format-check");
+  const emailMatchCheck = document.getElementById("email-match-check");
 
   newEmailInput?.addEventListener('input', () => {
     const email = newEmailInput.value;
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     
+    // Show validation box only when there's input in the new email field
     if (email.length > 0) {
-      if (emailRegex.test(email)) {
-        emailFormatMsg?.classList.add('hidden');
-        emailFormatSuccess?.classList.remove('hidden');
-      } else {
-        emailFormatMsg?.classList.remove('hidden');
-        emailFormatSuccess?.classList.add('hidden');
-      }
+      emailValidation?.classList.remove('hidden');
     } else {
-      emailFormatMsg?.classList.add('hidden');
-      emailFormatSuccess?.classList.add('hidden');
+      emailValidation?.classList.add('hidden');
+    }
+    
+    // Update format check
+    if (emailRegex.test(email)) {
+      emailFormatCheck.querySelector('.email-format-icon').textContent = '✓';
+      emailFormatCheck.querySelector('.email-format-icon').classList.remove('text-red-500');
+      emailFormatCheck.querySelector('.email-format-icon').classList.add('text-green-600');
+      emailFormatCheck.querySelector('.email-format-text').classList.remove('text-gray-700');
+      emailFormatCheck.querySelector('.email-format-text').classList.add('text-green-600');
+    } else {
+      emailFormatCheck.querySelector('.email-format-icon').textContent = '✗';
+      emailFormatCheck.querySelector('.email-format-icon').classList.remove('text-green-600');
+      emailFormatCheck.querySelector('.email-format-icon').classList.add('text-red-500');
+      emailFormatCheck.querySelector('.email-format-text').classList.remove('text-green-600');
+      emailFormatCheck.querySelector('.email-format-text').classList.add('text-gray-700');
     }
     
     checkEmailMatch();
@@ -976,15 +930,24 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
     
     if (confirmEmail.length > 0) {
       if (newEmail === confirmEmail) {
-        emailMatchMsg?.classList.add('hidden');
-        emailMatchSuccess?.classList.remove('hidden');
+        emailMatchCheck.querySelector('.email-match-icon').textContent = '✓';
+        emailMatchCheck.querySelector('.email-match-icon').classList.remove('text-red-500');
+        emailMatchCheck.querySelector('.email-match-icon').classList.add('text-green-600');
+        emailMatchCheck.querySelector('.email-match-text').classList.remove('text-gray-700');
+        emailMatchCheck.querySelector('.email-match-text').classList.add('text-green-600');
       } else {
-        emailMatchMsg?.classList.remove('hidden');
-        emailMatchSuccess?.classList.add('hidden');
+        emailMatchCheck.querySelector('.email-match-icon').textContent = '✗';
+        emailMatchCheck.querySelector('.email-match-icon').classList.remove('text-green-600');
+        emailMatchCheck.querySelector('.email-match-icon').classList.add('text-red-500');
+        emailMatchCheck.querySelector('.email-match-text').classList.remove('text-green-600');
+        emailMatchCheck.querySelector('.email-match-text').classList.add('text-gray-700');
       }
     } else {
-      emailMatchMsg?.classList.add('hidden');
-      emailMatchSuccess?.classList.add('hidden');
+      emailMatchCheck.querySelector('.email-match-icon').textContent = '✗';
+      emailMatchCheck.querySelector('.email-match-icon').classList.remove('text-green-600');
+      emailMatchCheck.querySelector('.email-match-icon').classList.add('text-red-500');
+      emailMatchCheck.querySelector('.email-match-text').classList.remove('text-green-600');
+      emailMatchCheck.querySelector('.email-match-text').classList.add('text-gray-700');
     }
   }
 
@@ -1020,10 +983,7 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
     // Reset fields
     document.getElementById("newEmail").value = '';
     document.getElementById("confirmEmail").value = '';
-    emailFormatMsg?.classList.add('hidden');
-    emailFormatSuccess?.classList.add('hidden');
-    emailMatchMsg?.classList.add('hidden');
-    emailMatchSuccess?.classList.add('hidden');
+    emailValidation?.classList.add('hidden');
   }
 </script>
 
