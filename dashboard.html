@@ -205,74 +205,57 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
 </div>
 
 <!-- ABOUT US MODAL -->
-<div id="aboutUsModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center hidden z-50 p-4">
-  <div class="bg-white rounded-2xl shadow-xl relative w-full max-w-2xl max-h-[90vh] overflow-y-auto p-8">
-    <button id="closeAboutUsModal" class="absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-2xl">
+<div id="aboutUsModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm hidden z-[60] p-4">
+  <div class="bg-white rounded-2xl shadow-xl relative w-full max-w-2xl max-h-[90vh] overflow-y-auto p-8 mx-auto my-10"
+       role="dialog" aria-modal="true" aria-labelledby="aboutUsTitle" onclick="event.stopPropagation()">
+    <button id="closeAboutUsModal" class="absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-2xl" aria-label="Close">
       &times;
     </button>
 
-    <!-- HEADER -->
-    <h1 class="text-3xl font-bold text-[#222] mb-4">About Us</h1>
+    <h1 id="aboutUsTitle" class="text-3xl font-bold text-[#222] mb-4">About Us</h1>
     <p class="text-gray-700 mb-6 leading-relaxed">
-      <span class="font-semibold text-[#f4b41a]">DiNaDrawing</span> is a collaborative planning platform designed to make organizing events and group activities easy, fun, and efficient. 
+      <span class="font-semibold text-[#f4b41a]">DiNaDrawing</span> is a collaborative planning platform designed to make organizing events and group activities easy, fun, and efficient.
       Whether you're preparing a trip, party, or project, DiNaDrawing helps you stay connected, assign tasks, and track your plans in one place.
     </p>
 
-    <!-- MISSION AND VISION -->
     <div class="grid md:grid-cols-2 gap-6 mt-8">
-      <!-- MISSION -->
       <div class="bg-[#fffaf2] p-6 rounded-xl border border-gray-200 shadow-sm">
         <h2 class="text-xl font-semibold text-[#222] mb-3">Our Mission</h2>
         <p class="text-gray-700 leading-relaxed text-sm">
-          To simplify teamwork and planning by creating a space where collaboration feels effortless, 
-          ensuring every plan—big or small—gets drawn out perfectly.
+          To simplify teamwork and planning by creating a space where collaboration feels effortless, ensuring every plan—big or small—gets drawn out perfectly.
         </p>
       </div>
-
-      <!-- VISION -->
       <div class="bg-[#fffaf2] p-6 rounded-xl border border-gray-200 shadow-sm">
         <h2 class="text-xl font-semibold text-[#222] mb-3">Our Vision</h2>
         <p class="text-gray-700 leading-relaxed text-sm">
-          To become the go-to digital planner for creative teams and friend groups around the world, 
-          empowering people to turn their ideas into reality.
+          To become the go-to digital planner for creative teams and friend groups around the world, empowering people to turn their ideas into reality.
         </p>
       </div>
     </div>
 
-    <!-- MEET THE TEAM -->
     <div class="mt-8">
       <h2 class="text-2xl font-bold text-[#222] mb-4">Meet the Team</h2>
       <div class="grid grid-cols-5 gap-4">
-        
-         <!-- KEN -->
         <div class="flex flex-col items-center bg-[#fffaf2] p-4 rounded-xl border border-gray-200 shadow-sm">
           <img src="Assets/Profile Icon/Ken.jpg" alt="Ken" class="w-16 h-16 rounded-full border-2 border-[#f4b41a] shadow mb-2">
           <h3 class="font-semibold text-[#222] text-sm">Ken Mendoza</h3>
           <p class="text-xs text-gray-600">Front-End Dev</p>
         </div>
-       
-        <!-- ANDREA -->
         <div class="flex flex-col items-center bg-[#fffaf2] p-4 rounded-xl border border-gray-200 shadow-sm">
           <img src="Assets/Profile Icon/Andrea.jpg" alt="Andrea" class="w-16 h-16 rounded-full border-2 border-[#f4b41a] shadow mb-2">
           <h3 class="font-semibold text-[#222] text-sm">Andrea Calilap</h3>
           <p class="text-xs text-gray-600">Front-End Dev</p>
         </div>
-
-        <!-- VENICE -->
         <div class="flex flex-col items-center bg-[#fffaf2] p-4 rounded-xl border border-gray-200 shadow-sm">
           <img src="Assets/Profile Icon/Angel.jpg" alt="Venice" class="w-16 h-16 rounded-full border-2 border-[#f4b41a] shadow mb-2">
           <h3 class="font-semibold text-[#222] text-sm">Angel Retabale</h3>
           <p class="text-xs text-gray-600">Project Manager</p>
         </div>
-        
-        <!-- KYLE -->
         <div class="flex flex-col items-center bg-[#fffaf2] p-4 rounded-xl border border-gray-200 shadow-sm">
           <img src="Assets/Profile Icon/Jara.jpg" alt="Kyle" class="w-16 h-16 rounded-full border-2 border-[#f4b41a] shadow mb-2">
           <h3 class="font-semibold text-[#222] text-sm">Kyle Reyes</h3>
           <p class="text-xs text-gray-600">Back-End Dev</p>
         </div>
-
-        <!-- RALF -->
         <div class="flex flex-col items-center bg-[#fffaf2] p-4 rounded-xl border border-gray-200 shadow-sm">
           <img src="Assets/Profile Icon/Jovan.jpg" alt="Ralf" class="w-16 h-16 rounded-full border-2 border-[#f4b41a] shadow mb-2">
           <h3 class="font-semibold text-[#222] text-sm">Ralf Sanchez</h3>
@@ -281,7 +264,6 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
       </div>
     </div>
 
-    <!-- FOOTER -->
     <footer class="mt-8 text-center text-gray-500 text-xs border-t border-gray-200 pt-4">
       © 2025 DiNaDrawing. All rights reserved.
     </footer>
@@ -317,7 +299,7 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
       </div>
       <div class="py-2">
         <a href="help.html" class="block px-4 py-2 text-sm hover:bg-gray-50">Help</a>
-        <button id="aboutUsBtn" class="w-full text-left px-4 py-2 text-sm hover:bg-gray-50">About Us</button>
+        <button id="aboutUsBtn" type="button" class="w-full text-left px-4 py-2 text-sm hover:bg-gray-50">About Us</button>
         <a href="settings.html" class="block px-4 py-2 text-sm hover:bg-gray-50">Settings</a>
         <button id="logoutProfile" class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50">Log out</button>
       </div>
