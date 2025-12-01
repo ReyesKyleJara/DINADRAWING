@@ -495,11 +495,34 @@
 </div>
 </footer>
 
-<!-- SCRIPT -->
+<<!-- SCRIPT -->
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
+
 <script>
   // API Configuration
   const API_BASE = '/DINADRAWING/backend/api';
   let currentUser = null;
+
+  // Your Firebase configuration
+  const firebaseConfig = {
+    apiKey: "AIzaSyAPDts35PYNaxXklqolOcobv1pLSc-m7ms",
+    authDomain: "dinadrawing-12ab4.firebaseapp.com",
+    projectId: "dinadrawing-12ab4",
+    storageBucket: "dinadrawing-12ab4.firebasestorage.app",
+    messagingSenderId: "140429427589",
+    appId: "1:140429427589:web:cb9e22c90e9ad27e607aec",
+    measurementId: "G-NC3ECPLG3Z"
+  };
+
+  // Initialize Firebase (only if not already initialized)
+  if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
+  }
+
+  // Get auth instance
+  const auth = firebase.auth();
+  const googleProvider = new firebase.auth.GoogleAuthProvider();
 
   // Enhanced Email Login Function
   async function signInWithEmail() {
@@ -512,7 +535,7 @@
       }
 
       try {
-          const response = await fetch(`${API_BASE}/DINADRAWING/Backend/api/auth.php`, {
+          const response = await fetch(`${API_BASE}/auth.php`, {
               method: 'POST',
               headers: {
                   'Content-Type': 'application/json',
@@ -594,6 +617,84 @@
       }
   }
 
+  // Google Sign In Function
+  async function signInWithGoogle() {
+    try {
+      // Show loading state
+      const googleBtn = document.querySelector('.google-btn');
+      const originalText = googleBtn ? googleBtn.innerHTML : '';
+      if (googleBtn) {
+        googleBtn.innerHTML = '<span>Signing in with Google...</span>';
+        googleBtn.disabled = true;
+      }
+
+      // Sign in with Google via Firebase
+      const result = await auth.signInWithPopup(googleProvider);
+      const user = result.user;
+      
+      // Get the user's id token
+      const idToken = await user.getIdToken();
+      
+      // Send user data to your backend for registration/authentication
+      const response = await fetch(`${API_BASE}/google-auth.php`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          uid: user.uid,
+          name: user.displayName || user.email.split('@')[0],
+          email: user.email,
+          photoURL: user.photoURL || '',
+          idToken: idToken
+        })
+      });
+
+      const backendResult = await response.json();
+
+      if (backendResult.success) {
+        currentUser = backendResult.user;
+        localStorage.setItem('currentUser', JSON.stringify(currentUser));
+        localStorage.setItem('firebaseUser', JSON.stringify({
+          uid: user.uid,
+          email: user.email,
+          displayName: user.displayName || user.email.split('@')[0],
+          photoURL: user.photoURL
+        }));
+        
+        alert(`Welcome to DiNaDrawing, ${user.displayName || user.email.split('@')[0]}!`);
+        closeLoginModal();
+        
+        setTimeout(() => {
+          window.location.href = "dashboard.html";
+        }, 1000);
+      } else {
+        alert(backendResult.message || "Google login failed. Please try again.");
+        // Sign out from Firebase if backend registration fails
+        await auth.signOut();
+      }
+      
+    } catch (error) {
+      console.error('Google sign-in error:', error);
+      
+      // Reset button state
+      const googleBtn = document.querySelector('.google-btn');
+      if (googleBtn) {
+        googleBtn.innerHTML = originalText;
+        googleBtn.disabled = false;
+      }
+      
+      // Handle specific errors
+      if (error.code === 'auth/popup-closed-by-user') {
+        alert('Google sign-in was cancelled. Please try again.');
+      } else if (error.code === 'auth/popup-blocked') {
+        alert('Popup was blocked by your browser. Please allow popups for this site.');
+      } else {
+        alert('Google sign-in failed. Please try again. Error: ' + error.message);
+      }
+    }
+  }
+
   // Check if user is already logged in
   function checkAuthStatus() {
       const savedUser = localStorage.getItem('currentUser');
@@ -610,15 +711,36 @@
       }
   }
 
-  // Logout function
-  function logout() {
+  // Logout function - enhanced to handle Firebase logout too
+  async function logout() {
+      try {
+        // Sign out from Firebase if user was logged in via Google
+        if (auth.currentUser) {
+          await auth.signOut();
+        }
+      } catch (error) {
+        console.error('Firebase logout error:', error);
+      }
+      
       localStorage.removeItem('currentUser');
+      localStorage.removeItem('firebaseUser');
       currentUser = null;
       window.location.href = "index.html";
   }
 
   // Check authentication status when page loads
-  document.addEventListener('DOMContentLoaded', checkAuthStatus);
+  document.addEventListener('DOMContentLoaded', function() {
+    checkAuthStatus();
+    
+    // Check Firebase auth state (optional, for debugging)
+    auth.onAuthStateChanged((user) => {
+      if (user) {
+        console.log('Firebase user logged in:', user.email);
+      } else {
+        console.log('No Firebase user logged in');
+      }
+    });
+  });
 
   // PAGE FADE-IN
   window.addEventListener("load", () => {
@@ -662,7 +784,9 @@
   window.addEventListener('scroll', () => {
     const bg = document.querySelector('.bg-cover');
     const scrollY = window.scrollY;
-    bg.style.opacity = 1 - scrollY / 600;
+    if (bg) {
+      bg.style.opacity = 1 - scrollY / 600;
+    }
   });
 
   // SIMPLE LOADING SCREEN THAT WILL WORK
@@ -687,14 +811,14 @@
     }
   }, 3000);
 
-// SIGNUP MODAL
-function openSignupModal() {
-  document.getElementById("signupModal").classList.remove("hidden");
-}
+  // SIGNUP MODAL
+  function openSignupModal() {
+    document.getElementById("signupModal").classList.remove("hidden");
+  }
 
-function closeSignupModal() {
-  document.getElementById("signupModal").classList.add("hidden");
-}
+  function closeSignupModal() {
+    document.getElementById("signupModal").classList.add("hidden");
+  }
 
   // BACKGROUND FADE EFFECT
   window.addEventListener('scroll', function() {
@@ -704,6 +828,7 @@ function closeSignupModal() {
       bg.style.opacity = 1 - scrollY / 600;
     }
   });
+  
   console.log('All functions defined, waiting for timeout...');
 </script>
 
