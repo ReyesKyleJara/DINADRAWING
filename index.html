@@ -495,13 +495,13 @@
 </div>
 </footer>
 
-<<!-- SCRIPT -->
+<!-- SCRIPT -->
 <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
 
 <script>
-  // API Configuration
-  const API_BASE = '/DINADRAWING/backend/api';
+  // API Configuration - CHECK YOUR EXACT PATH
+  const API_BASE = 'http://localhost/DINADRAWING/backend/api'; // ADD FULL URL
   let currentUser = null;
 
   // Your Firebase configuration
@@ -617,42 +617,91 @@
       }
   }
 
-  // Google Sign In Function
+  // ============= UPDATED GOOGLE AUTH FUNCTION =============
   async function signInWithGoogle() {
     try {
+      console.log('Starting Google authentication...');
+      console.log('API Base URL:', API_BASE);
+      
       // Show loading state
       const googleBtn = document.querySelector('.google-btn');
       const originalText = googleBtn ? googleBtn.innerHTML : '';
       if (googleBtn) {
-        googleBtn.innerHTML = '<span>Signing in with Google...</span>';
+        googleBtn.innerHTML = '<span>Connecting with Google...</span>';
         googleBtn.disabled = true;
       }
 
       // Sign in with Google via Firebase
       const result = await auth.signInWithPopup(googleProvider);
       const user = result.user;
+      console.log('Firebase auth successful. User:', user.email);
       
-      // Get the user's id token
-      const idToken = await user.getIdToken();
+      // Prepare user data
+      const userData = {
+        uid: user.uid,
+        name: user.displayName || user.email.split('@')[0],
+        email: user.email,
+        photoURL: user.photoURL || ''
+      };
       
-      // Send user data to your backend for registration/authentication
+      console.log('User Data:', userData);
+      
+      // TEST: First check if the endpoint exists with a GET request
+      console.log('Testing endpoint...');
+      try {
+        const testResponse = await fetch(`${API_BASE}/google-auth.php`, {
+          method: 'GET'
+        });
+        console.log('GET Test Response:', testResponse.status, await testResponse.text());
+      } catch (testError) {
+        console.error('GET Test Error:', testError);
+      }
+      
+      // Now send POST request
+      console.log('Sending POST request to:', `${API_BASE}/google-auth.php`);
+      
       const response = await fetch(`${API_BASE}/google-auth.php`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          uid: user.uid,
-          name: user.displayName || user.email.split('@')[0],
-          email: user.email,
-          photoURL: user.photoURL || '',
-          idToken: idToken
-        })
+        body: JSON.stringify(userData)
       });
 
-      const backendResult = await response.json();
+      console.log('Response status:', response.status);
+      console.log('Response status text:', response.statusText);
+      
+      const responseText = await response.text();
+      console.log('Raw response text:', responseText);
+      
+      let backendResult;
+      try {
+        backendResult = JSON.parse(responseText);
+        console.log('Parsed response:', backendResult);
+      } catch (e) {
+        console.error('Failed to parse JSON:', e);
+        
+        // Reset button
+        if (googleBtn) {
+          googleBtn.innerHTML = originalText;
+          googleBtn.disabled = false;
+        }
+        
+        if (response.status === 405) {
+          alert('Error 405: Method Not Allowed. The server is not accepting POST requests to this endpoint.');
+        } else if (response.status === 404) {
+          alert(`Error 404: File not found. Please check if google-auth.php exists at: ${API_BASE}/google-auth.php`);
+        } else if (!responseText) {
+          alert('Server returned empty response. Check server error logs.');
+        } else {
+          alert('Server returned invalid response. Please check console for details.');
+        }
+        return;
+      }
 
       if (backendResult.success) {
+        console.log('Backend authentication successful');
+        
         currentUser = backendResult.user;
         localStorage.setItem('currentUser', JSON.stringify(currentUser));
         localStorage.setItem('firebaseUser', JSON.stringify({
@@ -662,25 +711,44 @@
           photoURL: user.photoURL
         }));
         
-        alert(`Welcome to DiNaDrawing, ${user.displayName || user.email.split('@')[0]}!`);
-        closeLoginModal();
+        // Show appropriate message
+        const welcomeMessage = backendResult.isNewUser 
+          ? `Welcome to DiNaDrawing, ${user.displayName || user.email.split('@')[0]}!`
+          : `Welcome back, ${user.displayName || user.email.split('@')[0]}!`;
         
+        alert(welcomeMessage);
+        
+        // Close any open modals
+        closeLoginModal();
+        closeSignupModal();
+        
+        // Redirect to dashboard
         setTimeout(() => {
           window.location.href = "dashboard.html";
         }, 1000);
+        
       } else {
-        alert(backendResult.message || "Google login failed. Please try again.");
-        // Sign out from Firebase if backend registration fails
+        console.error('Backend error:', backendResult);
+        
+        // Reset button
+        if (googleBtn) {
+          googleBtn.innerHTML = originalText;
+          googleBtn.disabled = false;
+        }
+        
+        alert(backendResult.message || "Authentication failed on server.");
+        
+        // Sign out from Firebase
         await auth.signOut();
       }
       
     } catch (error) {
-      console.error('Google sign-in error:', error);
+      console.error('Google auth error:', error);
       
-      // Reset button state
+      // Reset button
       const googleBtn = document.querySelector('.google-btn');
       if (googleBtn) {
-        googleBtn.innerHTML = originalText;
+        googleBtn.innerHTML = originalText || '<span>Sign in with Google</span>';
         googleBtn.disabled = false;
       }
       
@@ -688,9 +756,11 @@
       if (error.code === 'auth/popup-closed-by-user') {
         alert('Google sign-in was cancelled. Please try again.');
       } else if (error.code === 'auth/popup-blocked') {
-        alert('Popup was blocked by your browser. Please allow popups for this site.');
+        alert('Popup was blocked. Please allow popups for this site.');
+      } else if (error.code === 'auth/network-request-failed') {
+        alert('Network error. Please check your internet connection.');
       } else {
-        alert('Google sign-in failed. Please try again. Error: ' + error.message);
+        alert('Google sign-in failed: ' + (error.message || 'Unknown error'));
       }
     }
   }
@@ -732,7 +802,7 @@
   document.addEventListener('DOMContentLoaded', function() {
     checkAuthStatus();
     
-    // Check Firebase auth state (optional, for debugging)
+    // Check Firebase auth state
     auth.onAuthStateChanged((user) => {
       if (user) {
         console.log('Firebase user logged in:', user.email);
