@@ -8,21 +8,66 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     body { font-family: 'Poppins', sans-serif; background-color: #fffaf2; color: #222; }
+    /* Dark Mode Styles */
+    body.dark-mode { background-color: #1a1a1a !important; color: #e0e0e0 !important; }
+    body.dark-mode .bg-white { background-color: #2a2a2a !important; }
+    body.dark-mode .bg-\[\#fffaf2\] { background-color: #1a1a1a !important; }
+    body.dark-mode .bg-gray-50 { background-color: #2a2a2a !important; }
+    body.dark-mode .bg-gray-300 { background-color: #404040 !important; }
+    body.dark-mode h1, body.dark-mode h2, body.dark-mode h3,
+    body.dark-mode p, body.dark-mode span, body.dark-mode div, body.dark-mode button { color: #e0e0e0 !important; }
+    body.dark-mode .text-gray-600, body.dark-mode .text-gray-700, body.dark-mode .text-gray-500 { color: #a0a0a0 !important; }
+    body.dark-mode .border-gray-200 { border-color: #404040 !important; }
+    body.dark-mode .border-gray-100 { border-color: #353535 !important; }
+    body.dark-mode .border-gray-300 { border-color: #454545 !important; }
+    body.dark-mode .shadow, body.dark-mode .shadow-md, body.dark-mode .shadow-lg { box-shadow: 0 4px 6px rgba(0,0,0,0.5) !important; }
+    body.dark-mode .faq-question { background-color: #404040 !important; }
+    body.dark-mode .faq-answer { background-color: #2a2a2a !important; }
+    body.dark-mode .text-\[\#222\] { color: #e0e0e0 !important; }
+
+    /* Hamburger Menu */
+    .hamburger { display: flex; flex-direction: column; gap: 4px; cursor: pointer; padding: 8px; border-radius: 8px; transition: background 0.2s; }
+    .hamburger:hover { background: rgba(244, 180, 26, 0.1); }
+    .hamburger span { width: 24px; height: 3px; background: #222; border-radius: 2px; transition: all 0.3s; }
+    body.dark-mode .hamburger span { background: #e0e0e0; }
+
+    /* Sidebar overlay + slide-in */
+    .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 45; }
+    .sidebar-overlay.active { display: block; }
+    #sidebar { transition: transform 0.3s ease; z-index: 50; transform: translateX(-100%); }
+    #sidebar.active { transform: translateX(0); }
+    @media (min-width: 769px) {
+      #sidebar { transform: translateX(0); }
+      #sidebar:not(.active) { transform: translateX(-100%); }
+    }
   </style>
+  <script>
+    // Apply dark mode preference ASAP
+    (function() {
+      const savedTheme = localStorage.getItem('theme');
+      if (savedTheme === 'dark') document.documentElement.classList.add('dark-mode');
+    })();
+  </script>
 </head>
 <body class="flex bg-[#fffaf2]">
 
+<!-- SIDEBAR OVERLAY -->
+<div id="sidebarOverlay" class="sidebar-overlay"></div>
+
+<!-- SIDEBAR -->
 <aside id="sidebar"
 class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
        bg-[#f4b41a] rounded-tr-3xl
        p-6 shadow
        hidden md:flex md:flex-col md:gap-6">
 
+  <!-- HEADER -->
   <div class="flex items-center gap-2">
     <img src="Assets/dinadrawing-logo.png" alt="Logo" class="w-14">
     <h2 class="text-xl font-bold text-[#222]">DiNaDrawing</h2>
   </div>
 
+  <!-- NAVIGATIONS -->
   <nav>
     <ul class="space-y-5">
       <li><a href="dashboard.html" class="block px-4 py-2 rounded-lg font-medium text-[#222] hover:bg-[#222] hover:text-white transition">Home</a></li>
@@ -34,332 +79,373 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
 </aside>
 
 <main class="ml-0 md:ml-64 flex-1 min-h-screen px-12 py-10 pt-28 overflow-y-auto">
-    <div class="w-full">
+  <div class="w-full">
 
-      <div class="flex justify-between items-center border-b-2 border-gray-200 pb-4 mb-6 fixed top-0 md:left-64 left-0 w-[calc(100%-0rem)] md:w-[calc(100%-16rem)] bg-[#fffaf2] z-40 px-12 py-10">
-
+    <!-- PAGE HEADER -->
+    <div class="flex justify-between items-center border-b-2 border-gray-200 pb-4 mb-6 fixed top-0 md:left-64 left-0 w-[calc(100%-0rem)] md:w-[calc(100%-16rem)] bg-[#fffaf2] z-40 px-12 py-10">
+      <div class="flex items-center gap-4">
+        <!-- HAMBURGER -->
+        <button id="hamburgerBtn" class="hamburger">
+          <span></span><span></span><span></span>
+        </button>
         <div class="flex flex-col">
           <h1 class="text-3xl font-bold">Help & FAQs</h1>
           <span class="text-gray-600 text-sm">Having trouble? Let’s sort it out.</span>
         </div>
+      </div>
 
-        <div class="flex items-center gap-3">
+      <!-- PROFILE -->
+      <div class="relative">
+        <button id="profileBtn" class="flex items-center gap-2 bg-[#f4b41a]/30 border border-[#222] rounded-full px-3 py-1.5 hover:bg-[#f4b41a]/50 transition">
+          <img id="navProfileImg" src="Assets/Profile Icon/profile.png" alt="Profile" class="w-8 h-8 rounded-full border-2 border-[#f4b41a]">
+          <span id="navProfileName" class="font-medium text-[#222] hidden md:inline">User</span>
+        </button>
 
-        <div class="relative">
-          <button id="profileBtn" class="flex items-center gap-2 bg-[#f4b41a]/30 border border-[#222] rounded-full px-3 py-1.5 hover:bg-[#f4b41a]/50 transition">
-            <img id="navProfileImg" src="Assets/Profile Icon/profile.png" alt="Profile" class="w-8 h-8 rounded-full border-2 border-[#f4b41a]">
-            <span id="navProfileName" class="font-medium text-[#222] hidden md:inline">User</span>
+        <!-- PROFILE DROPDOWN -->
+        <div id="profileDropdown" class="absolute right-0 mt-2 w-60 bg-white shadow-lg rounded-2xl border border-gray-200 hidden z-50">
+          <div class="p-4 border-b border-gray-200 text-center bg-[#fffaf2] rounded-t-2xl">
+            <img id="dropdownProfileImg" src="Assets/Profile Icon/profile.png" alt="Profile" class="w-12 h-12 mx-auto rounded-full border-2 border-[#f4b41a] mb-2 shadow">
+            <h2 id="dropdownProfileName" class="text-sm font-semibold text-[#222]">User</h2>
+          </div>
+          <div class="py-2">
+            <a href="help.html" class="block px-4 py-2 text-sm hover:bg-gray-50">Help</a>
+            <button id="aboutUsBtn" class="w-full text-left px-4 py-2 text-sm hover:bg-gray-50">About Us</button>
+            <a href="settings.html" class="block px-4 py-2 text-sm hover:bg-gray-50">Settings</a>
+            <button id="logoutProfile" class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50">Log out</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CONTENT -->
+    <div class="flex flex-col lg:flex-row gap-6 mt-4">
+      <!-- FAQS -->
+      <div class="flex-1 space-y-2">
+        <div class="faq-item border border-gray-300 rounded-lg overflow-hidden">
+          <button class="faq-question w-full flex justify-between items-center p-4 bg-gray-300 font-medium text-left">
+            <span>What is DiNaDrawing?</span>
+            <span class="icon transition-transform duration-200">&gt;</span>
           </button>
-
-          <div id="profileDropdown" class="absolute right-0 mt-2 w-60 bg-white shadow-lg rounded-2xl border border-gray-200 hidden z-50">
-            <div class="p-4 border-b border-gray-200 text-center bg-[#fffaf2] rounded-t-2xl">
-              <img id="dropdownProfileImg" src="Assets/Profile Icon/profile.png" alt="Profile" class="w-12 h-12 mx-auto rounded-full border-2 border-[#f4b41a] mb-2 shadow">
-              <h2 id="dropdownProfileName" class="text-sm font-semibold text-[#222]">User</h2>
-            </div>
-            <div class="py-2">
-              <a href="help.html" class="block px-4 py-2 text-sm hover:bg-gray-50">Help</a>
-              <button id="aboutUsBtn" class="w-full text-left px-4 py-2 text-sm hover:bg-gray-50">About Us</button>
-              <a href="settings.html" class="block px-4 py-2 text-sm hover:bg-gray-50">Settings</a>
-              <button id="logoutProfile" class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50">Log out</button>
-            </div>
-          </div>
-        </div>
-      </div>
-      </div>
-
-      <div class="flex flex-col lg:flex-row gap-6 mt-4">
-        <div class="flex-1 space-y-2">
-
-          <div class="faq-item border border-gray-300 rounded-lg overflow-hidden">
-            <button class="faq-question w-full flex justify-between items-center p-4 bg-gray-300 font-medium text-left">
-              <span>What is DiNaDrawing?</span>
-              <span class="icon transition-transform duration-200">&gt;</span>
-            </button>
-            <div class="faq-answer hidden p-4 bg-white">
-              DiNaDrawing is a collaborative platform that allows users to create events, share ideas, and work together efficiently.
-            </div>
-          </div>
-
-          <div class="faq-item border border-gray-300 rounded-lg overflow-hidden">
-            <button class="faq-question w-full flex justify-between items-center p-4 bg-gray-300 font-medium text-left">
-              <span>How do I create an event?</span>
-              <span class="icon transition-transform duration-200">&gt;</span>
-            </button>
-            <div class="faq-answer hidden p-4 bg-white">
-              Go to the Dashboard, click “Create Event”, fill in the required details, and click save to publish it.
-            </div>
-          </div>
-
-          <div class="faq-item border border-gray-300 rounded-lg overflow-hidden">
-            <button class="faq-question w-full flex justify-between items-center p-4 bg-gray-300 font-medium text-left">
-              <span>Can members vote on polls?</span>
-              <span class="icon transition-transform duration-200">&gt;</span>
-            </button>
-            <div class="faq-answer hidden p-4 bg-white">
-              Yes! Hosts can create polls, and members can vote. The host can then finalize based on the most voted option.
-            </div>
-          </div>
-
-          <div class="faq-item border border-gray-300 rounded-lg overflow-hidden">
-            <button class="faq-question w-full flex justify-between items-center p-4 bg-gray-300 font-medium text-left">
-              <span>How does the budget splitter work?</span>
-              <span class="icon transition-transform duration-200">&gt;</span>
-            </button>
-            <div class="faq-answer hidden p-4 bg-white">
-              Enter each item and its cost. The system calculates the total and lets you split equally or customize per member.
-            </div>
-          </div>
-
-          <div class="faq-item border border-gray-300 rounded-lg overflow-hidden">
-            <button class="faq-question w-full flex justify-between items-center p-4 bg-gray-300 font-medium text-left">
-              <span>Is my data secure?</span>
-              <span class="icon transition-transform duration-200">&gt;</span>
-            </button>
-            <div class="faq-answer hidden p-4 bg-white">
-              Yes. We prioritize privacy and use strong security measures to protect your data.
-            </div>
+          <div class="faq-answer hidden p-4 bg-white">
+            DiNaDrawing is a collaborative platform that allows users to create events, share ideas, and work together efficiently.
           </div>
         </div>
 
-        <div class="flex flex-col gap-4 lg:w-[350px]">
-
-          <div class="border border-gray-300 bg-gray-300 rounded-lg p-6">
-            <h3 class="text-lg font-semibold mb-2">Still Have Questions?</h3>
-            <p class="text-base mb-4">Feel free to reach out. We're here to help you with anything you need!</p>
-            <div class="flex justify-end">
-              <button id="openContactBtn" class="bg-[#f4b41a] text-[#222] font-medium px-4 py-2 rounded-lg hover:bg-[#222] hover:text-white transition duration-200">
-                Contact Us
-              </button>
-            </div>
+        <div class="faq-item border border-gray-300 rounded-lg overflow-hidden">
+          <button class="faq-question w-full flex justify-between items-center p-4 bg-gray-300 font-medium text-left">
+            <span>How do I create an event?</span>
+            <span class="icon transition-transform duration-200">&gt;</span>
+          </button>
+          <div class="faq-answer hidden p-4 bg-white">
+            Go to the Dashboard, click “Create Event”, fill in the required details, and click save to publish it.
           </div>
-        
-          <div class="border border-gray-300 bg-gray-300 rounded-lg p-6">
-            <h3 class="text-lg font-semibold mb-2">Report a Bug</h3>
-            <p class="text-base mb-4">Found an issue? Let us know so we can fix it quickly.</p>
-            <div class="flex justify-end">
-              <button id="openReportBtn" class="bg-[#f4b41a] text-[#222] font-medium px-4 py-2 rounded-lg hover:bg-[#222] hover:text-white transition duration-200">
-                Report Issue
-              </button>
-            </div>
+        </div>
+
+        <div class="faq-item border border-gray-300 rounded-lg overflow-hidden">
+          <button class="faq-question w-full flex justify-between items-center p-4 bg-gray-300 font-medium text-left">
+            <span>Can members vote on polls?</span>
+            <span class="icon transition-transform duration-200">&gt;</span>
+          </button>
+          <div class="faq-answer hidden p-4 bg-white">
+            Yes! Hosts can create polls, and members can vote. The host can then finalize based on the most voted option.
+          </div>
+        </div>
+
+        <div class="faq-item border border-gray-300 rounded-lg overflow-hidden">
+          <button class="faq-question w-full flex justify-between items-center p-4 bg-gray-300 font-medium text-left">
+            <span>How does the budget splitter work?</span>
+            <span class="icon transition-transform duration-200">&gt;</span>
+          </button>
+          <div class="faq-answer hidden p-4 bg-white">
+            Enter each item and its cost. The system calculates the total and lets you split equally or customize per member.
+          </div>
+        </div>
+
+        <div class="faq-item border border-gray-300 rounded-lg overflow-hidden">
+          <button class="faq-question w-full flex justify-between items-center p-4 bg-gray-300 font-medium text-left">
+            <span>Is my data secure?</span>
+            <span class="icon transition-transform duration-200">&gt;</span>
+          </button>
+          <div class="faq-answer hidden p-4 bg-white">
+            Yes. We prioritize privacy and use strong security measures to protect your data.
+          </div>
+        </div>
+      </div>
+
+      <!-- SIDE CARDS -->
+      <div class="flex flex-col gap-4 lg:w-[350px]">
+        <div class="border border-gray-300 bg-gray-300 rounded-lg p-6">
+          <h3 class="text-lg font-semibold mb-2">Still Have Questions?</h3>
+          <p class="text-base mb-4">Feel free to reach out. We're here to help you with anything you need!</p>
+          <div class="flex justify-end">
+            <button id="openContactBtn" class="bg-[#f4b41a] text-[#222] font-medium px-4 py-2 rounded-lg hover:bg-[#222] hover:text-white transition duration-200">
+              Contact Us
+            </button>
+          </div>
+        </div>
+
+        <div class="border border-gray-300 bg-gray-300 rounded-lg p-6">
+          <h3 class="text-lg font-semibold mb-2">Report a Bug</h3>
+          <p class="text-base mb-4">Found an issue? Let us know so we can fix it quickly.</p>
+          <div class="flex justify-end">
+            <button id="openReportBtn" class="bg-[#f4b41a] text-[#222] font-medium px-4 py-2 rounded-lg hover:bg-[#222] hover:text-white transition duration-200">
+              Report Issue
+            </button>
           </div>
         </div>
       </div>
     </div>
-  </main>
 
-  <!-- CONTACT & REPORT MODALS -->
-  <div id="contactModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center hidden z-50 p-4">
-    <div class="bg-white rounded-2xl shadow-xl relative w-full max-w-lg max-h-[90vh] overflow-y-auto p-6">
-      <button id="closeContactModal" class="absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
-      <h2 class="text-2xl font-bold mb-3">Contact Us</h2>
-      <p class="text-sm text-gray-600 mb-4">Tell us how we can help — we'll get back to you as soon as possible.</p>
-      <form id="contactForm" class="space-y-4 text-sm">
-        <div>
-          <label class="block text-gray-700 mb-1">Email</label>
-          <input type="email" id="contactEmail" class="w-full px-3 py-2 border rounded-lg" placeholder="you@example.com" maxlength="100">
-          <div id="contactEmailError" class="text-red-600 text-xs mt-1 hidden"></div>
-        </div>
-        <div>
-          <label class="block text-gray-700 mb-1">Message</label>
-          <textarea id="contactMessage" rows="5" class="w-full px-3 py-2 border rounded-lg" placeholder="How can we help?" minlength="10" maxlength="1000"></textarea>
-          <div id="contactMessageError" class="text-red-600 text-xs mt-1 hidden"></div>
-        </div>
-        <div class="flex justify-end gap-3">
-          <button type="button" id="submitContact" class="px-4 py-2 rounded-lg bg-[#f4b41a] text-[#222] font-medium opacity-50 cursor-not-allowed" disabled>Send</button>
-          <button type="button" id="cancelContact" class="px-4 py-2 rounded-lg border">Cancel</button>
-        </div>
-      </form>
-    </div>
   </div>
+</main>
 
-  <div id="reportModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center hidden z-50 p-4">
-    <div class="bg-white rounded-2xl shadow-xl relative w-full max-w-lg max-h-[90vh] overflow-y-auto p-6">
-      <button id="closeReportModal" class="absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
-      <h2 class="text-2xl font-bold mb-3">Report an Issue</h2>
-      <p class="text-sm text-gray-600 mb-4">Describe the issue you found so our team can investigate.</p>
-      <form id="reportForm" class="space-y-4 text-sm">
-        <div>
-          <label class="block text-gray-700 mb-1">Summary</label>
-          <input type="text" id="reportSummary" class="w-full px-3 py-2 border rounded-lg" placeholder="Brief summary" maxlength="150">
-          <div id="reportSummaryError" class="text-red-600 text-xs mt-1 hidden"></div>
-        </div>
-        <div>
-          <label class="block text-gray-700 mb-1">Steps to Reproduce</label>
-          <textarea id="reportSteps" rows="4" class="w-full px-3 py-2 border rounded-lg" placeholder="What did you do?" minlength="10" maxlength="2000"></textarea>
-          <div id="reportStepsError" class="text-red-600 text-xs mt-1 hidden"></div>
-        </div>
-        <div>
-          <label class="block text-gray-700 mb-1">Additional Info / Screenshot</label>
-          <input type="file" id="reportScreenshot" accept="image/png, image/jpeg" class="w-full px-3 py-2 border rounded-lg" multiple />
-          <div class="mt-2" id="reportPreviewContainer" style="display:flex;gap:0.5rem;flex-wrap:wrap"></div>
-          <div id="reportScreenshotError" class="text-red-600 text-xs mt-1 hidden"></div>
-          <p class="text-xs text-gray-500 mt-2">Optional: attach up to 3 screenshots (PNG, JPG). Maximum 5MB each.</p>
-        </div>
-        <div class="flex justify-end gap-3">
-          <button type="button" id="submitReport" class="px-4 py-2 rounded-lg bg-[#f4b41a] text-[#222] font-medium opacity-50 cursor-not-allowed" disabled>Submit</button>
-          <button type="button" id="cancelReport" class="px-4 py-2 rounded-lg border">Cancel</button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <!-- SUCCESS TOAST FOR HELP PAGE -->
-  <div id="helpSuccessToast" class="hidden fixed bottom-6 right-6 z-60">
-    <div class="bg-[#f4b41a] text-[#222] px-4 py-3 rounded-lg shadow-lg flex items-center gap-3">
-      <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-      <div id="helpSuccessToastMsg" class="text-sm font-medium">Success!</div>
-    </div>
-  </div>
-
-  <div id="aboutUsModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center hidden z-50 p-4">
-    <div class="bg-white rounded-2xl shadow-xl relative w-full max-w-2xl max-h-[90vh] overflow-y-auto p-8">
-      <button id="closeAboutUsModal" class="absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
-      <h1 class="text-3xl font-bold text-[#222] mb-4">About Us</h1>
-      <p class="text-gray-700 mb-6 leading-relaxed">
-        <span class="font-semibold text-[#f4b41a]">DiNaDrawing</span> is a collaborative planning platform designed to make organizing events and group activities easy, fun, and efficient.
-      </p>
-      <div class="grid md:grid-cols-2 gap-6 mt-8">
-        <div class="bg-[#fffaf2] p-6 rounded-xl border border-gray-200 shadow-sm">
-          <h2 class="text-xl font-semibold text-[#222] mb-3">Our Mission</h2>
-          <p class="text-gray-700 leading-relaxed text-sm">To simplify teamwork and planning by creating a space where collaboration feels effortless.</p>
-        </div>
-        <div class="bg-[#fffaf2] p-6 rounded-xl border border-gray-200 shadow-sm">
-          <h2 class="text-xl font-semibold text-[#222] mb-3">Our Vision</h2>
-          <p class="text-gray-700 leading-relaxed text-sm">To become the go-to digital planner for creative teams and friend groups around the world.</p>
-        </div>
+<!-- CONTACT MODAL -->
+<div id="contactModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center hidden z-50 p-4">
+  <div class="bg-white rounded-2xl shadow-xl relative w-full max-w-lg max-h-[90vh] overflow-y-auto p-6">
+    <button id="closeContactModal" class="absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+    <h2 class="text-2xl font-bold mb-3">Contact Us</h2>
+    <p class="text-sm text-gray-600 mb-4">Tell us how we can help — we'll get back to you as soon as possible.</p>
+    <form id="contactForm" class="space-y-4 text-sm">
+      <div>
+        <label class="block text-gray-700 mb-1">Email</label>
+        <input type="email" id="contactEmail" class="w-full px-3 py-2 border rounded-lg" placeholder="you@example.com" maxlength="100">
+        <div id="contactEmailError" class="text-red-600 text-xs mt-1 hidden"></div>
       </div>
-      <div class="mt-8">
-        <h2 class="text-2xl font-bold text-[#222] mb-4">Meet the Team</h2>
-        <div class="grid grid-cols-5 gap-4">
-          <div class="flex flex-col items-center bg-[#fffaf2] p-4 rounded-xl border border-gray-200 shadow-sm">
-            <img src="Assets/Profile Icon/Ken.jpg" alt="Ken" class="w-16 h-16 rounded-full border-2 border-[#f4b41a] shadow mb-2">
-            <h3 class="font-semibold text-[#222] text-sm">Ken Mendoza</h3>
-            <p class="text-xs text-gray-600">Front-End Dev</p>
-          </div>
-          <div class="flex flex-col items-center bg-[#fffaf2] p-4 rounded-xl border border-gray-200 shadow-sm">
-            <img src="Assets/Profile Icon/Andrea.jpg" alt="Andrea" class="w-16 h-16 rounded-full border-2 border-[#f4b41a] shadow mb-2">
-            <h3 class="font-semibold text-[#222] text-sm">Andrea Calilap</h3>
-            <p class="text-xs text-gray-600">Front-End Dev</p>
-          </div>
-          <div class="flex flex-col items-center bg-[#fffaf2] p-4 rounded-xl border border-gray-200 shadow-sm">
-            <img src="Assets/Profile Icon/Angel.jpg" alt="Venice" class="w-16 h-16 rounded-full border-2 border-[#f4b41a] shadow mb-2">
-            <h3 class="font-semibold text-[#222] text-sm">Angel Retabale</h3>
-            <p class="text-xs text-gray-600">Project Manager</p>
-          </div>
-          <div class="flex flex-col items-center bg-[#fffaf2] p-4 rounded-xl border border-gray-200 shadow-sm">
-            <img src="Assets/Profile Icon/Jara.jpg" alt="Kyle" class="w-16 h-16 rounded-full border-2 border-[#f4b41a] shadow mb-2">
-            <h3 class="font-semibold text-[#222] text-sm">Kyle Reyes</h3>
-            <p class="text-xs text-gray-600">Back-End Dev</p>
-          </div>
-          <div class="flex flex-col items-center bg-[#fffaf2] p-4 rounded-xl border border-gray-200 shadow-sm">
-            <img src="Assets/Profile Icon/Jovan.jpg" alt="Ralf" class="w-16 h-16 rounded-full border-2 border-[#f4b41a] shadow mb-2">
-            <h3 class="font-semibold text-[#222] text-sm">Ralf Sanchez</h3>
-            <p class="text-xs text-gray-600">Back-End Dev</p>
-          </div>
-        </div>
+      <div>
+        <label class="block text-gray-700 mb-1">Message</label>
+        <textarea id="contactMessage" rows="5" class="w-full px-3 py-2 border rounded-lg" placeholder="How can we help?" minlength="10" maxlength="1000"></textarea>
+        <div id="contactMessageError" class="text-red-600 text-xs mt-1 hidden"></div>
       </div>
-      <footer class="mt-8 text-center text-gray-500 text-xs border-t border-gray-200 pt-4">© 2025 DiNaDrawing. All rights reserved.</footer>
-    </div>
-  </div>  
-
-  <div id="logoutModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm hidden z-[70] p-4 flex items-center justify-center">
-    <div class="bg-white rounded-2xl shadow-xl relative w-full max-w-md p-6"
-         role="dialog" aria-modal="true" aria-labelledby="logoutTitle" onclick="event.stopPropagation()">
-      <h2 id="logoutTitle" class="text-xl font-bold text-[#222] mb-2">Log out?</h2>
-      <p class="text-sm text-gray-600 mb-6">Are you sure you want to log out?</p>
       <div class="flex justify-end gap-3">
-        <button id="cancelLogoutBtn" class="px-4 py-2 rounded-lg border border-gray-300 hover:bg-gray-100 transition">
-          Cancel
-        </button>
-        <button id="confirmLogoutBtn" class="bg-red-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-red-700 transition">
-          Yes
-        </button>
+        <button type="button" id="submitContact" class="px-4 py-2 rounded-lg bg-[#f4b41a] text-[#222] font-medium opacity-50 cursor-not-allowed" disabled>Send</button>
+        <button type="button" id="cancelContact" class="px-4 py-2 rounded-lg border">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- REPORT MODAL -->
+<div id="reportModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center hidden z-50 p-4">
+  <div class="bg-white rounded-2xl shadow-xl relative w-full max-w-lg max-h-[90vh] overflow-y-auto p-6">
+    <button id="closeReportModal" class="absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+    <h2 class="text-2xl font-bold mb-3">Report an Issue</h2>
+    <p class="text-sm text-gray-600 mb-4">Describe the issue you found so our team can investigate.</p>
+    <form id="reportForm" class="space-y-4 text-sm">
+      <div>
+        <label class="block text-gray-700 mb-1">Summary</label>
+        <input type="text" id="reportSummary" class="w-full px-3 py-2 border rounded-lg" placeholder="Brief summary" maxlength="150">
+        <div id="reportSummaryError" class="text-red-600 text-xs mt-1 hidden"></div>
+      </div>
+      <div>
+        <label class="block text-gray-700 mb-1">Steps to Reproduce</label>
+        <textarea id="reportSteps" rows="4" class="w-full px-3 py-2 border rounded-lg" placeholder="What did you do?" minlength="10" maxlength="2000"></textarea>
+        <div id="reportStepsError" class="text-red-600 text-xs mt-1 hidden"></div>
+      </div>
+      <div>
+        <label class="block text-gray-700 mb-1">Additional Info / Screenshot</label>
+        <input type="file" id="reportScreenshot" accept="image/png, image/jpeg" class="w-full px-3 py-2 border rounded-lg" multiple />
+        <div class="mt-2" id="reportPreviewContainer" style="display:flex;gap:0.5rem;flex-wrap:wrap"></div>
+        <div id="reportScreenshotError" class="text-red-600 text-xs mt-1 hidden"></div>
+        <p class="text-xs text-gray-500 mt-2">Optional: attach up to 3 screenshots (PNG, JPG). Maximum 5MB each.</p>
+      </div>
+      <div class="flex justify-end gap-3">
+        <button type="button" id="submitReport" class="px-4 py-2 rounded-lg bg-[#f4b41a] text-[#222] font-medium opacity-50 cursor-not-allowed" disabled>Submit</button>
+        <button type="button" id="cancelReport" class="px-4 py-2 rounded-lg border">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ABOUT US MODAL -->
+<div id="aboutUsModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center hidden z-50 p-4">
+  <div class="bg-white rounded-2xl shadow-xl relative w-full max-w-2xl max-h-[90vh] overflow-y-auto p-8">
+    <button id="closeAboutUsModal" class="absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+    <h1 class="text-3xl font-bold text-[#222] mb-4">About Us</h1>
+    <p class="text-gray-700 mb-6 leading-relaxed">
+      <span class="font-semibold text-[#f4b41a]">DiNaDrawing</span> is a collaborative planning platform designed to make organizing events and group activities easy, fun, and efficient.
+    </p>
+    <div class="grid md:grid-cols-2 gap-6 mt-8">
+      <div class="bg-[#fffaf2] p-6 rounded-xl border border-gray-200 shadow-sm">
+        <h2 class="text-xl font-semibold text-[#222] mb-3">Our Mission</h2>
+        <p class="text-gray-700 leading-relaxed text-sm">To simplify teamwork and planning by creating a space where collaboration feels effortless.</p>
+      </div>
+      <div class="bg-[#fffaf2] p-6 rounded-xl border border-gray-200 shadow-sm">
+        <h2 class="text-xl font-semibold text-[#222] mb-3">Our Vision</h2>
+        <p class="text-gray-700 leading-relaxed text-sm">To become the go-to digital planner for creative teams and friend groups around the world.</p>
       </div>
     </div>
+    <div class="mt-8">
+      <h2 class="text-2xl font-bold text-[#222] mb-4">Meet the Team</h2>
+      <div class="grid grid-cols-5 gap-4">
+        <div class="flex flex-col items-center bg-[#fffaf2] p-4 rounded-xl border border-gray-200 shadow-sm">
+          <img src="Assets/Profile Icon/Ken.jpg" alt="Ken" class="w-16 h-16 rounded-full border-2 border-[#f4b41a] shadow mb-2">
+          <h3 class="font-semibold text-[#222] text-sm">Ken Mendoza</h3>
+          <p class="text-xs text-gray-600">Front-End Dev</p>
+        </div>
+        <div class="flex flex-col items-center bg-[#fffaf2] p-4 rounded-xl border border-gray-200 shadow-sm">
+          <img src="Assets/Profile Icon/Andrea.jpg" alt="Andrea" class="w-16 h-16 rounded-full border-2 border-[#f4b41a] shadow mb-2">
+          <h3 class="font-semibold text-[#222] text-sm">Andrea Calilap</h3>
+          <p class="text-xs text-gray-600">Front-End Dev</p>
+        </div>
+        <div class="flex flex-col items-center bg-[#fffaf2] p-4 rounded-xl border border-gray-200 shadow-sm">
+          <img src="Assets/Profile Icon/Angel.jpg" alt="Venice" class="w-16 h-16 rounded-full border-2 border-[#f4b41a] shadow mb-2">
+          <h3 class="font-semibold text-[#222] text-sm">Angel Retabale</h3>
+          <p class="text-xs text-gray-600">Project Manager</p>
+        </div>
+        <div class="flex flex-col items-center bg-[#fffaf2] p-4 rounded-xl border border-gray-200 shadow-sm">
+          <img src="Assets/Profile Icon/Jara.jpg" alt="Kyle" class="w-16 h-16 rounded-full border-2 border-[#f4b41a] shadow mb-2">
+          <h3 class="font-semibold text-[#222] text-sm">Kyle Reyes</h3>
+          <p class="text-xs text-gray-600">Back-End Dev</p>
+        </div>
+        <div class="flex flex-col items-center bg-[#fffaf2] p-4 rounded-xl border border-gray-200 shadow-sm">
+          <img src="Assets/Profile Icon/Jovan.jpg" alt="Ralf" class="w-16 h-16 rounded-full border-2 border-[#f4b41a] shadow mb-2">
+          <h3 class="font-semibold text-[#222] text-sm">Ralf Sanchez</h3>
+          <p class="text-xs text-gray-600">Back-End Dev</p>
+        </div>
+      </div>
+    </div>
+    <footer class="mt-8 text-center text-gray-500 text-xs border-t border-gray-200 pt-4">© 2025 DiNaDrawing. All rights reserved.</footer>
   </div>
-  
-  <script>
-    // FAQS CONTENT
+</div>
+
+<!-- SUCCESS TOAST -->
+<div id="helpSuccessToast" class="hidden fixed bottom-6 right-6 z-60">
+  <div class="bg-[#f4b41a] text-[#222] px-4 py-3 rounded-lg shadow-lg flex items-center gap-3">
+    <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+    <div id="helpSuccessToastMsg" class="text-sm font-medium">Success!</div>
+  </div>
+</div>
+
+<!-- LOGOUT CONFIRM MODAL -->
+<div id="logoutModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm hidden z-[70] p-4 flex items-center justify-center">
+  <div class="bg-white rounded-2xl shadow-xl relative w-full max-w-md p-6"
+       role="dialog" aria-modal="true" aria-labelledby="logoutTitle" onclick="event.stopPropagation()">
+    <h2 id="logoutTitle" class="text-xl font-bold text-[#222] mb-2">Log out?</h2>
+    <p class="text-sm text-gray-600 mb-6">Are you sure you want to log out?</p>
+    <div class="flex justify-end gap-3">
+      <button id="cancelLogoutBtn" class="px-4 py-2 rounded-lg border border-gray-300 hover:bg-gray-100 transition">Cancel</button>
+      <button id="confirmLogoutBtn" class="bg-red-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-red-700 transition">Yes</button>
+    </div>
+  </div>
+</div>
+
+<!-- FRONTEND SCRIPTS (merged UI behaviors) -->
+<script>
+  // Dark mode sync across tabs
+  window.addEventListener('storage', function(e) {
+    if (e.key === 'theme') {
+      if (e.newValue === 'dark') {
+        document.documentElement.classList.add('dark-mode');
+        document.body.classList.add('dark-mode');
+      } else {
+        document.documentElement.classList.remove('dark-mode');
+        document.body.classList.remove('dark-mode');
+      }
+    }
+  });
+
+  // DOM ready UI init
+  document.addEventListener('DOMContentLoaded', function() {
+    // Apply dark mode on load
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme === 'dark') {
+      document.body.classList.add('dark-mode');
+      document.documentElement.classList.add('dark-mode');
+    }
+
+    // Hamburger + sidebar overlay
+    const hamburgerBtn = document.getElementById('hamburgerBtn');
+    const sidebar = document.getElementById('sidebar');
+    const sidebarOverlay = document.getElementById('sidebarOverlay');
+    const isMobile = window.innerWidth < 769;
+
+    const sidebarState = localStorage.getItem('sidebarOpen');
+    if (sidebarState === null) {
+      if (!isMobile) sidebar?.classList.add('active');
+    } else if (sidebarState === 'true') {
+      sidebar?.classList.add('active');
+    }
+
+    if (hamburgerBtn && sidebar && sidebarOverlay) {
+      hamburgerBtn.addEventListener('click', () => {
+        const isActive = sidebar.classList.toggle('active');
+        if (window.innerWidth < 769) {
+          sidebarOverlay.classList.toggle('active');
+        }
+        localStorage.setItem('sidebarOpen', isActive);
+      });
+
+      sidebarOverlay.addEventListener('click', () => {
+        sidebar.classList.remove('active');
+        sidebarOverlay.classList.remove('active');
+        localStorage.setItem('sidebarOpen', 'false');
+      });
+
+      const navLinks = sidebar.querySelectorAll('nav a');
+      navLinks.forEach(link => {
+        link.addEventListener('click', () => {
+          if (window.innerWidth < 769) {
+            sidebar.classList.remove('active');
+            sidebarOverlay.classList.remove('active');
+            localStorage.setItem('sidebarOpen', 'false');
+          }
+        });
+      });
+
+      window.addEventListener('resize', () => {
+        if (window.innerWidth >= 769) {
+          sidebarOverlay.classList.remove('active');
+        }
+      });
+    }
+
+    // FAQ accordion
     const faqItems = document.querySelectorAll('.faq-item');
     faqItems.forEach((item) => {
       const question = item.querySelector('.faq-question');
       const answer = item.querySelector('.faq-answer');
       const icon = item.querySelector('.icon');
       question.addEventListener('click', () => {
-
-        // HIDDEN AFTER ONE FACT
-        faqItems.forEach((otherItem) => {
-          if (otherItem !== item) {
-            otherItem.querySelector('.faq-answer').classList.add('hidden');
-            otherItem.querySelector('.icon').style.transform = 'rotate(0deg)';
+        faqItems.forEach((other) => {
+          if (other !== item) {
+            other.querySelector('.faq-answer').classList.add('hidden');
+            other.querySelector('.icon').style.transform = 'rotate(0deg)';
           }
         });
-
-        // TOGGLE CURRENT ITEM
         const isHidden = answer.classList.contains('hidden');
-        if (isHidden) {
-          answer.classList.remove('hidden');
-          icon.style.transform = 'rotate(90deg)';
-        } else {
-          answer.classList.add('hidden');
-          icon.style.transform = 'rotate(0deg)';
-        }
+        if (isHidden) { answer.classList.remove('hidden'); icon.style.transform = 'rotate(90deg)'; }
+        else { answer.classList.add('hidden'); icon.style.transform = 'rotate(0deg)'; }
       });
     });
 
-    // PROFILE DROPDOWN
+    // Profile dropdown
     const profileBtn = document.getElementById('profileBtn');
     const profileDropdown = document.getElementById('profileDropdown');
-
     profileBtn?.addEventListener('click', (e) => {
       e.stopPropagation();
       profileDropdown?.classList.toggle('hidden');
     });
-
     document.addEventListener('click', (e) => {
       if (!profileDropdown?.contains(e.target) && !profileBtn?.contains(e.target)) {
         profileDropdown?.classList.add('hidden');
       }
     });
 
-    // ABOUT US MODAL
+    // About Us modal
     const aboutUsBtn = document.getElementById('aboutUsBtn');
+    const aboutUsModal = document.getElementById('aboutUsModal');
+    const closeAboutUsModal = document.getElementById('closeAboutUsModal');
     if (aboutUsBtn) {
       aboutUsBtn.addEventListener('click', (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        document.getElementById('aboutUsModal').classList.remove('hidden');
-        document.getElementById('profileDropdown').classList.add('hidden');
+        e.preventDefault(); e.stopPropagation();
+        aboutUsModal?.classList.remove('hidden');
+        profileDropdown?.classList.add('hidden');
       });
     }
-    const closeAboutUsModal = document.getElementById('closeAboutUsModal');
-    if (closeAboutUsModal) {
-      closeAboutUsModal.addEventListener('click', () => {
-        document.getElementById('aboutUsModal').classList.add('hidden');
-      });
-    }
-    const aboutUsModal = document.getElementById('aboutUsModal');
-    if (aboutUsModal) {
-      aboutUsModal.addEventListener('click', (e) => {
-        if (e.target === aboutUsModal) {
-          aboutUsModal.classList.add('hidden');
-        }
-      });
-    }
+    closeAboutUsModal?.addEventListener('click', () => aboutUsModal?.classList.add('hidden'));
+    aboutUsModal?.addEventListener('click', (e) => { if (e.target === aboutUsModal) aboutUsModal.classList.add('hidden'); });
 
-    // CONTACT & REPORT MODAL CONTROLS
-    const openContactBtn = document.getElementById('openContactBtn');
-    const contactModal = document.getElementById('contactModal');
-    const closeContactModal = document.getElementById('closeContactModal');
-    const cancelContact = document.getElementById('cancelContact');
-    const submitContact = document.getElementById('submitContact');
-
-    const openReportBtn = document.getElementById('openReportBtn');
-    const reportModal = document.getElementById('reportModal');
-    const closeReportModal = document.getElementById('closeReportModal');
-    const cancelReport = document.getElementById('cancelReport');
-    const submitReport = document.getElementById('submitReport');
-
+    // Toast helper
     function showHelpSuccess(message, duration = 1500) {
       const toast = document.getElementById('helpSuccessToast');
       const msg = document.getElementById('helpSuccessToastMsg');
@@ -374,89 +460,38 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
       }, duration);
     }
 
-    if (openContactBtn) {
-      openContactBtn.addEventListener('click', () => {
-        contactModal?.classList.remove('hidden');
-      });
-    }
-    if (closeContactModal) closeContactModal.addEventListener('click', () => contactModal?.classList.add('hidden'));
-    if (cancelContact) cancelContact.addEventListener('click', () => contactModal?.classList.add('hidden'));
-    if (contactModal) contactModal.addEventListener('click', (e) => { if (e.target === contactModal) contactModal.classList.add('hidden'); });
-
-    if (openReportBtn) {
-      openReportBtn.addEventListener('click', () => {
-        reportModal?.classList.remove('hidden');
-      });
-    }
-    if (closeReportModal) closeReportModal.addEventListener('click', () => reportModal?.classList.add('hidden'));
-    if (cancelReport) cancelReport.addEventListener('click', () => reportModal?.classList.add('hidden'));
-    if (reportModal) reportModal.addEventListener('click', (e) => { if (e.target === reportModal) reportModal.classList.add('hidden'); });
-
-    // Contact form validation and submit
+    // Contact modal controls + validation
+    const openContactBtn = document.getElementById('openContactBtn');
+    const contactModal = document.getElementById('contactModal');
+    const closeContactModal = document.getElementById('closeContactModal');
+    const cancelContact = document.getElementById('cancelContact');
+    const submitContact = document.getElementById('submitContact');
     const contactEmailEl = document.getElementById('contactEmail');
     const contactMessageEl = document.getElementById('contactMessage');
     const contactEmailError = document.getElementById('contactEmailError');
     const contactMessageError = document.getElementById('contactMessageError');
 
-    function validateEmail(email) {
-      // simple email regex
-      return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-    }
-
+    function validateEmail(email) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email); }
     function setError(el, msgEl, message) {
       if (!el || !msgEl) return;
-      if (message) {
-        msgEl.textContent = message;
-        msgEl.classList.remove('hidden');
-        el.setAttribute('aria-invalid', 'true');
-      } else {
-        msgEl.textContent = '';
-        msgEl.classList.add('hidden');
-        el.removeAttribute('aria-invalid');
-      }
+      if (message) { msgEl.textContent = message; msgEl.classList.remove('hidden'); el.setAttribute('aria-invalid', 'true'); }
+      else { msgEl.textContent = ''; msgEl.classList.add('hidden'); el.removeAttribute('aria-invalid'); }
     }
-
     function validateContactForm() {
       let valid = true;
       const email = contactEmailEl.value.trim();
       const message = contactMessageEl.value.trim();
-
-      // Email validation
-      if (email.length === 0) {
-        setError(contactEmailEl, contactEmailError, 'Please enter your email.');
-        valid = false;
-      } else if (!validateEmail(email)) {
-        setError(contactEmailEl, contactEmailError, 'Please enter a valid email address.');
-        valid = false;
-      } else {
-        setError(contactEmailEl, contactEmailError, '');
-      }
-
-      // Message validation
-      if (message.length === 0) {
-        setError(contactMessageEl, contactMessageError, 'Please enter a message.');
-        valid = false;
-      } else if (message.length < 10) {
-        setError(contactMessageEl, contactMessageError, 'Message must be at least 10 characters.');
-        valid = false;
-      } else if (message.length > 1000) {
-        setError(contactMessageEl, contactMessageError, 'Message cannot exceed 1000 characters.');
-        valid = false;
-      } else {
-        setError(contactMessageEl, contactMessageError, '');
-      }
-
-      // Toggle submit button
+      if (email.length === 0) { setError(contactEmailEl, contactEmailError, 'Please enter your email.'); valid = false; }
+      else if (!validateEmail(email)) { setError(contactEmailEl, contactEmailError, 'Please enter a valid email address.'); valid = false; }
+      else { setError(contactEmailEl, contactEmailError, ''); }
+      if (message.length === 0) { setError(contactMessageEl, contactMessageError, 'Please enter a message.'); valid = false; }
+      else if (message.length < 10) { setError(contactMessageEl, contactMessageError, 'Message must be at least 10 characters.'); valid = false; }
+      else if (message.length > 1000) { setError(contactMessageEl, contactMessageError, 'Message cannot exceed 1000 characters.'); valid = false; }
+      else { setError(contactMessageEl, contactMessageError, ''); }
       if (submitContact) {
-        if (valid) {
-          submitContact.disabled = false;
-          submitContact.classList.remove('opacity-50', 'cursor-not-allowed');
-        } else {
-          submitContact.disabled = true;
-          submitContact.classList.add('opacity-50', 'cursor-not-allowed');
-        }
+        if (valid) { submitContact.disabled = false; submitContact.classList.remove('opacity-50', 'cursor-not-allowed'); }
+        else { submitContact.disabled = true; submitContact.classList.add('opacity-50', 'cursor-not-allowed'); }
       }
-
       return valid;
     }
 
@@ -465,36 +500,35 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
       el.addEventListener('input', validateContactForm);
       el.addEventListener('blur', validateContactForm);
     });
-
-    // initialize validation state
     validateContactForm();
 
-    if (submitContact) {
-      submitContact.addEventListener('click', (e) => {
-        e.preventDefault();
-        if (!validateContactForm()) {
-          return;
-        }
+    openContactBtn?.addEventListener('click', () => contactModal?.classList.remove('hidden'));
+    closeContactModal?.addEventListener('click', () => contactModal?.classList.add('hidden'));
+    cancelContact?.addEventListener('click', () => contactModal?.classList.add('hidden'));
+    contactModal?.addEventListener('click', (e) => { if (e.target === contactModal) contactModal.classList.add('hidden'); });
 
-        // TODO: send to backend endpoint if desired (use FormData for attachments)
-        contactModal?.classList.add('hidden');
-        showHelpSuccess('Message sent — we will contact you soon.');
-        // clear form
-        document.getElementById('contactForm').reset();
-        // reset errors and disable button again
-        validateContactForm();
-      });
-    }
+    submitContact?.addEventListener('click', (e) => {
+      e.preventDefault();
+      if (!validateContactForm()) return;
+      contactModal?.classList.add('hidden');
+      showHelpSuccess('Message sent — we will contact you soon.');
+      document.getElementById('contactForm')?.reset();
+      validateContactForm();
+    });
 
-    // Report image preview handling and validation
+    // Report modal controls + validation
+    const openReportBtn = document.getElementById('openReportBtn');
+    const reportModal = document.getElementById('reportModal');
+    const closeReportModal = document.getElementById('closeReportModal');
+    const cancelReport = document.getElementById('cancelReport');
+    const submitReport = document.getElementById('submitReport');
     const reportScreenshot = document.getElementById('reportScreenshot');
-    const reportPreview = document.getElementById('reportPreview');
     const reportSummaryEl = document.getElementById('reportSummary');
     const reportStepsEl = document.getElementById('reportSteps');
     const reportSummaryError = document.getElementById('reportSummaryError');
     const reportStepsError = document.getElementById('reportStepsError');
     const reportScreenshotError = document.getElementById('reportScreenshotError');
-    const MAX_SCREENSHOT_SIZE = 5 * 1024 * 1024; // 5MB
+    const MAX_SCREENSHOT_SIZE = 5 * 1024 * 1024;
     const ALLOWED_TYPES = ['image/png', 'image/jpeg'];
 
     function validateReportForm() {
@@ -502,181 +536,101 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
       const summary = reportSummaryEl.value.trim();
       const steps = reportStepsEl.value.trim();
       const file = reportScreenshot && reportScreenshot.files && reportScreenshot.files[0];
-
-      // Summary
-      if (summary.length === 0) {
-        setError(reportSummaryEl, reportSummaryError, 'Please enter a brief summary.');
-        valid = false;
-      } else if (summary.length > 150) {
-        setError(reportSummaryEl, reportSummaryError, 'Summary must be 150 characters or fewer.');
-        valid = false;
-      } else {
-        setError(reportSummaryEl, reportSummaryError, '');
-      }
-
-      // Steps
-      if (steps.length === 0) {
-        setError(reportStepsEl, reportStepsError, 'Please describe steps to reproduce.');
-        valid = false;
-      } else if (steps.length < 10) {
-        setError(reportStepsEl, reportStepsError, 'Please provide more details (at least 10 characters).');
-        valid = false;
-      } else {
-        setError(reportStepsEl, reportStepsError, '');
-      }
-
-      // Screenshot (optional) - validate type and size
+      if (summary.length === 0) { setError(reportSummaryEl, reportSummaryError, 'Please enter a brief summary.'); valid = false; }
+      else if (summary.length > 150) { setError(reportSummaryEl, reportSummaryError, 'Summary must be 150 characters or fewer.'); valid = false; }
+      else { setError(reportSummaryEl, reportSummaryError, ''); }
+      if (steps.length === 0) { setError(reportStepsEl, reportStepsError, 'Please describe steps to reproduce.'); valid = false; }
+      else if (steps.length < 10) { setError(reportStepsEl, reportStepsError, 'Please provide more details (at least 10 characters).'); valid = false; }
+      else { setError(reportStepsEl, reportStepsError, ''); }
       if (file) {
-        if (!ALLOWED_TYPES.includes(file.type)) {
-          setError(reportScreenshot, reportScreenshotError, 'Only PNG and JPG images are allowed.');
-          valid = false;
-        } else if (file.size > MAX_SCREENSHOT_SIZE) {
-          setError(reportScreenshot, reportScreenshotError, 'File is too large. Maximum is 5MB.');
-          valid = false;
-        } else {
-          setError(reportScreenshot, reportScreenshotError, '');
-        }
-      } else {
-        setError(reportScreenshot, reportScreenshotError, '');
-      }
-
-      // toggle submit button
+        if (!ALLOWED_TYPES.includes(file.type)) { setError(reportScreenshot, reportScreenshotError, 'Only PNG and JPG images are allowed.'); valid = false; }
+        else if (file.size > MAX_SCREENSHOT_SIZE) { setError(reportScreenshot, reportScreenshotError, 'File is too large. Maximum is 5MB.'); valid = false; }
+        else { setError(reportScreenshot, reportScreenshotError, ''); }
+      } else { setError(reportScreenshot, reportScreenshotError, ''); }
       if (submitReport) {
-        if (valid) {
-          submitReport.disabled = false;
-          submitReport.classList.remove('opacity-50', 'cursor-not-allowed');
-        } else {
-          submitReport.disabled = true;
-          submitReport.classList.add('opacity-50', 'cursor-not-allowed');
-        }
+        if (valid) { submitReport.disabled = false; submitReport.classList.remove('opacity-50', 'cursor-not-allowed'); }
+        else { submitReport.disabled = true; submitReport.classList.add('opacity-50', 'cursor-not-allowed'); }
       }
-
       return valid;
     }
 
     if (reportScreenshot) {
-      reportScreenshot.addEventListener('change', (e) => {
-        const file = reportScreenshot.files && reportScreenshot.files[0];
-        if (file && ALLOWED_TYPES.includes(file.type) && file.size <= MAX_SCREENSHOT_SIZE) {
-          const url = URL.createObjectURL(file);
-          reportPreview.src = url;
-          reportPreview.classList.remove('hidden');
-          setError(reportScreenshot, reportScreenshotError, '');
-        } else {
-          reportPreview.src = '';
-          reportPreview.classList.add('hidden');
-          // call validate to populate error messages
-          validateReportForm();
-        }
+      reportScreenshot.addEventListener('change', () => {
+        // Keep simple validation; preview container exists if you want to extend
         validateReportForm();
       });
     }
-
     [reportSummaryEl, reportStepsEl].forEach((el) => {
       if (!el) return;
       el.addEventListener('input', validateReportForm);
       el.addEventListener('blur', validateReportForm);
     });
+    validateReportForm();
 
-    // Handle Report submit (supports optional screenshot file)
-    if (submitReport) {
-      submitReport.addEventListener('click', async (e) => {
-        e.preventDefault();
-        if (!validateReportForm()) {
-          return;
-        }
+    openReportBtn?.addEventListener('click', () => reportModal?.classList.remove('hidden'));
+    closeReportModal?.addEventListener('click', () => reportModal?.classList.add('hidden'));
+    cancelReport?.addEventListener('click', () => reportModal?.classList.add('hidden'));
+    reportModal?.addEventListener('click', (e) => { if (e.target === reportModal) reportModal.classList.add('hidden'); });
 
-        const summary = reportSummaryEl.value.trim();
-        const steps = reportStepsEl.value.trim();
-        const file = reportScreenshot && reportScreenshot.files && reportScreenshot.files[0];
-
-        // If you later have a backend endpoint, send as FormData:
-        // const fd = new FormData(); fd.append('summary', summary); fd.append('steps', steps); if (file) fd.append('screenshot', file);
-        // await fetch('/api/report-issue.php', { method: 'POST', body: fd });
-
-        // For now client-side only: close modal, show success, reset form, revoke preview URL
-        reportModal?.classList.add('hidden');
-        showHelpSuccess('Issue reported — thanks for helping us improve.');
-        document.getElementById('reportForm').reset();
-        if (reportPreview && reportPreview.src) {
-          try { URL.revokeObjectURL(reportPreview.src); } catch (e) {}
-          reportPreview.src = '';
-          reportPreview.classList.add('hidden');
-        }
-        validateReportForm();
-      });
-    }
-  </script>
-
-<script type="module">
-import { auth } from './firebase-config.js'; 
-import { signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
-
-document.addEventListener('DOMContentLoaded', function() {
-  
-  // 1. LISTEN FOR AUTH STATE CHANGES
-  onAuthStateChanged(auth, (user) => {
-    if (user) {
-      // --- GET USER DATA ---
-      const displayName = user.displayName || user.email.split('@')[0];
-      const defaultPhoto = "Assets/Profile Icon/profile.png"; 
-      const userPhoto = user.photoURL ? user.photoURL : defaultPhoto;
-
-      // --- UPDATE ELEMENTS ---
-      const navName = document.getElementById('navProfileName');
-      const dropName = document.getElementById('dropdownProfileName');
-      const navImg = document.getElementById('navProfileImg');
-      const dropImg = document.getElementById('dropdownProfileImg');
-
-      if (navName) navName.textContent = displayName;
-      if (dropName) dropName.textContent = displayName;
-      if (navImg) navImg.src = userPhoto;
-      if (dropImg) dropImg.src = userPhoto;
-
-    } else {
-      console.log("No user logged in, redirecting...");
-      window.location.href = 'index.html'; 
-    }
+    submitReport?.addEventListener('click', async (e) => {
+      e.preventDefault();
+      if (!validateReportForm()) return;
+      reportModal?.classList.add('hidden');
+      showHelpSuccess('Issue reported — thanks for helping us improve.');
+      document.getElementById('reportForm')?.reset();
+      validateReportForm();
+    });
   });
+</script>
 
-  // 2. LOGOUT FUNCTION
-  const logoutSidebar = document.getElementById('logoutBtn');
-  const logoutProfile = document.getElementById('logoutProfile');
-  const logoutModal = document.getElementById('logoutModal');
-  const confirmLogoutBtn = document.getElementById('confirmLogoutBtn');
-  const cancelLogoutBtn = document.getElementById('cancelLogoutBtn');
+<!-- AUTH + LOGOUT (preserved) -->
+<script type="module">
+  import { auth } from './firebase-config.js'; 
+  import { signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
 
-  function openLogoutModal() {
-    if(logoutModal) logoutModal.classList.remove('hidden');
-  }
+  document.addEventListener('DOMContentLoaded', function() {
+    // Auth -> populate user UI
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        const displayName = user.displayName || user.email.split('@')[0];
+        const defaultPhoto = "Assets/Profile Icon/profile.png"; 
+        const userPhoto = user.photoURL ? user.photoURL : defaultPhoto;
 
-  // Bind click events
-  if (logoutSidebar) logoutSidebar.addEventListener('click', openLogoutModal);
-  if (logoutProfile) logoutProfile.addEventListener('click', openLogoutModal);
+        document.getElementById('navProfileName')?.textContent = displayName;
+        document.getElementById('dropdownProfileName')?.textContent = displayName;
+        const navImg = document.getElementById('navProfileImg');
+        const dropImg = document.getElementById('dropdownProfileImg');
+        if (navImg) navImg.src = userPhoto;
+        if (dropImg) dropImg.src = userPhoto;
+      } else {
+        window.location.href = 'index.html';
+      }
+    });
 
-  // Modal Actions
-  if (confirmLogoutBtn) {
-    confirmLogoutBtn.addEventListener('click', () => {
-        signOut(auth)
+    // Logout modal wiring (same pattern as dashboard)
+    const logoutSidebar = document.getElementById('logoutBtn');
+    const logoutProfile = document.getElementById('logoutProfile');
+    const logoutModal = document.getElementById('logoutModal');
+    const confirmLogoutBtn = document.getElementById('confirmLogoutBtn');
+    const cancelLogoutBtn = document.getElementById('cancelLogoutBtn');
+
+    function openLogoutModal() { logoutModal?.classList.remove('hidden'); }
+    function closeLogoutModal() { logoutModal?.classList.add('hidden'); }
+
+    logoutSidebar?.addEventListener('click', openLogoutModal);
+    logoutProfile?.addEventListener('click', openLogoutModal);
+
+    confirmLogoutBtn?.addEventListener('click', () => {
+      signOut(auth)
         .then(() => { window.location.href = 'index.html'; })
         .catch((error) => { console.error('Logout error:', error); });
     });
-  }
+    cancelLogoutBtn?.addEventListener('click', closeLogoutModal);
 
-  if (cancelLogoutBtn) {
-    cancelLogoutBtn.addEventListener('click', () => {
-        if(logoutModal) logoutModal.classList.add('hidden');
-    });
-  }
-
-  // Close modal on backdrop click
-  if (logoutModal) {
-    logoutModal.addEventListener('click', (e) => {
-        if (e.target === logoutModal) logoutModal.classList.add('hidden');
-    });
-  }
-});
+    logoutModal?.addEventListener('click', (e) => { if (e.target === logoutModal) closeLogoutModal(); });
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeLogoutModal(); });
+  });
 </script>
-  
+
 </body>
 </html>
