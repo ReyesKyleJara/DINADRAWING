@@ -127,7 +127,7 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
             <h3 class="text-lg font-semibold mb-2">Still Have Questions?</h3>
             <p class="text-base mb-4">Feel free to reach out. We're here to help you with anything you need!</p>
             <div class="flex justify-end">
-              <button class="bg-[#f4b41a] text-[#222] font-medium px-4 py-2 rounded-lg hover:bg-[#222] hover:text-white transition duration-200">
+              <button id="openContactBtn" class="bg-[#f4b41a] text-[#222] font-medium px-4 py-2 rounded-lg hover:bg-[#222] hover:text-white transition duration-200">
                 Contact Us
               </button>
             </div>
@@ -137,7 +137,7 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
             <h3 class="text-lg font-semibold mb-2">Report a Bug</h3>
             <p class="text-base mb-4">Found an issue? Let us know so we can fix it quickly.</p>
             <div class="flex justify-end">
-              <button class="bg-[#f4b41a] text-[#222] font-medium px-4 py-2 rounded-lg hover:bg-[#222] hover:text-white transition duration-200">
+              <button id="openReportBtn" class="bg-[#f4b41a] text-[#222] font-medium px-4 py-2 rounded-lg hover:bg-[#222] hover:text-white transition duration-200">
                 Report Issue
               </button>
             </div>
@@ -146,6 +146,70 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
       </div>
     </div>
   </main>
+
+  <!-- CONTACT & REPORT MODALS -->
+  <div id="contactModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center hidden z-50 p-4">
+    <div class="bg-white rounded-2xl shadow-xl relative w-full max-w-lg max-h-[90vh] overflow-y-auto p-6">
+      <button id="closeContactModal" class="absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+      <h2 class="text-2xl font-bold mb-3">Contact Us</h2>
+      <p class="text-sm text-gray-600 mb-4">Tell us how we can help — we'll get back to you as soon as possible.</p>
+      <form id="contactForm" class="space-y-4 text-sm">
+        <div>
+          <label class="block text-gray-700 mb-1">Email</label>
+          <input type="email" id="contactEmail" class="w-full px-3 py-2 border rounded-lg" placeholder="you@example.com" maxlength="100">
+          <div id="contactEmailError" class="text-red-600 text-xs mt-1 hidden"></div>
+        </div>
+        <div>
+          <label class="block text-gray-700 mb-1">Message</label>
+          <textarea id="contactMessage" rows="5" class="w-full px-3 py-2 border rounded-lg" placeholder="How can we help?" minlength="10" maxlength="1000"></textarea>
+          <div id="contactMessageError" class="text-red-600 text-xs mt-1 hidden"></div>
+        </div>
+        <div class="flex justify-end gap-3">
+          <button type="button" id="submitContact" class="px-4 py-2 rounded-lg bg-[#f4b41a] text-[#222] font-medium opacity-50 cursor-not-allowed" disabled>Send</button>
+          <button type="button" id="cancelContact" class="px-4 py-2 rounded-lg border">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="reportModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center hidden z-50 p-4">
+    <div class="bg-white rounded-2xl shadow-xl relative w-full max-w-lg max-h-[90vh] overflow-y-auto p-6">
+      <button id="closeReportModal" class="absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+      <h2 class="text-2xl font-bold mb-3">Report an Issue</h2>
+      <p class="text-sm text-gray-600 mb-4">Describe the issue you found so our team can investigate.</p>
+      <form id="reportForm" class="space-y-4 text-sm">
+        <div>
+          <label class="block text-gray-700 mb-1">Summary</label>
+          <input type="text" id="reportSummary" class="w-full px-3 py-2 border rounded-lg" placeholder="Brief summary" maxlength="150">
+          <div id="reportSummaryError" class="text-red-600 text-xs mt-1 hidden"></div>
+        </div>
+        <div>
+          <label class="block text-gray-700 mb-1">Steps to Reproduce</label>
+          <textarea id="reportSteps" rows="4" class="w-full px-3 py-2 border rounded-lg" placeholder="What did you do?" minlength="10" maxlength="2000"></textarea>
+          <div id="reportStepsError" class="text-red-600 text-xs mt-1 hidden"></div>
+        </div>
+        <div>
+          <label class="block text-gray-700 mb-1">Additional Info / Screenshot</label>
+          <input type="file" id="reportScreenshot" accept="image/png, image/jpeg" class="w-full px-3 py-2 border rounded-lg" multiple />
+          <div class="mt-2" id="reportPreviewContainer" style="display:flex;gap:0.5rem;flex-wrap:wrap"></div>
+          <div id="reportScreenshotError" class="text-red-600 text-xs mt-1 hidden"></div>
+          <p class="text-xs text-gray-500 mt-2">Optional: attach up to 3 screenshots (PNG, JPG). Maximum 5MB each.</p>
+        </div>
+        <div class="flex justify-end gap-3">
+          <button type="button" id="submitReport" class="px-4 py-2 rounded-lg bg-[#f4b41a] text-[#222] font-medium opacity-50 cursor-not-allowed" disabled>Submit</button>
+          <button type="button" id="cancelReport" class="px-4 py-2 rounded-lg border">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- SUCCESS TOAST FOR HELP PAGE -->
+  <div id="helpSuccessToast" class="hidden fixed bottom-6 right-6 z-60">
+    <div class="bg-[#f4b41a] text-[#222] px-4 py-3 rounded-lg shadow-lg flex items-center gap-3">
+      <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+      <div id="helpSuccessToastMsg" class="text-sm font-medium">Success!</div>
+    </div>
+  </div>
 
   <div id="aboutUsModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center hidden z-50 p-4">
     <div class="bg-white rounded-2xl shadow-xl relative w-full max-w-2xl max-h-[90vh] overflow-y-auto p-8">
@@ -280,6 +344,266 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
         if (e.target === aboutUsModal) {
           aboutUsModal.classList.add('hidden');
         }
+      });
+    }
+
+    // CONTACT & REPORT MODAL CONTROLS
+    const openContactBtn = document.getElementById('openContactBtn');
+    const contactModal = document.getElementById('contactModal');
+    const closeContactModal = document.getElementById('closeContactModal');
+    const cancelContact = document.getElementById('cancelContact');
+    const submitContact = document.getElementById('submitContact');
+
+    const openReportBtn = document.getElementById('openReportBtn');
+    const reportModal = document.getElementById('reportModal');
+    const closeReportModal = document.getElementById('closeReportModal');
+    const cancelReport = document.getElementById('cancelReport');
+    const submitReport = document.getElementById('submitReport');
+
+    function showHelpSuccess(message, duration = 1500) {
+      const toast = document.getElementById('helpSuccessToast');
+      const msg = document.getElementById('helpSuccessToastMsg');
+      if (!toast || !msg) { alert(message); return; }
+      msg.textContent = message;
+      toast.classList.remove('hidden');
+      toast.style.transition = 'opacity 0.3s ease';
+      toast.style.opacity = '1';
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        setTimeout(() => toast.classList.add('hidden'), 300);
+      }, duration);
+    }
+
+    if (openContactBtn) {
+      openContactBtn.addEventListener('click', () => {
+        contactModal?.classList.remove('hidden');
+      });
+    }
+    if (closeContactModal) closeContactModal.addEventListener('click', () => contactModal?.classList.add('hidden'));
+    if (cancelContact) cancelContact.addEventListener('click', () => contactModal?.classList.add('hidden'));
+    if (contactModal) contactModal.addEventListener('click', (e) => { if (e.target === contactModal) contactModal.classList.add('hidden'); });
+
+    if (openReportBtn) {
+      openReportBtn.addEventListener('click', () => {
+        reportModal?.classList.remove('hidden');
+      });
+    }
+    if (closeReportModal) closeReportModal.addEventListener('click', () => reportModal?.classList.add('hidden'));
+    if (cancelReport) cancelReport.addEventListener('click', () => reportModal?.classList.add('hidden'));
+    if (reportModal) reportModal.addEventListener('click', (e) => { if (e.target === reportModal) reportModal.classList.add('hidden'); });
+
+    // Contact form validation and submit
+    const contactEmailEl = document.getElementById('contactEmail');
+    const contactMessageEl = document.getElementById('contactMessage');
+    const contactEmailError = document.getElementById('contactEmailError');
+    const contactMessageError = document.getElementById('contactMessageError');
+
+    function validateEmail(email) {
+      // simple email regex
+      return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    }
+
+    function setError(el, msgEl, message) {
+      if (!el || !msgEl) return;
+      if (message) {
+        msgEl.textContent = message;
+        msgEl.classList.remove('hidden');
+        el.setAttribute('aria-invalid', 'true');
+      } else {
+        msgEl.textContent = '';
+        msgEl.classList.add('hidden');
+        el.removeAttribute('aria-invalid');
+      }
+    }
+
+    function validateContactForm() {
+      let valid = true;
+      const email = contactEmailEl.value.trim();
+      const message = contactMessageEl.value.trim();
+
+      // Email validation
+      if (email.length === 0) {
+        setError(contactEmailEl, contactEmailError, 'Please enter your email.');
+        valid = false;
+      } else if (!validateEmail(email)) {
+        setError(contactEmailEl, contactEmailError, 'Please enter a valid email address.');
+        valid = false;
+      } else {
+        setError(contactEmailEl, contactEmailError, '');
+      }
+
+      // Message validation
+      if (message.length === 0) {
+        setError(contactMessageEl, contactMessageError, 'Please enter a message.');
+        valid = false;
+      } else if (message.length < 10) {
+        setError(contactMessageEl, contactMessageError, 'Message must be at least 10 characters.');
+        valid = false;
+      } else if (message.length > 1000) {
+        setError(contactMessageEl, contactMessageError, 'Message cannot exceed 1000 characters.');
+        valid = false;
+      } else {
+        setError(contactMessageEl, contactMessageError, '');
+      }
+
+      // Toggle submit button
+      if (submitContact) {
+        if (valid) {
+          submitContact.disabled = false;
+          submitContact.classList.remove('opacity-50', 'cursor-not-allowed');
+        } else {
+          submitContact.disabled = true;
+          submitContact.classList.add('opacity-50', 'cursor-not-allowed');
+        }
+      }
+
+      return valid;
+    }
+
+    [contactEmailEl, contactMessageEl].forEach((el) => {
+      if (!el) return;
+      el.addEventListener('input', validateContactForm);
+      el.addEventListener('blur', validateContactForm);
+    });
+
+    // initialize validation state
+    validateContactForm();
+
+    if (submitContact) {
+      submitContact.addEventListener('click', (e) => {
+        e.preventDefault();
+        if (!validateContactForm()) {
+          return;
+        }
+
+        // TODO: send to backend endpoint if desired (use FormData for attachments)
+        contactModal?.classList.add('hidden');
+        showHelpSuccess('Message sent — we will contact you soon.');
+        // clear form
+        document.getElementById('contactForm').reset();
+        // reset errors and disable button again
+        validateContactForm();
+      });
+    }
+
+    // Report image preview handling and validation
+    const reportScreenshot = document.getElementById('reportScreenshot');
+    const reportPreview = document.getElementById('reportPreview');
+    const reportSummaryEl = document.getElementById('reportSummary');
+    const reportStepsEl = document.getElementById('reportSteps');
+    const reportSummaryError = document.getElementById('reportSummaryError');
+    const reportStepsError = document.getElementById('reportStepsError');
+    const reportScreenshotError = document.getElementById('reportScreenshotError');
+    const MAX_SCREENSHOT_SIZE = 5 * 1024 * 1024; // 5MB
+    const ALLOWED_TYPES = ['image/png', 'image/jpeg'];
+
+    function validateReportForm() {
+      let valid = true;
+      const summary = reportSummaryEl.value.trim();
+      const steps = reportStepsEl.value.trim();
+      const file = reportScreenshot && reportScreenshot.files && reportScreenshot.files[0];
+
+      // Summary
+      if (summary.length === 0) {
+        setError(reportSummaryEl, reportSummaryError, 'Please enter a brief summary.');
+        valid = false;
+      } else if (summary.length > 150) {
+        setError(reportSummaryEl, reportSummaryError, 'Summary must be 150 characters or fewer.');
+        valid = false;
+      } else {
+        setError(reportSummaryEl, reportSummaryError, '');
+      }
+
+      // Steps
+      if (steps.length === 0) {
+        setError(reportStepsEl, reportStepsError, 'Please describe steps to reproduce.');
+        valid = false;
+      } else if (steps.length < 10) {
+        setError(reportStepsEl, reportStepsError, 'Please provide more details (at least 10 characters).');
+        valid = false;
+      } else {
+        setError(reportStepsEl, reportStepsError, '');
+      }
+
+      // Screenshot (optional) - validate type and size
+      if (file) {
+        if (!ALLOWED_TYPES.includes(file.type)) {
+          setError(reportScreenshot, reportScreenshotError, 'Only PNG and JPG images are allowed.');
+          valid = false;
+        } else if (file.size > MAX_SCREENSHOT_SIZE) {
+          setError(reportScreenshot, reportScreenshotError, 'File is too large. Maximum is 5MB.');
+          valid = false;
+        } else {
+          setError(reportScreenshot, reportScreenshotError, '');
+        }
+      } else {
+        setError(reportScreenshot, reportScreenshotError, '');
+      }
+
+      // toggle submit button
+      if (submitReport) {
+        if (valid) {
+          submitReport.disabled = false;
+          submitReport.classList.remove('opacity-50', 'cursor-not-allowed');
+        } else {
+          submitReport.disabled = true;
+          submitReport.classList.add('opacity-50', 'cursor-not-allowed');
+        }
+      }
+
+      return valid;
+    }
+
+    if (reportScreenshot) {
+      reportScreenshot.addEventListener('change', (e) => {
+        const file = reportScreenshot.files && reportScreenshot.files[0];
+        if (file && ALLOWED_TYPES.includes(file.type) && file.size <= MAX_SCREENSHOT_SIZE) {
+          const url = URL.createObjectURL(file);
+          reportPreview.src = url;
+          reportPreview.classList.remove('hidden');
+          setError(reportScreenshot, reportScreenshotError, '');
+        } else {
+          reportPreview.src = '';
+          reportPreview.classList.add('hidden');
+          // call validate to populate error messages
+          validateReportForm();
+        }
+        validateReportForm();
+      });
+    }
+
+    [reportSummaryEl, reportStepsEl].forEach((el) => {
+      if (!el) return;
+      el.addEventListener('input', validateReportForm);
+      el.addEventListener('blur', validateReportForm);
+    });
+
+    // Handle Report submit (supports optional screenshot file)
+    if (submitReport) {
+      submitReport.addEventListener('click', async (e) => {
+        e.preventDefault();
+        if (!validateReportForm()) {
+          return;
+        }
+
+        const summary = reportSummaryEl.value.trim();
+        const steps = reportStepsEl.value.trim();
+        const file = reportScreenshot && reportScreenshot.files && reportScreenshot.files[0];
+
+        // If you later have a backend endpoint, send as FormData:
+        // const fd = new FormData(); fd.append('summary', summary); fd.append('steps', steps); if (file) fd.append('screenshot', file);
+        // await fetch('/api/report-issue.php', { method: 'POST', body: fd });
+
+        // For now client-side only: close modal, show success, reset form, revoke preview URL
+        reportModal?.classList.add('hidden');
+        showHelpSuccess('Issue reported — thanks for helping us improve.');
+        document.getElementById('reportForm').reset();
+        if (reportPreview && reportPreview.src) {
+          try { URL.revokeObjectURL(reportPreview.src); } catch (e) {}
+          reportPreview.src = '';
+          reportPreview.classList.add('hidden');
+        }
+        validateReportForm();
       });
     }
   </script>
