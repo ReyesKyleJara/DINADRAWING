@@ -439,9 +439,19 @@
   <button onclick="closeSignupModal(); openLoginModal();" class="text-yellow-500 font-medium">Log In</button>
 </p>
   </div>
-</div>
+  </div>
 
-  <!-- FOOTER -->
+  <!-- SUCCESS POP-OUT MODAL (shown after successful registration) -->
+  <div id="successModal" class="hidden fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50">
+    <div class="bg-white rounded-2xl p-6 w-80 max-w-sm text-center shadow-lg relative">
+      <div class="text-green-600 text-3xl mb-2">✓</div>
+      <h4 class="text-lg font-semibold mb-2">Your account has been successfully registered</h4>
+      <p class="text-sm text-gray-600 mb-4">You'll be redirected to Log In shortly.</p>
+      <button id="successOkBtn" onclick="handleSuccessOk()" class="mt-2 px-4 py-2 bg-yellow-400 hover:bg-yellow-500 rounded-md">OK</button>
+    </div>
+  </div>
+
+    <!-- FOOTER -->
  <footer class="bg-white text-black py-10 border-t border-black-300">
   <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center px-8 space-y-8 md:space-y-0">
 
@@ -503,6 +513,10 @@
   // API Configuration for email auth
   const API_BASE = '/DINADRAWING/backend/api';
   let currentUser = null;
+  let lastSignupEmail = '';
+  let lastSignupPassword = '';
+  // Toggle: set to true to auto-login after successful registration
+  const AUTO_LOGIN_AFTER_REGISTER = false;
 
   // Your Firebase configuration
   const firebaseConfig = {
@@ -695,12 +709,31 @@
               currentUser = result.user;
               localStorage.setItem('currentUser', JSON.stringify(currentUser));
               
-              alert(`Welcome to DiNaDrawing, ${result.user.name}!`);
-              closeSignupModal();
-              
+          // Show a success popout modal, then open the login modal
+          closeSignupModal();
+          // store credentials so the success modal handler can prefill/login
+          lastSignupEmail = email;
+          lastSignupPassword = password;
+          showSuccessModal();
+
+          // After a short delay, hide success modal and open login modal
+          setTimeout(() => {
+            closeSuccessModal();
+            openLoginModal();
+
+            // Prefill login fields with registered credentials
+            const loginEmailEl = document.getElementById('loginEmail');
+            const loginPasswordEl = document.getElementById('loginPassword');
+            if (loginEmailEl) loginEmailEl.value = email;
+            if (loginPasswordEl) loginPasswordEl.value = password;
+
+            // Auto-submit login after a short pause so the user is taken to dashboard
+            if (AUTO_LOGIN_AFTER_REGISTER) {
               setTimeout(() => {
-                  window.location.href = "dashboard.html";
-              }, 1000);
+                signInWithEmail();
+              }, 800);
+            }
+          }, 1300);
           } else {
               alert(result.message || "Registration failed. Please try again.");
           }
@@ -709,6 +742,32 @@
           alert("Network error. Please check your connection.");
       }
   }
+
+    // Success modal controls
+    function showSuccessModal() {
+    const el = document.getElementById('successModal');
+    if (el) el.classList.remove('hidden');
+    }
+
+    function closeSuccessModal() {
+    const el = document.getElementById('successModal');
+    if (el) el.classList.add('hidden');
+    }
+
+    function handleSuccessOk() {
+      closeSuccessModal();
+      openLoginModal();
+      const loginEmailEl = document.getElementById('loginEmail');
+      const loginPasswordEl = document.getElementById('loginPassword');
+      if (loginEmailEl) loginEmailEl.value = lastSignupEmail || '';
+      if (loginPasswordEl) loginPasswordEl.value = lastSignupPassword || '';
+      // attempt auto-login (only if toggle enabled)
+      if (AUTO_LOGIN_AFTER_REGISTER) {
+        setTimeout(() => {
+          signInWithEmail();
+        }, 600);
+      }
+    }
 
   // Check if user is already logged in
   function checkAuthStatus() {
