@@ -93,7 +93,7 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
 <div class="flex justify-between items-center border-b-2 border-gray-200 pb-4 mb-6 fixed top-0 md:left-64 left-0 w-[calc(100%-0rem)] md:w-[calc(100%-16rem)] bg-[#fffaf2] z-40 px-12 py-10">
 
   <div class="flex flex-col">
-    <h1 class="text-3xl font-bold">Welcome, Venice!</h1>
+    <h1 class="text-3xl font-bold">Welcome, <span id="userDisplayName">...</span>!</h1>
     <span class="text-gray-600 text-sm">Your personal event planner assistant.</span>
   </div>
 
@@ -287,15 +287,15 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
        <!-- PROFILE -->
   <div class="relative">
     <button id="profileBtn" class="flex items-center gap-2 bg-[#f4b41a]/30 border border-[#222] rounded-full px-3 py-1.5 hover:bg-[#f4b41a]/50 transition">
-      <img src="Assets/Profile Icon/profile.png" alt="Profile" class="w-8 h-8 rounded-full border-2 border-[#f4b41a]">
-      <span class="font-medium text-[#222] hidden md:inline">Venice</span>
+      <img id="navProfileImg" src="Assets/Profile Icon/profile.png" alt="Profile" class="w-8 h-8 rounded-full border-2 border-[#f4b41a]">
+      <span id="navProfileName" class="font-medium text-[#222] hidden md:inline">User</span>
     </button>
 
     <!-- PROFILE DROPDOWN -->
     <div id="profileDropdown" class="absolute right-0 mt-2 w-60 bg-white shadow-lg rounded-2xl border border-gray-200 hidden z-50">
     <div class="p-4 border-b border-gray-200 text-center bg-[#fffaf2] rounded-t-2xl">
-        <img src="Assets/Profile Icon/profile.png" alt="Profile" class="w-12 h-12 mx-auto rounded-full border-2 border-[#f4b41a] mb-2 shadow">
-        <h2 class="text-sm font-semibold text-[#222]">Venice</h2>
+        <img id="dropdownProfileImg" src="Assets/Profile Icon/profile.png" alt="Profile" class="w-12 h-12 mx-auto rounded-full border-2 border-[#f4b41a] mb-2 shadow">
+        <h2 id="dropdownProfileName" class="text-sm font-semibold text-[#222]">User</h2>
       </div>
       <div class="py-2">
         <a href="help.html" class="block px-4 py-2 text-sm hover:bg-gray-50">Help</a>
@@ -652,30 +652,54 @@ document.getElementById("joinEventModal").addEventListener("click", function (e)
 <!-- LOGOUT FUNCTION -->
 <script type="module">
     import { auth } from './firebase-config.js'; 
-    import { signOut } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+    import { signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
 
     document.addEventListener('DOMContentLoaded', function() {
+      
+      // 1. LISTEN FOR AUTH STATE CHANGES
+      onAuthStateChanged(auth, (user) => {
+        if (user) {
+          // --- HANDLE NAME ---
+          // Use display name if they have one, otherwise grab the part before @gmail.com
+          const displayName = user.displayName || user.email.split('@')[0];
+          
+          document.getElementById('userDisplayName').textContent = displayName;
+          document.getElementById('navProfileName').textContent = displayName;
+          document.getElementById('dropdownProfileName').textContent = displayName;
+
+          // --- HANDLE PHOTO ---
+          // If they have a Google photo, use it. If not, use your local default.
+          const defaultPhoto = "Assets/Profile Icon/profile.png"; 
+          const userPhoto = user.photoURL ? user.photoURL : defaultPhoto;
+
+          document.getElementById('navProfileImg').src = userPhoto;
+          document.getElementById('dropdownProfileImg').src = userPhoto;
+
+        } else {
+          // If nobody is logged in, kick them back to login page
+          console.log("No user logged in, redirecting...");
+          window.location.href = 'index.html'; 
+        }
+      });
+
+      // 2. LOGOUT FUNCTION
       const logoutSidebar = document.getElementById('logoutBtn');
       const logoutProfile = document.getElementById('logoutProfile');
 
       function handleLogout() {
-        signOut(auth).then(() => {
-          console.log('User signed out successfully');
-          window.location.href = 'index.html';
-        }).catch((error) => {
-          console.error('Logout error:', error);
-          alert('Logout failed. Please try again.');
-        });
+        if(confirm("Are you sure you want to log out?")) {
+            signOut(auth).then(() => {
+                window.location.href = 'index.html';
+            }).catch((error) => {
+                console.error('Logout error:', error);
+            });
+        }
       }
 
-      if (logoutSidebar) {
-        logoutSidebar.addEventListener('click', handleLogout);
-      }
-      if (logoutProfile) {
-        logoutProfile.addEventListener('click', handleLogout);
-      }
+      if (logoutSidebar) logoutSidebar.addEventListener('click', handleLogout);
+      if (logoutProfile) logoutProfile.addEventListener('click', handleLogout);
     });
-  </script>
+</script>
   
   <!-- GOOGLE MAPS INTEGRATION -->  
 <script>
