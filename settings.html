@@ -5,7 +5,35 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Settings | DiNaDrawing</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
   <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Early theme application to avoid FOUC -->
+  <script>
+    (function() {
+      const savedTheme = localStorage.getItem('theme');
+      if (savedTheme === 'dark') {
+        document.documentElement.classList.add('dark-mode');
+        document.body.classList.add('dark-mode');
+      } else {
+        document.documentElement.classList.remove('dark-mode');
+        document.body.classList.remove('dark-mode');
+      }
+      // Sync theme changes across tabs
+      window.addEventListener('storage', function(e) {
+        if (e.key === 'theme') {
+          if (e.newValue === 'dark') {
+            document.documentElement.classList.add('dark-mode');
+            document.body.classList.add('dark-mode');
+          } else {
+            document.documentElement.classList.remove('dark-mode');
+            document.body.classList.remove('dark-mode');
+          }
+        }
+      });
+    })();
+  </script>
+
   <style>
     body { font-family: 'Poppins', sans-serif; background-color: #fffaf2; color: #222; }
     .tab-content {
@@ -48,21 +76,106 @@
     }
     .appearance-switch .option.left.active svg { color: #f59e0b; }
     .appearance-switch .option.right.active svg { color: #374151; }
+
     /* Password validation styles */
     .req-valid .req-icon { color: #22c55e !important; }
     .req-valid .req-text { color: #16a34a; }
     #strengthLabel.weak { color: #ef4444; }
     #strengthLabel.medium { color: #f59e0b; }
     #strengthLabel.strong { color: #22c55e; }
+
+    /* Dark Mode Styles */
+    body.dark-mode { background-color: #1a1a1a !important; color: #e0e0e0 !important; }
+    body.dark-mode .bg-white { background-color: #2a2a2a !important; }
+    body.dark-mode .bg-\[\#fffaf2\] { background-color: #1a1a1a !important; }
+    body.dark-mode .bg-gray-50 { background-color: #2a2a2a !important; }
+    body.dark-mode .bg-gray-300 { background-color: #404040 !important; }
+    body.dark-mode h1,
+    body.dark-mode h2,
+    body.dark-mode h3,
+    body.dark-mode h4,
+    body.dark-mode p,
+    body.dark-mode span,
+    body.dark-mode div,
+    body.dark-mode label { color: #e0e0e0 !important; }
+    body.dark-mode .text-gray-600,
+    body.dark-mode .text-gray-700,
+    body.dark-mode .text-gray-500 { color: #a0a0a0 !important; }
+    body.dark-mode .text-\[\#222\] { color: #e0e0e0 !important; }
+    body.dark-mode .border-gray-200 { border-color: #404040 !important; }
+    body.dark-mode .border-gray-100 { border-color: #353535 !important; }
+    body.dark-mode .border-gray-300 { border-color: #454545 !important; }
+    body.dark-mode .shadow,
+    body.dark-mode .shadow-md,
+    body.dark-mode .shadow-lg { box-shadow: 0 4px 6px rgba(0,0,0,0.5) !important; }
+    body.dark-mode input,
+    body.dark-mode textarea,
+    body.dark-mode select {
+      background-color: #2a2a2a !important;
+      color: #e0e0e0 !important;
+      border-color: #454545 !important;
+    }
+    body.dark-mode input::placeholder,
+    body.dark-mode textarea::placeholder { color: #707070 !important; }
+    body.dark-mode .appearance-switch { background: #404040 !important; }
+    body.dark-mode .appearance-switch .option.active { background: #2a2a2a !important; }
+    body.dark-mode #changeProfileModal .bg-white { background-color: #2a2a2a !important; }
+    body.dark-mode .soft-shadow { box-shadow: 0 6px 14px rgba(0,0,0,0.3) !important; }
+    body.dark-mode #passwordRequirements,
+    body.dark-mode #emailValidation { background-color: #333333 !important; border-color: #454545 !important; }
+    body.dark-mode .req-text,
+    body.dark-mode .email-format-text,
+    body.dark-mode .email-match-text { color: #a0a0a0 !important; }
+
+    /* Hamburger Menu */
+    .hamburger {
+      display: flex; flex-direction: column; gap: 4px; cursor: pointer; padding: 8px; border-radius: 8px; transition: background 0.2s;
+    }
+    .hamburger:hover { background: rgba(244, 180, 26, 0.1); }
+    .hamburger span {
+      width: 24px; height: 3px; background: #222; border-radius: 2px; transition: all 0.3s;
+    }
+    body.dark-mode .hamburger span { background: #e0e0e0; }
+
+    .sidebar-overlay {
+      display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.5); z-index: 45;
+    }
+    .sidebar-overlay.active { display: block; }
+
+    #sidebar {
+      transition: transform 0.3s ease; z-index: 50; transform: translateX(-100%);
+    }
+    #sidebar.active { transform: translateX(0); }
+
+    @media (min-width: 769px) {
+      #sidebar { transform: translateX(0); }
+      #sidebar:not(.active) { transform: translateX(-100%); }
+    }
+
+    main { transition: margin-left 0.3s ease; }
+    @media (min-width: 769px) {
+      main.sidebar-open { margin-left: 16rem; }
+      main:not(.sidebar-open) { margin-left: 0; }
+    }
+
+    .page-header { transition: left 0.3s ease, width 0.3s ease; }
+    @media (min-width: 769px) {
+      .page-header.sidebar-open { left: 16rem; width: calc(100% - 16rem); }
+      .page-header:not(.sidebar-open) { left: 0; width: 100%; }
+    }
   </style>
 </head>
 <body class="flex bg-[#fffaf2]">
 
+<!-- SIDEBAR OVERLAY -->
+<div id="sidebarOverlay" class="sidebar-overlay"></div>
+
+<!-- SIDEBAR -->
 <aside id="sidebar"
 class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
        bg-[#f4b41a] rounded-tr-3xl
        p-6 shadow
-       hidden md:flex md:flex-col md:gap-6">
+       flex flex-col gap-6">
 
   <div class="flex items-center gap-2">
     <img src="Assets/dinadrawing-logo.png" alt="Logo" class="w-14">
@@ -79,52 +192,60 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
   </nav>
 </aside>
 
-<main class="ml-0 md:ml-64 flex-1 min-h-screen px-12 py-10 pt-20">
+<!-- MAIN -->
+<main id="mainContent" class="flex-1 min-h-screen px-12 py-10 pt-24">
 
-<div class="flex justify-between items-center border-b-2 border-gray-200 pb-4 mb-6 fixed top-0 md:left-64 left-0 w-[calc(100%-0rem)] md:w-[calc(100%-16rem)] bg-[#fffaf2] z-40 px-12 py-10">
-
-  <div class="flex flex-col">
-    <h1 class="text-3xl font-bold">Settings</h1>
-    <span class="text-gray-600 text-sm">Manage your account settings and preferences</span>
-  </div>
-
-  <div class="flex items-center gap-3">
-
-  <div class="relative">
-    <button id="profileBtn" class="flex items-center gap-2 bg-[#f4b41a]/30 border border-[#222] rounded-full px-3 py-1.5 hover:bg-[#f4b41a]/50 transition">
-      <img id="navProfileImg" src="Assets/Profile Icon/profile.png" alt="Profile" class="w-8 h-8 rounded-full border-2 border-[#f4b41a]">
-      <span id="navProfileName" class="font-medium text-[#222] hidden md:inline">User</span>
-    </button>
-
-    <div id="profileDropdown" class="absolute right-0 mt-2 w-60 bg-white shadow-lg rounded-2xl border border-gray-200 hidden z-50">
-      <div class="p-4 border-b border-gray-200 text-center bg-[#fffaf2] rounded-t-2xl">
-        <img id="dropdownProfileImg" src="Assets/Profile Icon/profile.png" alt="Profile" class="w-12 h-12 mx-auto rounded-full border-2 border-[#f4b41a] mb-2 shadow">
-        <h2 id="dropdownProfileName" class="text-sm font-semibold text-[#222]">User</h2>
+  <!-- STICKY HEADER -->
+  <div class="page-header flex justify-between items-center border-b-2 border-gray-200 pb-4 mb-6 fixed top-0 left-0 w-full bg-[#fffaf2] z-40 px-12 py-10">
+    <div class="flex items-center gap-4">
+      <!-- HAMBURGER -->
+      <button id="hamburgerBtn" class="hamburger">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+      <div class="flex flex-col">
+        <h1 class="text-3xl font-bold">Settings</h1>
+        <span class="text-gray-600 text-sm">Manage your account settings and preferences</span>
       </div>
-      <div class="py-2">
-        <a href="help.html" class="block px-4 py-2 text-sm hover:bg-gray-50">Help</a>
-        <button id="aboutUsBtn" class="w-full text-left px-4 py-2 text-sm hover:bg-gray-50">About Us</button>
-        <a href="settings.html" class="block px-4 py-2 text-sm hover:bg-gray-50">Settings</a>
-        <button id="logoutProfile" class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50">Log out</button>
+    </div>
+
+    <div class="flex items-center gap-3">
+      <div class="relative">
+        <button id="profileBtn" class="flex items-center gap-2 bg-[#f4b41a]/30 border border-[#222] rounded-full px-3 py-1.5 hover:bg-[#f4b41a]/50 transition">
+          <img id="navProfileImg" src="Assets/Profile Icon/profile.png" alt="Profile" class="w-8 h-8 rounded-full border-2 border-[#f4b41a]">
+          <span id="navProfileName" class="font-medium text-[#222] hidden md:inline">User</span>
+        </button>
+
+        <div id="profileDropdown" class="absolute right-0 mt-2 w-60 bg-white shadow-lg rounded-2xl border border-gray-200 hidden z-50">
+          <div class="p-4 border-b border-gray-200 text-center bg-[#fffaf2] rounded-t-2xl">
+            <img id="dropdownProfileImg" src="Assets/Profile Icon/profile.png" alt="Profile" class="w-12 h-12 mx-auto rounded-full border-2 border-[#f4b41a] mb-2 shadow">
+            <h2 id="dropdownProfileName" class="text-sm font-semibold text-[#222]">User</h2>
+          </div>
+          <div class="py-2">
+            <a href="help.html" class="block px-4 py-2 text-sm hover:bg-gray-50">Help</a>
+            <button id="aboutUsBtn" class="w-full text-left px-4 py-2 text-sm hover:bg-gray-50">About Us</button>
+            <a href="settings.html" class="block px-4 py-2 text-sm hover:bg-gray-50">Settings</a>
+            <button id="logoutProfile" class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50">Log out</button>
+          </div>
+        </div>
       </div>
     </div>
   </div>
-</div>
-</div>
 
-    <div class="w-full mt-12">
-        <div class="bg-white rounded-2xl soft-shadow overflow-hidden">
-          <div class="p-6 md:p-8 space-y-10">
+  <!-- CONTENT -->
+  <div class="w-full mt-12">
+    <div class="bg-white rounded-2xl soft-shadow overflow-hidden">
+      <div class="p-6 md:p-8 space-y-10">
 
+        <!-- PROFILE -->
         <div>
           <h2 class="text-xl font-bold mb-6">Profile</h2>
           <div class="flex flex-col gap-6 px-6">
             <div class="flex items-center gap-6 mt-4">
-
               <div class="w-20 h-20 md:w-24 md:h-24 rounded-full overflow-hidden border border-black shadow-md">
                 <img id="profileImage" src="Assets/Profile Icon/profile.png" alt="avatar" class="w-full h-full object-cover">
               </div>
-
               <div class="flex flex-col gap-2">
                 <div class="flex gap-3">
                   <button id="changeImageBtn" class="bg-[#2a2a2a] text-white px-4 py-2 rounded-xl hover:bg-black">+ Change Profile Photo</button>
@@ -135,7 +256,6 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
 
             <div class="flex-1">
               <div class="grid grid-cols-1 md:grid-cols-2 gap-y-6 md:gap-x-4 md:[grid-template-columns:repeat(2,min-content)]">
-
                 <div class="flex flex-col items-start">
                   <label class="text-sm text-gray-700 block mb-1">Name</label>
                   <div class="relative">
@@ -170,7 +290,7 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
                   </div>
                 </div>
               </div>
-              
+
               <div class="mt-4">
                 <button id="saveProfileBtn" class="bg-[#222] text-white thin-btn hover:bg-black transition">Save Changes</button>
               </div>
@@ -179,187 +299,193 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
 
           <hr class="my-8 border-t-2 border-gray-200" />
 
-        <div>
-          <h2 class="text-xl font-bold mb-6">Preferences</h2>
-          <div class="flex flex-col gap-8 px-6">
-            <div>
-              <h3 class="text-lg font-semibold mb-4">Appearance</h3>
-              <div class="flex items-center gap-[520px]">
-                <span class="font-medium text-gray-700 dark:text-gray-300">Theme</span>
+          <!-- PREFERENCES -->
+          <div>
+            <h2 class="text-xl font-bold mb-6">Preferences</h2>
+            <div class="flex flex-col gap-8 px-6">
+              <div>
+                <h3 class="text-lg font-semibold mb-4">Appearance</h3>
+                <div class="flex items-center gap-[520px]">
+                  <span class="font-medium text-gray-700 dark:text-gray-300">Theme</span>
 
-                <div id="appearanceSwitch" class="appearance-switch">
-                  <div class="option left active" aria-hidden="true">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="w-4 h-4">
-                      <g fill="currentColor">
-                        <circle cx="12" cy="12" r="3" />
-                        <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-                      </g>
-                    </svg>
-                  </div>
-                  <div class="option right" aria-hidden="true">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="w-4 h-4">
-                      <path fill="currentColor" d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" />
-                    </svg>
+                  <div id="appearanceSwitch" class="appearance-switch">
+                    <div class="option left active" aria-hidden="true">
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="w-4 h-4">
+                        <g fill="currentColor">
+                          <circle cx="12" cy="12" r="3" />
+                          <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                        </g>
+                      </svg>
+                    </div>
+                    <div class="option right" aria-hidden="true">
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="w-4 h-4">
+                        <path fill="currentColor" d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" />
+                      </svg>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-            
-            <div>
-              <h3 class="text-lg font-semibold mb-3">Notifications</h3>
-              <div class="space-y-4">
 
-                <div class="flex gap-[501px] items-center">
-                  <span>Email reminders</span>
-                  <label class="relative inline-flex items-center cursor-pointer">
-                   <input type="checkbox" class="sr-only peer">
-                   <div class="w-11 h-6 bg-gray-300 rounded-full peer peer-checked:bg-green-500 transition-all duration-200"></div>
-                    <div class="absolute left-[2px] top-[2px] bg-white w-5 h-5 rounded-full transition-all duration-200 peer-checked:translate-x-full"></div>
-                  </label>
-                </div>
+              <div>
+                <h3 class="text-lg font-semibold mb-3">Notifications</h3>
+                <div class="space-y-4">
+                  <div class="flex gap-[501px] items-center">
+                    <span>Email reminders</span>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                      <input type="checkbox" class="sr-only peer">
+                      <div class="w-11 h-6 bg-gray-300 rounded-full peer peer-checked:bg-green-500 transition-all duration-200"></div>
+                      <div class="absolute left-[2px] top-[2px] bg-white w-5 h-5 rounded-full transition-all duration-200 peer-checked:translate-x-full"></div>
+                    </label>
+                  </div>
 
-                <div class="flex gap-[490px] items-center">
-                  <span>Push notifications</span>
-                  <label class="relative inline-flex items-center cursor-pointer">
-                    <input type="checkbox" checked class="sr-only peer" />
-                    <div class="w-11 h-6 bg-gray-300 rounded-full peer peer-checked:bg-green-500 transition-all duration-200"></div>
-                    <div class="absolute left-[2px] top-[2px] bg-white w-5 h-5 rounded-full transition-all duration-200 peer-checked:translate-x-full"></div>
-                  </label>
-                </div>
-                
-                <div class="flex gap-[527px] items-center">
-                  <span>In-app alerts</span>
-                  <label class="relative inline-flex items-center cursor-pointer">
-                    <input type="checkbox" checked class="sr-only peer" />
-                    <div class="w-11 h-6 bg-gray-300 rounded-full peer peer-checked:bg-green-500 transition-all duration-200"></div>
-                    <div class="absolute left-[2px] top-[2px] bg-white w-5 h-5 rounded-full transition-all duration-200 peer-checked:translate-x-full"></div>
-                  </label>
+                  <div class="flex gap-[490px] items-center">
+                    <span>Push notifications</span>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                      <input type="checkbox" checked class="sr-only peer" />
+                      <div class="w-11 h-6 bg-gray-300 rounded-full peer peer-checked:bg-green-500 transition-all duration-200"></div>
+                      <div class="absolute left-[2px] top-[2px] bg-white w-5 h-5 rounded-full transition-all duration-200 peer-checked:translate-x-full"></div>
+                    </label>
+                  </div>
+
+                  <div class="flex gap-[527px] items-center">
+                    <span>In-app alerts</span>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                      <input type="checkbox" checked class="sr-only peer" />
+                      <div class="w-11 h-6 bg-gray-300 rounded-full peer peer-checked:bg-green-500 transition-all duration-200"></div>
+                      <div class="absolute left-[2px] top-[2px] bg-white w-5 h-5 rounded-full transition-all duration-200 peer-checked:translate-x-full"></div>
+                    </label>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
 
           <hr class="my-8 border-t-2 border-gray-200" />
 
-        <div>
-          <h2 class="text-xl font-bold mb-6">Account & Security</h2>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-y-6 md:gap-x-4 md:[grid-template-columns:repeat(2,min-content)]">
-
-            <div class="flex flex-col gap-3 px-6">
-              <div class="grid grid-cols-1 md:grid-cols-2 items-start gap-y-3 md:gap-x-8 mb-2">
-                <div>
-                  <h3 class="text-lg font-semibold">Change Password</h3>
+          <!-- ACCOUNT & SECURITY -->
+          <div>
+            <h2 class="text-xl font-bold mb-6">Account & Security</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-y-6 md:gap-x-4 md:[grid-template-columns:repeat(2,min-content)]">
+              <div class="flex flex-col gap-3 px-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 items-start gap-y-3 md:gap-x-8 mb-2">
+                  <div><h3 class="text-lg font-semibold">Change Password</h3></div>
+                  <div class="flex justify-start md:justify-start"><h3 class="text-lg font-semibold">Update Email</h3></div>
                 </div>
-                <div class="flex justify-start md:justify-start">
-                  <h3 class="text-lg font-semibold">Update Email</h3>
-                </div>
-              </div>
-              <div class="flex-1">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-y-6 md:gap-x-8 md:[grid-template-columns:repeat(2,min-content)]">
 
-                <div class="flex flex-col items-start">
-                  <div class="flex flex-col gap-2 w-full">
-                    <input type="password" id="oldPass" placeholder="Old Password" class="w-80 max-w-full border border-gray-300 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#f4b41a]" />
-                    <input type="password" id="newPass" placeholder="New Password" class="w-80 max-w-full border border-gray-300 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#f4b41a]" />
-                    <input type="password" id="confirmPass" placeholder="Confirm New Password" class="w-80 max-w-full border border-gray-300 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#f4b41a]" />
-                    <span id="passMatchMsg" class="text-xs text-red-500 hidden">Passwords do not match.</span>
-                    <span id="passMatchSuccess" class="text-xs text-green-600 hidden">✓ Passwords match!</span>
+                <div class="flex-1">
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-y-6 md:gap-x-8 md:[grid-template-columns:repeat(2,min-content)]">
+
+                    <!-- Change Password -->
+                    <div class="flex flex-col items-start">
+                      <div class="flex flex-col gap-2 w-full">
+                        <input type="password" id="oldPass" placeholder="Old Password" class="w-80 max-w-full border border-gray-300 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#f4b41a]" />
+                        <input type="password" id="newPass" placeholder="New Password" class="w-80 max-w-full border border-gray-300 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#f4b41a]" />
+                        <input type="password" id="confirmPass" placeholder="Confirm New Password" class="w-80 max-w-full border border-gray-300 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#f4b41a]" />
+                        <span id="passMatchMsg" class="text-xs text-red-500 hidden">Passwords do not match.</span>
+                        <span id="passMatchSuccess" class="text-xs text-green-600 hidden">✓ Passwords match!</span>
+                      </div>
+                      <button onclick="validatePassword()" class="mt-2 bg-[#222] text-white thin-btn hover:bg-black transition">Save</button>
+
+                      <div id="passwordRequirements" class="bg-gray-50 border border-gray-200 rounded-lg p-3 text-xs hidden shadow-sm mt-2 w-full">
+                        <h4 class="font-semibold mb-2 text-gray-700 text-xs">Requirements:</h4>
+                        <div class="space-y-1">
+                          <div id="req-lowercase" class="flex items-center gap-2">
+                            <span class="req-icon text-red-500 font-bold">✗</span>
+                            <span class="req-text text-xs">Lowercase</span>
+                          </div>
+                          <div id="req-uppercase" class="flex items-center gap-2">
+                            <span class="req-icon text-red-500 font-bold">✗</span>
+                            <span class="req-text text-xs">Uppercase</span>
+                          </div>
+                          <div id="req-number" class="flex items-center gap-2">
+                            <span class="req-icon text-red-500 font-bold">✗</span>
+                            <span class="req-text text-xs">Number</span>
+                          </div>
+                          <div id="req-special" class="flex items-center gap-2">
+                            <span class="req-icon text-red-500 font-bold">✗</span>
+                            <span class="req-text text-xs">Special char</span>
+                          </div>
+                          <div id="req-length" class="flex items-center gap-2">
+                            <span class="req-icon text-red-500 font-bold">✗</span>
+                            <span class="req-text text-xs">8-12 chars</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Update Email -->
+                    <div class="flex flex-col items-start">
+                      <div class="flex flex-col gap-2 w-full">
+                        <input type="email" id="currentEmail" placeholder="Current Email" value="" class="w-80 max-w-full border border-gray-300 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#f4b41a]" />
+                        <input type="email" id="newEmail" placeholder="New Email" class="w-80 max-w-full border border-gray-300 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#f4b41a]" />
+                        <input type="email" id="confirmEmail" placeholder="Confirm New Email" class="w-80 max-w-full border border-gray-300 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#f4b41a]" />
+                        <span id="emailFormatMsg" class="text-xs text-red-500 hidden">Invalid email</span>
+                        <span id="emailFormatSuccess" class="text-xs text-green-600 hidden">✓ Valid email</span>
+                        <span id="emailMatchMsg" class="text-xs text-red-500 hidden">Emails do not match</span>
+                        <span id="emailMatchSuccess" class="text-xs text-green-600 hidden">✓ Match!</span>
+                      </div>
+                      <button onclick="validateEmail()" class="mt-2 bg-[#222] text-white thin-btn hover:bg-black transition">Verify</button>
+
+                      <div id="emailValidation" class="bg-gray-50 border border-gray-200 rounded-lg p-3 text-xs hidden shadow-sm mt-2 w-full">
+                        <h4 class="font-semibold mb-2 text-gray-700 text-xs">Validation:</h4>
+                        <div class="space-y-1">
+                          <div id="email-format-check" class="flex items-center gap-2">
+                            <span class="email-format-icon text-red-500 font-bold">✗</span>
+                            <span class="email-format-text text-xs">Valid email format</span>
+                          </div>
+                          <div id="email-match-check" class="flex items-center gap-2">
+                            <span class="email-match-icon text-red-500 font-bold">✗</span>
+                            <span class="email-match-text text-xs">Emails match</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
                   </div>
-                  <button onclick="validatePassword()" class="mt-2 bg-[#222] text-white thin-btn hover:bg-black transition">Save</button>
-                  
-                  <div id="passwordRequirements" class="bg-gray-50 border border-gray-200 rounded-lg p-3 text-xs hidden shadow-sm mt-2 w-full">
-                    <h4 class="font-semibold mb-2 text-gray-700 text-xs">Requirements:</h4>
-                    <div class="space-y-1">
-                      <div id="req-lowercase" class="flex items-center gap-2">
-                        <span class="req-icon text-red-500 font-bold">✗</span>
-                        <span class="req-text text-xs">Lowercase</span>
+
+                  <div class="mt-8">
+                    <h3 class="text-lg font-semibold mb-3">Privacy</h3>
+                    <div class="space-y-3">
+                      <div class="flex justify-between items-center">
+                        <label class="text-medium font-medium">Who can invite</label>
+                        <select class="border border-gray-300 rounded-xl px-3 py-2 text-medium focus:outline-none focus:ring-2 focus:ring-[#f4b41a]">
+                          <option>Anyone with link</option>
+                          <option>Only friends</option>
+                          <option>Invite code only</option>
+                        </select>
                       </div>
-                      <div id="req-uppercase" class="flex items-center gap-2">
-                        <span class="req-icon text-red-500 font-bold">✗</span>
-                        <span class="req-text text-xs">Uppercase</span>
+                      <div class="flex justify-between items-center">
+                        <label class="text-medium font-medium">Profile Visibility</label>
+                        <select class="border border-gray-300 rounded-xl px-3 py-2 text-medium focus:outline-none focus:ring-2 focus:ring-[#f4b41a]">
+                          <option>Public</option>
+                          <option>Friends</option>
+                          <option>Private</option>
+                        </select>
                       </div>
-                      <div id="req-number" class="flex items-center gap-2">
-                        <span class="req-icon text-red-500 font-bold">✗</span>
-                        <span class="req-text text-xs">Number</span>
-                      </div>
-                      <div id="req-special" class="flex items-center gap-2">
-                        <span class="req-icon text-red-500 font-bold">✗</span>
-                        <span class="req-text text-xs">Special char</span>
-                      </div>
-                      <div id="req-length" class="flex items-center gap-2">
-                        <span class="req-icon text-red-500 font-bold">✗</span>
-                        <span class="req-text text-xs">8-12 chars</span>
+                      <div class="flex justify-between items-center pt-2">
+                        <div>
+                          <p class="text-medium font-semibold">Delete Account</p>
+                          <p class="text-medium text-gray-500">Permanently delete</p>
+                        </div>
+                        <button class="bg-red-600 text-white thin-danger hover:bg-red-700 transition whitespace-nowrap">Delete</button>
                       </div>
                     </div>
                   </div>
-                </div>
 
-                <div class="flex flex-col items-start">
-                  <div class="flex flex-col gap-2 w-full">
-                    <input type="email" id="currentEmail" placeholder="Current Email" value="" class="w-80 max-w-full border border-gray-300 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#f4b41a]" />
-                    <input type="email" id="newEmail" placeholder="New Email" class="w-80 max-w-full border border-gray-300 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#f4b41a]" />
-                    <input type="email" id="confirmEmail" placeholder="Confirm New Email" class="w-80 max-w-full border border-gray-300 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#f4b41a]" />
-                    <span id="emailFormatMsg" class="text-xs text-red-500 hidden">Invalid email</span>
-                    <span id="emailFormatSuccess" class="text-xs text-green-600 hidden">✓ Valid email</span>
-                    <span id="emailMatchMsg" class="text-xs text-red-500 hidden">Emails do not match</span>
-                    <span id="emailMatchSuccess" class="text-xs text-green-600 hidden">✓ Match!</span>
-                  </div>
-                  <button onclick="validateEmail()" class="mt-2 bg-[#222] text-white thin-btn hover:bg-black transition">Verify</button>
-                  
-                  <div id="emailValidation" class="bg-gray-50 border border-gray-200 rounded-lg p-3 text-xs hidden shadow-sm mt-2 w-full">
-                    <h4 class="font-semibold mb-2 text-gray-700 text-xs">Validation:</h4>
-                    <div class="space-y-1">
-                      <div id="email-format-check" class="flex items-center gap-2">
-                        <span class="email-format-icon text-red-500 font-bold">✗</span>
-                        <span class="email-format-text text-xs">Valid email format</span>
-                      </div>
-                      <div id="email-match-check" class="flex items-center gap-2">
-                        <span class="email-match-icon text-red-500 font-bold">✗</span>
-                        <span class="email-match-text text-xs">Emails match</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div class="mt-8">
-                <h3 class="text-lg font-semibold mb-3">Privacy</h3>
-                <div class="space-y-3">
-                  <div class="flex justify-between items-center">
-                    <label class="text-medium font-medium">Who can invite</label>
-                    <select class="border border-gray-300 rounded-xl px-3 py-2 text-medium focus:outline-none focus:ring-2 focus:ring-[#f4b41a]">
-                      <option>Anyone with link</option>
-                      <option>Only friends</option>
-                      <option>Invite code only</option>
-                    </select>
-                  </div>
-                  <div class="flex justify-between items-center">
-                    <label class="text-medium font-medium">Profile Visibility</label>
-                    <select class="border border-gray-300 rounded-xl px-3 py-2 text-medium focus:outline-none focus:ring-2 focus:ring-[#f4b41a]">
-                      <option>Public</option>
-                      <option>Friends</option>
-                      <option>Private</option>
-                    </select>
-                  </div>
-                  <div class="flex justify-between items-center pt-2">
-                    <div>
-                      <p class="text-medium font-semibold">Delete Account</p>
-                      <p class="text-medium text-gray-500">Permanently delete</p>
-                    </div>
-                    <button class="bg-red-600 text-white thin-danger hover:bg-red-700 transition whitespace-nowrap">Delete</button>
-                  </div>
                 </div>
               </div>
             </div>
+
           </div>
         </div>
-          </div>
-        </div>
-    </div>
 
+      </div>
     </div>
+  </div>
 
+</main>
+
+<!-- CHANGE PROFILE MODAL -->
 <div
   id="changeProfileModal"
   class="fixed inset-0 flex items-center justify-center bg-black/40 backdrop-blur-sm z-50 hidden"
@@ -415,6 +541,7 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
   </div>
 </div>
 
+<!-- LOGOUT MODAL (retained) -->
 <div id="logoutModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm hidden z-[70] p-4 flex items-center justify-center">
   <div class="bg-white rounded-2xl shadow-xl relative w-full max-w-md p-6"
        role="dialog" aria-modal="true" aria-labelledby="logoutTitle" onclick="event.stopPropagation()">
@@ -431,25 +558,103 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
   </div>
 </div>
 
-    <script>
-      // SINGLE SAVE BUTTON FOR NAME AND USERNAME
-      const nameInput = document.getElementById('nameInput');
-      const usernameInput = document.getElementById('usernameInput');
-      const saveProfileBtn = document.getElementById('saveProfileBtn');
+<!-- Profile: Save button for name/username -->
+<script>
+  const nameInput = document.getElementById('nameInput');
+  const usernameInput = document.getElementById('usernameInput');
+  const saveProfileBtn = document.getElementById('saveProfileBtn');
 
-      saveProfileBtn?.addEventListener('click', () => {
-        const name = nameInput.value;
-        const username = usernameInput.value;
-        
-        if (name && username) {
-          alert('Profile updated successfully!\nName: ' + name + '\nUsername: ' + username);
+  saveProfileBtn?.addEventListener('click', () => {
+    const name = nameInput.value;
+    const username = usernameInput.value;
+
+    if (name && username) {
+      alert('Profile updated successfully!\nName: ' + name + '\nUsername: ' + username);
+    } else {
+      alert('Please fill in both Name and Username.');
+    }
+  });
+</script>
+
+<!-- Sidebar hamburger logic (frontend only) -->
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const hamburgerBtn = document.getElementById('hamburgerBtn');
+    const sidebar = document.getElementById('sidebar');
+    const sidebarOverlay = document.getElementById('sidebarOverlay');
+    const mainContent = document.getElementById('mainContent');
+    const pageHeader = document.querySelector('.page-header');
+
+    const sidebarState = localStorage.getItem('sidebarOpen');
+    const isMobile = window.innerWidth < 769;
+
+    if (sidebarState === null) {
+      if (!isMobile) {
+        sidebar.classList.add('active');
+        mainContent.classList.add('sidebar-open');
+        pageHeader.classList.add('sidebar-open');
+      }
+    } else if (sidebarState === 'true') {
+      sidebar.classList.add('active');
+      if (!isMobile) {
+        mainContent.classList.add('sidebar-open');
+        pageHeader.classList.add('sidebar-open');
+      }
+    }
+
+    if (hamburgerBtn && sidebar && sidebarOverlay) {
+      hamburgerBtn.addEventListener('click', () => {
+        const isActive = sidebar.classList.toggle('active');
+
+        if (window.innerWidth >= 769) {
+          mainContent.classList.toggle('sidebar-open');
+          pageHeader.classList.toggle('sidebar-open');
         } else {
-          alert('Please fill in both Name and Username.');
+          sidebarOverlay.classList.toggle('active');
+        }
+
+        localStorage.setItem('sidebarOpen', isActive);
+      });
+
+      sidebarOverlay.addEventListener('click', () => {
+        sidebar.classList.remove('active');
+        sidebarOverlay.classList.remove('active');
+        localStorage.setItem('sidebarOpen', 'false');
+      });
+
+      const navLinks = sidebar.querySelectorAll('nav a');
+      navLinks.forEach(link => {
+        link.addEventListener('click', () => {
+          if (window.innerWidth < 769) {
+            sidebar.classList.remove('active');
+            sidebarOverlay.classList.remove('active');
+            localStorage.setItem('sidebarOpen', 'false');
+          }
+        });
+      });
+
+      window.addEventListener('resize', () => {
+        const isNowMobile = window.innerWidth < 769;
+        if (!isNowMobile) {
+          sidebarOverlay.classList.remove('active');
+          if (sidebar.classList.contains('active')) {
+            mainContent.classList.add('sidebar-open');
+            pageHeader.classList.add('sidebar-open');
+          } else {
+            mainContent.classList.remove('sidebar-open');
+            pageHeader.classList.remove('sidebar-open');
+          }
+        } else {
+          mainContent.classList.remove('sidebar-open');
+          pageHeader.classList.remove('sidebar-open');
         }
       });
-    </script>
+    }
+  });
+</script>
 
-  <script>
+<!-- Change profile modal logic -->
+<script>
   // CHANGE PROFILE MODAL
   const modal = document.getElementById("changeProfileModal");
   const cancelBtn = document.getElementById("cancelBtn");
@@ -484,7 +689,7 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
   });
   saveChangesBtn?.addEventListener("click", () => {
     if (mainProfileImg) mainProfileImg.src = selectedSrc;
-    // Also update the nav image if it exists
+    // Update nav images as well
     const navProfile = document.getElementById("navProfileImg");
     const dropProfile = document.getElementById("dropdownProfileImg");
     if (navProfile) navProfile.src = selectedSrc;
@@ -538,8 +743,9 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
       alert("Failed to access camera: " + err.message);
     }
   });
-  </script>
+</script>
 
+<!-- Profile dropdown + About Us modal hooks -->
 <script>
   const profileBtn = document.getElementById('profileBtn');
   const profileDropdown = document.getElementById('profileDropdown');
@@ -559,7 +765,10 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
     aboutUsBtn.addEventListener('click', (e) => {
       e.preventDefault();
       e.stopPropagation();
-      document.getElementById('aboutUsModal').classList.remove('hidden');
+      const m = document.getElementById('aboutUsModal');
+      if (m) {
+        m.classList.remove('hidden');
+      }
       document.getElementById('profileDropdown').classList.add('hidden');
     });
   }
@@ -579,46 +788,58 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
   }
 </script>
 
+<!-- Appearance switch with theme persistence -->
 <script>
   (function(){
     const switchEl = document.getElementById('appearanceSwitch');
     if (!switchEl) return;
     const left = switchEl.querySelector('.option.left');
     const right = switchEl.querySelector('.option.right');
-    left.classList.add('active');
-    function setActive(isLeft) {
-      if (isLeft) {
+
+    // Load saved theme
+    const savedTheme = localStorage.getItem('theme');
+    const isDark = savedTheme === 'dark';
+
+    function setActive(isLight) {
+      if (isLight) {
         left.classList.add('active');
         right.classList.remove('active');
+        document.documentElement.classList.remove('dark-mode');
+        document.body.classList.remove('dark-mode');
+        localStorage.setItem('theme', 'light');
       } else {
         left.classList.remove('active');
         right.classList.add('active');
+        document.documentElement.classList.add('dark-mode');
+        document.body.classList.add('dark-mode');
+        localStorage.setItem('theme', 'dark');
       }
     }
+
+    // Apply on load
+    if (isDark) { setActive(false); } else { setActive(true); }
+
     left.addEventListener('click', (e) => { e.stopPropagation(); setActive(true); });
     right.addEventListener('click', (e) => { e.stopPropagation(); setActive(false); });
-    switchEl.addEventListener('click', () => {
-      setActive(!left.classList.contains('active'));
-    });
+    switchEl.addEventListener('click', () => { setActive(!left.classList.contains('active')); });
   })();
 </script>
 
+<!-- Backend/auth: KEEPING your existing Firebase auth state + logout modal flow -->
 <script type="module">
 import { auth } from './firebase-config.js'; 
 import { signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
 
 document.addEventListener('DOMContentLoaded', function() {
   
-  // 1. LISTEN FOR AUTH STATE CHANGES
+  // AUTH STATE -> update UI or redirect
   onAuthStateChanged(auth, (user) => {
     if (user) {
-      // --- GET USER DATA ---
       const displayName = user.displayName || user.email.split('@')[0];
       const defaultPhoto = "Assets/Profile Icon/profile.png"; 
       const userPhoto = user.photoURL ? user.photoURL : defaultPhoto;
       const userEmail = user.email || "";
 
-      // --- UPDATE NAV ELEMENTS ---
       const navName = document.getElementById('navProfileName');
       const dropName = document.getElementById('dropdownProfileName');
       const navImg = document.getElementById('navProfileImg');
@@ -629,7 +850,6 @@ document.addEventListener('DOMContentLoaded', function() {
       if (navImg) navImg.src = userPhoto;
       if (dropImg) dropImg.src = userPhoto;
 
-      // --- UPDATE SETTINGS SPECIFIC ELEMENTS ---
       const mainProfileImg = document.getElementById('profileImage');
       const nameInput = document.getElementById('nameInput');
       const usernameInput = document.getElementById('usernameInput');
@@ -646,7 +866,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   });
 
-  // 2. LOGOUT FUNCTION
+  // LOGOUT with modal (kept)
   const logoutSidebar = document.getElementById('logoutBtn');
   const logoutProfile = document.getElementById('logoutProfile');
   const logoutModal = document.getElementById('logoutModal');
@@ -657,11 +877,9 @@ document.addEventListener('DOMContentLoaded', function() {
     if(logoutModal) logoutModal.classList.remove('hidden');
   }
 
-  // Bind click events
   if (logoutSidebar) logoutSidebar.addEventListener('click', openLogoutModal);
   if (logoutProfile) logoutProfile.addEventListener('click', openLogoutModal);
 
-  // Modal Actions
   if (confirmLogoutBtn) {
     confirmLogoutBtn.addEventListener('click', () => {
         signOut(auth)
@@ -676,7 +894,6 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
-  // Close modal on backdrop click
   if (logoutModal) {
     logoutModal.addEventListener('click', (e) => {
         if (e.target === logoutModal) logoutModal.classList.add('hidden');
@@ -685,6 +902,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 
+<!-- Password & Email validation (unchanged backend-wise) -->
 <script>
   // REAL-TIME PASSWORD VALIDATION
   const oldPassInput = document.getElementById("oldPass");
@@ -694,82 +912,50 @@ document.addEventListener('DOMContentLoaded', function() {
   const passMatchMsg = document.getElementById("passMatchMsg");
   const passMatchSuccess = document.getElementById("passMatchSuccess");
 
-  // Show validation box only when user starts typing in New password field
   newPassInput?.addEventListener('input', () => {
     const password = newPassInput.value;
-    
-    // Show requirements box only when there's input in the new password field
+
     if (password.length > 0) {
       passwordRequirements?.classList.remove('hidden');
     } else {
       passwordRequirements?.classList.add('hidden');
     }
-    
-    // Check requirements
+
     const hasLowerCase = /[a-z]/.test(password);
     const hasUpperCase = /[A-Z]/.test(password);
     const hasNumber = /[0-9]/.test(password);
     const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>\-=+\/]/.test(password);
     const isValidLength = password.length >= 8 && password.length <= 12;
-    
-    // Update UI for each requirement
+
     const reqLowercase = document.getElementById('req-lowercase');
     const reqUppercase = document.getElementById('req-uppercase');
     const reqNumber = document.getElementById('req-number');
     const reqSpecial = document.getElementById('req-special');
     const reqLength = document.getElementById('req-length');
-    
-    if (hasLowerCase) {
-      reqLowercase.classList.add('req-valid');
-      reqLowercase.querySelector('.req-icon').textContent = '✓';
-    } else {
-      reqLowercase.classList.remove('req-valid');
-      reqLowercase.querySelector('.req-icon').textContent = '✗';
-    }
-    
-    if (hasUpperCase) {
-      reqUppercase.classList.add('req-valid');
-      reqUppercase.querySelector('.req-icon').textContent = '✓';
-    } else {
-      reqUppercase.classList.remove('req-valid');
-      reqUppercase.querySelector('.req-icon').textContent = '✗';
-    }
-    
-    if (hasNumber) {
-      reqNumber.classList.add('req-valid');
-      reqNumber.querySelector('.req-icon').textContent = '✓';
-    } else {
-      reqNumber.classList.remove('req-valid');
-      reqNumber.querySelector('.req-icon').textContent = '✗';
-    }
-    
-    if (hasSpecialChar) {
-      reqSpecial.classList.add('req-valid');
-      reqSpecial.querySelector('.req-icon').textContent = '✓';
-    } else {
-      reqSpecial.classList.remove('req-valid');
-      reqSpecial.querySelector('.req-icon').textContent = '✗';
-    }
-    
-    if (isValidLength) {
-      reqLength.classList.add('req-valid');
-      reqLength.querySelector('.req-icon').textContent = '✓';
-    } else {
-      reqLength.classList.remove('req-valid');
-      reqLength.querySelector('.req-icon').textContent = '✗';
-    }
-    
-    // Calculate strength
+
+    if (hasLowerCase) { reqLowercase.classList.add('req-valid'); reqLowercase.querySelector('.req-icon').textContent = '✓'; }
+    else { reqLowercase.classList.remove('req-valid'); reqLowercase.querySelector('.req-icon').textContent = '✗'; }
+
+    if (hasUpperCase) { reqUppercase.classList.add('req-valid'); reqUppercase.querySelector('.req-icon').textContent = '✓'; }
+    else { reqUppercase.classList.remove('req-valid'); reqUppercase.querySelector('.req-icon').textContent = '✗'; }
+
+    if (hasNumber) { reqNumber.classList.add('req-valid'); reqNumber.querySelector('.req-icon').textContent = '✓'; }
+    else { reqNumber.classList.remove('req-valid'); reqNumber.querySelector('.req-icon').textContent = '✗'; }
+
+    if (hasSpecialChar) { reqSpecial.classList.add('req-valid'); reqSpecial.querySelector('.req-icon').textContent = '✓'; }
+    else { reqSpecial.classList.remove('req-valid'); reqSpecial.querySelector('.req-icon').textContent = '✗'; }
+
+    if (isValidLength) { reqLength.classList.add('req-valid'); reqLength.querySelector('.req-icon').textContent = '✓'; }
+    else { reqLength.classList.remove('req-valid'); reqLength.querySelector('.req-icon').textContent = '✗'; }
+
     const strengthLabel = document.getElementById('strengthLabel');
     const validCount = [hasLowerCase, hasUpperCase, hasNumber, hasSpecialChar, isValidLength].filter(Boolean).length;
-    
+
     if (strengthLabel) {
       strengthLabel.className = '';
       if (validCount === 5) {
         strengthLabel.textContent = 'Strong';
         strengthLabel.classList.add('strong');
-        
-        // Hide validation box after 1 second when all requirements are met
         setTimeout(() => {
           if (validCount === 5) {
             passwordRequirements?.classList.add('hidden');
@@ -783,20 +969,17 @@ document.addEventListener('DOMContentLoaded', function() {
         strengthLabel.classList.add('weak');
       }
     }
-    
-    // Check password match
+
     checkPasswordMatch();
   });
 
   confirmPassInput?.addEventListener('input', checkPasswordMatch);
 
-  // Hide validation box when clicking on Current password field or anywhere else
   oldPassInput?.addEventListener('focus', () => {
     passwordRequirements?.classList.add('hidden');
   });
 
   confirmPassInput?.addEventListener('focus', () => {
-    // Keep validation visible if there's text in new password field
     if (!newPassInput?.value) {
       passwordRequirements?.classList.add('hidden');
     }
@@ -805,7 +988,7 @@ document.addEventListener('DOMContentLoaded', function() {
   function checkPasswordMatch() {
     const newPass = newPassInput?.value || '';
     const confirmPass = confirmPassInput?.value || '';
-    
+
     if (confirmPass) {
       if (newPass !== confirmPass) {
         passMatchMsg?.classList.remove('hidden');
@@ -825,40 +1008,19 @@ document.addEventListener('DOMContentLoaded', function() {
     let newPass = document.getElementById("newPass").value;
     let confirmPass = document.getElementById("confirmPass").value;
 
-    let isValid = true;
-
-    // Validation checks
     const hasUpperCase = /[A-Z]/.test(newPass);
     const hasLowerCase = /[a-z]/.test(newPass);
     const hasNumber = /[0-9]/.test(newPass);
     const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>\-=+\/]/.test(newPass);
     const isValidLength = newPass.length >= 8 && newPass.length <= 12;
 
-    if (!oldPass) {
-      alert("Please enter your current password");
-      return;
-    }
+    if (!oldPass) { alert("Please enter your current password"); return; }
+    if (!isValidLength || !hasUpperCase || !hasLowerCase || !hasNumber || !hasSpecialChar) { alert("Password does not meet all requirements"); return; }
+    if (newPass !== confirmPass) { alert("Passwords do not match"); return; }
+    if (oldPass === newPass) { alert("New password must be different from old password"); return; }
 
-    if (!isValidLength || !hasUpperCase || !hasLowerCase || !hasNumber || !hasSpecialChar) {
-      alert("Password does not meet all requirements");
-      return;
-    }
-
-    if (newPass !== confirmPass) {
-      alert("Passwords do not match");
-      return;
-    }
-
-    if (oldPass === newPass) {
-      alert("New password must be different from old password");
-      return;
-    }
-
-    // Hide validation box before showing success
     passwordRequirements?.classList.add('hidden');
-    
     alert("Password updated successfully!");
-    // Reset fields
     document.getElementById("oldPass").value = '';
     document.getElementById("newPass").value = '';
     document.getElementById("confirmPass").value = '';
@@ -874,15 +1036,13 @@ document.addEventListener('DOMContentLoaded', function() {
   newEmailInput?.addEventListener('input', () => {
     const email = newEmailInput.value;
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    
-    // Show validation box only when there's input in the new email field
+
     if (email.length > 0) {
       emailValidation?.classList.remove('hidden');
     } else {
       emailValidation?.classList.add('hidden');
     }
-    
-    // Update format check
+
     if (emailRegex.test(email)) {
       emailFormatCheck.querySelector('.email-format-icon').textContent = '✓';
       emailFormatCheck.querySelector('.email-format-icon').classList.remove('text-red-500');
@@ -896,7 +1056,7 @@ document.addEventListener('DOMContentLoaded', function() {
       emailFormatCheck.querySelector('.email-format-text').classList.remove('text-green-600');
       emailFormatCheck.querySelector('.email-format-text').classList.add('text-gray-700');
     }
-    
+
     checkEmailMatch();
   });
 
@@ -905,7 +1065,7 @@ document.addEventListener('DOMContentLoaded', function() {
   function checkEmailMatch() {
     const newEmail = newEmailInput?.value || '';
     const confirmEmail = confirmEmailInput?.value || '';
-    
+
     if (confirmEmail.length > 0) {
       if (newEmail === confirmEmail) {
         emailMatchCheck.querySelector('.email-match-icon').textContent = '✓';
@@ -934,31 +1094,14 @@ document.addEventListener('DOMContentLoaded', function() {
     let confirmEmail = document.getElementById("confirmEmail").value;
     let currentEmail = document.getElementById("currentEmail").value;
 
-    // EMAIL
     let emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-    if (!currentEmail) {
-      alert("Please enter your current email");
-      return;
-    }
-
-    if (!emailRegex.test(newEmail)) {
-      alert("Please enter a valid email format (e.g., angelvenice@gmail.com)");
-      return;
-    }
-
-    if (newEmail !== confirmEmail || confirmEmail === "") {
-      alert("Emails do not match");
-      return;
-    }
-
-    if (newEmail === currentEmail) {
-      alert("New email must be different from current email");
-      return;
-    }
+    if (!currentEmail) { alert("Please enter your current email"); return; }
+    if (!emailRegex.test(newEmail)) { alert("Please enter a valid email format (e.g., angelvenice@gmail.com)"); return; }
+    if (newEmail !== confirmEmail || confirmEmail === "") { alert("Emails do not match"); return; }
+    if (newEmail === currentEmail) { alert("New email must be different from current email"); return; }
 
     alert("Email verified and updated!");
-    // Reset fields
     document.getElementById("newEmail").value = '';
     document.getElementById("confirmEmail").value = '';
     emailValidation?.classList.add('hidden');
