@@ -426,6 +426,23 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
   </div>
 </section>
 
+<!-- LOGOUT CONFIRM MODAL -->
+<div id="logoutModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm hidden z-[70] p-4 flex items-center justify-center">
+  <div class="bg-white rounded-2xl shadow-xl relative w-full max-w-md p-6"
+       role="dialog" aria-modal="true" aria-labelledby="logoutTitle" onclick="event.stopPropagation()">
+    <h2 id="logoutTitle" class="text-xl font-bold text-[#222] mb-2">Log out?</h2>
+    <p class="text-sm text-gray-600 mb-6">Are you sure you want to log out?</p>
+    <div class="flex justify-end gap-3">
+      <button id="cancelLogoutBtn" class="px-4 py-2 rounded-lg border border-gray-300 hover:bg-gray-100 transition">
+        Cancel
+      </button>
+      <button id="confirmLogoutBtn" class="bg-red-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-red-700 transition">
+        Yes
+      </button>
+    </div>
+  </div>
+</div>
+
 <!-- SCRIPTS -->
 <script>
 
@@ -686,15 +703,37 @@ document.getElementById("joinEventModal").addEventListener("click", function (e)
       const logoutSidebar = document.getElementById('logoutBtn');
       const logoutProfile = document.getElementById('logoutProfile');
 
+      // NEW: modal elements
+      const logoutModal = document.getElementById('logoutModal');
+      const confirmLogoutBtn = document.getElementById('confirmLogoutBtn');
+      const cancelLogoutBtn = document.getElementById('cancelLogoutBtn');
+
       function handleLogout() {
-        if(confirm("Are you sure you want to log out?")) {
-            signOut(auth).then(() => {
-                window.location.href = 'index.html';
-            }).catch((error) => {
-                console.error('Logout error:', error);
-            });
-        }
+        // open modal instead of window.confirm
+        logoutModal?.classList.remove('hidden');
       }
+
+      // confirm -> sign out
+      confirmLogoutBtn?.addEventListener('click', () => {
+        signOut(auth)
+          .then(() => { window.location.href = 'index.html'; })
+          .catch((error) => { console.error('Logout error:', error); });
+      });
+
+      // cancel -> close modal
+      cancelLogoutBtn?.addEventListener('click', () => {
+        logoutModal?.classList.add('hidden');
+      });
+
+      // close by clicking backdrop
+      logoutModal?.addEventListener('click', (e) => {
+        if (e.target === logoutModal) logoutModal.classList.add('hidden');
+      });
+
+      // close on Escape
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') logoutModal?.classList.add('hidden');
+      });
 
       if (logoutSidebar) logoutSidebar.addEventListener('click', handleLogout);
       if (logoutProfile) logoutProfile.addEventListener('click', handleLogout);
