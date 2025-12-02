@@ -119,38 +119,58 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
         <div class="flex items-center gap-4 relative">
 
           <!-- CREATE EVENT MODAL -->
-          <div id="createEventModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center hidden z-50">
-            <div class="bg-white rounded-2xl p-6 w-[500px] shadow-xl relative">
-              <button id="closeCreateEvent" class="absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-xl">&times;</button>
+          <div id="createEventModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center hidden z-50 p-4">
+            <div class="bg-white rounded-2xl shadow-xl relative w-full max-w-md max-h-[90vh] overflow-y-auto p-6">
+              <button id="closeCreateEvent" class="absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-xl">
+                &times;
+              </button>
+
+              <!-- HEADER -->
               <h2 class="text-2xl font-bold mb-1">Create Event</h2>
-              <p class="text-sm text-gray-500 mb-4">Fill in the details to start planning your event.</p>
+              <p class="text-sm text-gray-500 mb-4">
+                Fill in the details to start planning your event.
+              </p>
 
-              <label class="block text-sm font-medium mb-1">Event Name <span class="text-gray-400 text-xs">(required)</span></label>
-              <input id="eventName" type="text" class="w-full border border-gray-300 rounded-lg px-3 py-2 mb-4" placeholder="Enter event name">
+              <!-- EVENT NAME -->
+              <label class="block text-sm font-medium mb-1">Event Name <span class="text-gray-400 text-xs">(required)</span> </label>
+              <input type="text" id="eventName" class="w-full border border-gray-300 rounded-lg px-3 py-2 mb-4" placeholder="Enter event name">
 
-              <label class="block text-sm font-medium mb-1">Description</label>
+              <!-- DESCRIPTION -->
+              <label class="block text-sm font-medium mb-1">Description </label>
               <textarea id="eventDescription" maxlength="200" class="w-full border border-gray-300 rounded-lg px-3 py-2 mb-1 resize-none h-20" placeholder="Write a short description..."></textarea>
-              <div class="text-right text-xs text-gray-500 mb-4"><span id="charCount">0</span>/200</div>
+              <div class="text-right text-xs text-gray-500 mb-4">
+                <span id="charCount">0</span>/200
+              </div>
 
+              <!-- DATE & TIME -->
               <div class="grid grid-cols-2 gap-4 mb-4">
                 <div>
                   <label class="block text-sm font-medium mb-1">Date</label>
-                  <input id="eventDate" type="date" class="w-full border border-gray-300 rounded-lg px-3 py-2">
+                  <input type="date" id="eventDate" class="w-full border border-gray-300 rounded-lg px-3 py-2">
                 </div>
                 <div>
                   <label class="block text-sm font-medium mb-1">Time</label>
-                  <input id="eventTime" type="time" class="w-full border border-gray-300 rounded-lg px-3 py-2">
+                  <input type="time" id="eventTime" class="w-full border border-gray-300 rounded-lg px-3 py-2">
                 </div>
               </div>
 
+              <!-- LOCATION + MAP -->
               <label class="block text-sm font-medium mb-1">Location</label>
-              <input id="eventLocation" type="text" class="w-full border border-gray-300 rounded-lg px-3 py-2 mb-6" placeholder="Enter location">
+              <input id="eventLocation" type="text" class="w-full border border-gray-300 rounded-lg px-3 py-2 mb-2" placeholder="Search for a location">
+              <div id="map" class="w-full h-60 rounded-lg border border-gray-300 mb-4"></div>
 
-              <p class="text-gray-500 text-xs mb-4">Only Event Name is required. Others can be blank.</p>
+              <p class="text-gray-500 text-xs mb-4 text-justify">
+                Only Event Name is required. You can leave Description, Date, Time, and Location blank and create a poll for your attendees to vote on these details.
+              </p>
 
-              <div class="flex justify-end gap-3">
-                <button id="cancelCreateEvent" class="px-4 py-2 rounded-lg border border-gray-300 hover:bg-gray-100 transition">Cancel</button>
-                <button id="saveCreateEvent" class="bg-[#f4b41a] px-4 py-2 rounded-lg font-medium hover:bg-[#e0a419] transition">Save & Continue</button>
+              <!-- BUTTONS -->
+              <div class="flex justify-end gap-3 mb-2">
+                <button id="cancelCreateEvent" class="px-4 py-2 rounded-lg border border-gray-300 hover:bg-gray-100 transition">
+                  Cancel
+                </button>
+                <button id="saveCreateEvent" class="bg-[#f4b41a] px-4 py-2 rounded-lg font-medium hover:bg-[#e0a419] transition">
+                  Save & Continue
+                </button>
               </div>
             </div>
           </div>
@@ -544,9 +564,12 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
   document.getElementById("createEventModal").addEventListener("click", function (e) {
     if (e.target === this) this.classList.add("hidden");
   });
+  // DESCRIPTION CHAR COUNT (same as dashboard)
   const desc = document.getElementById("eventDescription");
   const charCount = document.getElementById("charCount");
-  desc.addEventListener("input", () => { charCount.textContent = desc.value.length; });
+  desc?.addEventListener("input", function () {
+    charCount.textContent = desc.value.length;
+  });
 
   // JOIN EVENT MODAL
   document.getElementById("openJoinEvent").addEventListener("click", () => {
@@ -641,44 +664,143 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
     });
   }
 
-  // SAVE & CONTINUE: create event via backend then redirect
-  document.getElementById('saveCreateEvent')?.addEventListener('click', async (e) => {
-    e.preventDefault();
-    const name = document.getElementById('eventName')?.value.trim() || '';
-    const description = document.getElementById('eventDescription')?.value.trim() || '';
-    const date = document.getElementById('eventDate')?.value || '';
-    const time = document.getElementById('eventTime')?.value || '';
-    const location = document.getElementById('eventLocation')?.value.trim() || '';
-    if (!name) { alert('Event name is required.'); return; }
-    const payload = { name, description, date, time, location };
-    try {
-      const resp = await fetch('/DINADRAWING/Backend/api/event/create.php', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
-      });
-      const data = await resp.json();
-      if (resp.ok && data.success && data.id) {
-        window.location.href = `/DINADRAWING/plan.php?id=${data.id}`;
-      } else {
-        alert(data.message || 'Failed to create event');
+  // SAVE & CONTINUE: create event via backend, then redirect to plan.php?id=NEW_ID
+  document.addEventListener('DOMContentLoaded', function() {
+    const saveBtn = document.getElementById("saveCreateEvent");
+    const createModal = document.getElementById('createEventModal');
+    if (!saveBtn) return;
+    saveBtn.addEventListener("click", async function () {
+      if (window.location.protocol === 'file:') {
+        alert('Open this page via http://localhost/DINADRAWING/myplans.php (start XAMPP Apache).');
+        return;
       }
-    } catch {
-      alert('Network error');
-    }
+      const btn = this;
+      const prevText = btn.textContent;
+      const nameEl = document.getElementById('eventName');
+      const descEl = document.getElementById('eventDescription');
+      const dateEl = document.getElementById('eventDate');
+      const timeEl = document.getElementById('eventTime');
+      const locEl  = document.getElementById('eventLocation');
+      const name = nameEl?.value.trim() || '';
+      const description = descEl?.value.trim() || '';
+      const date = dateEl?.value || '';
+      const time = timeEl?.value || '';
+      const location = locEl?.value.trim() || '';
+      if (!name) { alert('Event name is required.'); return; }
+      const payload = { name, description, date, time, location };
+      btn.disabled = true; btn.textContent = 'Saving...';
+      try {
+        const resp = await fetch('/DINADRAWING/Backend/api/event/create.php', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const text = await resp.text();
+        let json = {};
+        try { json = text ? JSON.parse(text) : {}; } catch {}
+        if (resp.ok && json.success && json.id) {
+          createModal?.classList.add('hidden');
+          window.location.href = `/DINADRAWING/plan.php?id=${json.id}`;
+        } else {
+          alert(json.message || resp.statusText || 'Failed to save event.');
+        }
+      } catch (err) {
+        console.error('Save error', err);
+        alert('Network error. Check Console (F12).');
+      } finally {
+        btn.disabled = false; btn.textContent = prevText;
+      }
+    });
   });
 
-  // ARCHIVE TOGGLE: archive or unarchive plan
-  async function archivePlan(id, archived){
-    try{
-      const r = await fetch('/DINADRAWING/Backend/api/event/archive_toggle.php',{
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({ id, archived })
+  // GOOGLE MAPS INTEGRATION (copied from dashboard)
+  const API_KEY = 'AIzaSyAGsgQDC6nVu9GQ9CYHQ2TTkbcX6qiF3Qc';
+
+  window.gm_authFailure = function() {
+    console.error('Google Maps authentication failure (gm_authFailure). Check API key / referrers / billing.');
+    alert('Google Maps authentication failed. See console for details.');
+  };
+
+  let map, marker, autocomplete;
+
+  function initMapOnce() {
+    const defaultLocation = { lat: 14.5995, lng: 120.9842 };
+    const mapEl = document.getElementById("map");
+    if (!mapEl) return;
+
+    map = new google.maps.Map(mapEl, { center: defaultLocation, zoom: 12 });
+    marker = new google.maps.Marker({ map, position: defaultLocation, draggable: true });
+
+    const input = document.getElementById("eventLocation");
+    if (input && google.maps.places) {
+      autocomplete = new google.maps.places.Autocomplete(input);
+      autocomplete.bindTo("bounds", map);
+      autocomplete.addListener("place_changed", () => {
+        const place = autocomplete.getPlace();
+        if (!place.geometry) return;
+        map.setCenter(place.geometry.location);
+        map.setZoom(15);
+        marker.setPosition(place.geometry.location);
       });
-      const j = await r.json();
-      if(!r.ok || !j.success){ alert(j.error||'Failed'); return; }
-      location.reload();
-    }catch(e){ alert('Network error'); }
+    }
+
+    marker.addListener("dragend", () => {
+      const geocoder = new google.maps.Geocoder();
+      geocoder.geocode({ location: marker.getPosition() }, (results, status) => {
+        if (status === "OK" && results[0]) {
+          const inputEl = document.getElementById("eventLocation");
+          if (inputEl) inputEl.value = results[0].formatted_address;
+        }
+      });
+    });
   }
+
+  function loadGoogleMaps(apiKey) {
+    if (window.google && google.maps) return Promise.resolve();
+    return new Promise((resolve, reject) => {
+      const existing = document.querySelector('script[data-gm-loader]');
+      if (existing) existing.remove();
+
+      const s = document.createElement('script');
+      s.setAttribute('data-gm-loader', '1');
+      s.src = `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(apiKey)}&libraries=places`;
+      s.async = true;
+      s.defer = true;
+      s.onload = () => {
+        if (window.google && google.maps) resolve();
+        else reject(new Error('Google Maps loaded but google.maps is not available.'));
+      };
+      s.onerror = (e) => reject(new Error('Failed to load Google Maps script: ' + e.message));
+      document.head.appendChild(s);
+    });
+  }
+
+  const openBtn = document.getElementById("openCreateEvent");
+  openBtn?.addEventListener("click", () => {
+    // Open modal (same as before)
+    document.getElementById("createEventModal")?.classList.remove("hidden");
+
+    // Load Maps and init
+    if (!API_KEY || API_KEY.includes('PUT_YOUR_REAL_API_KEY')) {
+      alert('Put your real Google Maps API key into the myplans script (API_KEY).');
+      return;
+    }
+
+    loadGoogleMaps(API_KEY)
+      .then(() => {
+        if (!map) initMapOnce();
+        setTimeout(() => {
+          if (map) {
+            google.maps.event.trigger(map, 'resize');
+            map.setCenter(marker?.getPosition() || { lat: 14.5995, lng: 120.9842 });
+          }
+        }, 250);
+      })
+      .catch(err => {
+        console.error('Maps load error:', err);
+        alert('Google Maps failed to load. Check console for details.');
+      });
+  });
 </script>
 
 <!-- LOGOUT FUNCTION -->
