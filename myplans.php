@@ -236,13 +236,13 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
           <!-- PROFILE -->
           <div class="relative">
             <button id="profileBtn" class="flex items-center gap-2 bg-[#f4b41a]/30 border border-[#222] rounded-full px-3 py-1.5 hover:bg-[#f4b41a]/50 transition">
-              <img src="Assets/Profile Icon/profile.png" alt="Profile" class="w-8 h-8 rounded-full border-2 border-[#f4b41a]">
-              <span class="font-medium text-[#222] hidden md:inline">Venice</span>
+              <img id="navProfileImg" src="Assets/Profile Icon/profile.png" alt="Profile" class="w-8 h-8 rounded-full border-2 border-[#f4b41a]">
+              <span id="navProfileName" class="font-medium text-[#222] hidden md:inline">User</span>
             </button>
             <div id="profileDropdown" class="absolute right-0 mt-2 w-60 bg-white shadow-lg rounded-2xl border border-gray-200 hidden z-50">
               <div class="p-4 border-b border-gray-200 text-center bg-[#fffaf2] rounded-t-2xl">
-                <img src="Assets/Profile Icon/profile.png" alt="Profile" class="w-12 h-12 mx-auto rounded-full border-2 border-[#f4b41a] mb-2 shadow">
-                <h2 class="text-sm font-semibold text-[#222]">Venice</h2>
+                <img id="dropdownProfileImg" src="Assets/Profile Icon/profile.png" alt="Profile" class="w-12 h-12 mx-auto rounded-full border-2 border-[#f4b41a] mb-2 shadow">
+                <h2 id="dropdownProfileName" class="text-sm font-semibold text-[#222]">User</h2>
               </div>
               <div class="py-2">
                 <a href="help.html" class="block px-4 py-2 text-sm hover:bg-gray-50">Help</a>
@@ -458,6 +458,23 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
     </section>
   </main>
 
+<!-- LOGOUT CONFIRM MODAL -->
+<div id="logoutModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm hidden z-[70] p-4 flex items-center justify-center">
+  <div class="bg-white rounded-2xl shadow-xl relative w-full max-w-md p-6"
+       role="dialog" aria-modal="true" aria-labelledby="logoutTitle" onclick="event.stopPropagation()">
+    <h2 id="logoutTitle" class="text-xl font-bold text-[#222] mb-2">Log out?</h2>
+    <p class="text-sm text-gray-600 mb-6">Are you sure you want to log out?</p>
+    <div class="flex justify-end gap-3">
+      <button id="cancelLogoutBtn" class="px-4 py-2 rounded-lg border border-gray-300 hover:bg-gray-100 transition">
+        Continue planning
+      </button>
+      <button id="confirmLogoutBtn" class="bg-red-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-red-700 transition">
+        Yes
+      </button>
+    </div>
+  </div>
+</div>
+
 <!-- SCRIPTS -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script>
@@ -585,7 +602,18 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
     }
   });
   document.getElementById('logoutProfile')?.addEventListener('click', () => {
-    document.getElementById('logoutBtn')?.click();
+    document.getElementById('logoutModal').classList.remove('hidden');
+  });
+
+  document.getElementById('cancelLogoutBtn')?.addEventListener('click', () => {
+    document.getElementById('logoutModal').classList.add('hidden');
+  });
+
+  document.getElementById('confirmLogoutBtn')?.addEventListener('click', () => {
+    document.getElementById('logoutModal').classList.add('hidden');
+    setTimeout(() => {
+      document.getElementById('logoutBtn')?.click();
+    }, 100);
   });
 
   // ABOUT US MODAL
@@ -655,18 +683,74 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
 
 <!-- LOGOUT FUNCTION -->
 <script type="module">
-  import { auth } from './firebase-config.js'; 
-  import { signOut } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
-  document.addEventListener('DOMContentLoaded', function() {
-    const logoutSidebar = document.getElementById('logoutBtn');
-    const logoutProfile = document.getElementById('logoutProfile');
-    function handleLogout() {
-      signOut(auth).then(() => { window.location.href = 'index.html'; })
-        .catch(() => { alert('Logout failed. Please try again.'); });
+import { auth } from './firebase-config.js'; 
+import { signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+
+document.addEventListener('DOMContentLoaded', function() {
+  
+  // 1. LISTEN FOR AUTH STATE CHANGES
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      // --- GET USER DATA ---
+      const displayName = user.displayName || user.email.split('@')[0];
+      const defaultPhoto = "Assets/Profile Icon/profile.png"; 
+      const userPhoto = user.photoURL ? user.photoURL : defaultPhoto;
+
+      // --- UPDATE ELEMENTS ---
+      // We check if the element exists first, then assign.
+      const navName = document.getElementById('navProfileName');
+      const dropName = document.getElementById('dropdownProfileName');
+      const navImg = document.getElementById('navProfileImg');
+      const dropImg = document.getElementById('dropdownProfileImg');
+
+      if (navName) navName.textContent = displayName;
+      if (dropName) dropName.textContent = displayName;
+      if (navImg) navImg.src = userPhoto;
+      if (dropImg) dropImg.src = userPhoto;
+
+    } else {
+      console.log("No user logged in, redirecting...");
+      window.location.href = 'index.html'; 
     }
-    if (logoutSidebar) logoutSidebar.addEventListener('click', handleLogout);
-    if (logoutProfile) logoutProfile.addEventListener('click', handleLogout);
   });
+
+  // 2. LOGOUT FUNCTION
+  const logoutSidebar = document.getElementById('logoutBtn'); // Only exists if you have a sidebar button with this ID
+  const logoutProfile = document.getElementById('logoutProfile'); // The one in the dropdown
+  const logoutModal = document.getElementById('logoutModal');
+  const confirmLogoutBtn = document.getElementById('confirmLogoutBtn');
+  const cancelLogoutBtn = document.getElementById('cancelLogoutBtn');
+
+  function openLogoutModal() {
+    if(logoutModal) logoutModal.classList.remove('hidden');
+  }
+
+  // Bind click events
+  if (logoutSidebar) logoutSidebar.addEventListener('click', openLogoutModal);
+  if (logoutProfile) logoutProfile.addEventListener('click', openLogoutModal);
+
+  // Modal Actions
+  if (confirmLogoutBtn) {
+    confirmLogoutBtn.addEventListener('click', () => {
+        signOut(auth)
+        .then(() => { window.location.href = 'index.html'; })
+        .catch((error) => { console.error('Logout error:', error); });
+    });
+  }
+
+  if (cancelLogoutBtn) {
+    cancelLogoutBtn.addEventListener('click', () => {
+        if(logoutModal) logoutModal.classList.add('hidden');
+    });
+  }
+
+  // Close modal on backdrop click
+  if (logoutModal) {
+    logoutModal.addEventListener('click', (e) => {
+        if (e.target === logoutModal) logoutModal.classList.add('hidden');
+    });
+  }
+});
 </script>
 
 </body>

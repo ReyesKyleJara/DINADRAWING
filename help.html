@@ -12,55 +12,49 @@
 </head>
 <body class="flex bg-[#fffaf2]">
 
-<!-- SIDEBAR -->
 <aside id="sidebar"
 class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
        bg-[#f4b41a] rounded-tr-3xl
        p-6 shadow
        hidden md:flex md:flex-col md:gap-6">
 
-  <!-- HEADER -->
   <div class="flex items-center gap-2">
     <img src="Assets/dinadrawing-logo.png" alt="Logo" class="w-14">
     <h2 class="text-xl font-bold text-[#222]">DiNaDrawing</h2>
   </div>
 
-  <!-- NAVIGATIONS -->
   <nav>
     <ul class="space-y-5">
       <li><a href="dashboard.html" class="block px-4 py-2 rounded-lg font-medium text-[#222] hover:bg-[#222] hover:text-white transition">Home</a></li>
-      <li><a href="myplans.html" class="block px-4 py-2 rounded-lg font-medium text-[#222] hover:bg-[#222] hover:text-white transition">My Plans</a></li>
+      <li><a href="myplans.php" class="block px-4 py-2 rounded-lg font-medium text-[#222] hover:bg-[#222] hover:text-white transition">My Plans</a></li>
       <li><a href="help.html" class="block px-4 py-2 rounded-lg font-medium bg-[#222] text-white hover:bg-[#111] transition">Help</a></li>
       <li><a href="settings.html" class="block px-4 py-2 rounded-lg font-medium text-[#222] hover:bg-[#222] hover:text-white transition">Settings</a></li>
     </ul>
   </nav>
 </aside>
 
-
-<!-- MAIN CONTENT -->
-  <main class="ml-0 md:ml-64 flex-1 min-h-screen px-12 py-10 overflow-y-auto">
+<main class="ml-0 md:ml-64 flex-1 min-h-screen px-12 py-10 pt-28 overflow-y-auto">
     <div class="w-full">
 
-      <!-- PAGE TITLE-->
-      <div class="flex items-center justify-between border-b-2 border-gray-200 pb-4 mb-6">
-        <div>
+      <div class="flex justify-between items-center border-b-2 border-gray-200 pb-4 mb-6 fixed top-0 md:left-64 left-0 w-[calc(100%-0rem)] md:w-[calc(100%-16rem)] bg-[#fffaf2] z-40 px-12 py-10">
+
+        <div class="flex flex-col">
           <h1 class="text-3xl font-bold">Help & FAQs</h1>
-          <p class="text-gray-600 text-sm">Having trouble? Let’s sort it out.</p>
+          <span class="text-gray-600 text-sm">Having trouble? Let’s sort it out.</span>
         </div>
 
-        <!-- PROFILE -->
+        <div class="flex items-center gap-3">
+
         <div class="relative">
-          <button id="profileBtn"
-            class="flex items-center gap-2 bg-[#f4b41a]/30 border border-[#222] rounded-full px-3 py-1.5 hover:bg-[#f4b41a]/50 transition">
-            <img src="Assets/Profile Icon/profile.png" alt="Profile" class="w-8 h-8 rounded-full border-2 border-[#f4b41a]">
-            <span class="font-medium text-[#222]">Venice</span>
+          <button id="profileBtn" class="flex items-center gap-2 bg-[#f4b41a]/30 border border-[#222] rounded-full px-3 py-1.5 hover:bg-[#f4b41a]/50 transition">
+            <img id="navProfileImg" src="Assets/Profile Icon/profile.png" alt="Profile" class="w-8 h-8 rounded-full border-2 border-[#f4b41a]">
+            <span id="navProfileName" class="font-medium text-[#222] hidden md:inline">User</span>
           </button>
 
-          <!-- PROFILE DROPDOWN -->
           <div id="profileDropdown" class="absolute right-0 mt-2 w-60 bg-white shadow-lg rounded-2xl border border-gray-200 hidden z-50">
             <div class="p-4 border-b border-gray-200 text-center bg-[#fffaf2] rounded-t-2xl">
-              <img src="Assets/Profile Icon/profile.png" alt="Profile" class="w-12 h-12 mx-auto rounded-full border-2 border-[#f4b41a] mb-2 shadow">
-              <h2 class="text-sm font-semibold text-[#222]">Venice</h2>
+              <img id="dropdownProfileImg" src="Assets/Profile Icon/profile.png" alt="Profile" class="w-12 h-12 mx-auto rounded-full border-2 border-[#f4b41a] mb-2 shadow">
+              <h2 id="dropdownProfileName" class="text-sm font-semibold text-[#222]">User</h2>
             </div>
             <div class="py-2">
               <a href="help.html" class="block px-4 py-2 text-sm hover:bg-gray-50">Help</a>
@@ -71,12 +65,11 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
           </div>
         </div>
       </div>
+      </div>
 
-      <!-- FAQS CONTENT -->
-      <div class="flex flex-col lg:flex-row gap-6">
+      <div class="flex flex-col lg:flex-row gap-6 mt-4">
         <div class="flex-1 space-y-2">
 
-          <!-- FAQ ITEM 1 -->
           <div class="faq-item border border-gray-300 rounded-lg overflow-hidden">
             <button class="faq-question w-full flex justify-between items-center p-4 bg-gray-300 font-medium text-left">
               <span>What is DiNaDrawing?</span>
@@ -87,7 +80,6 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
             </div>
           </div>
 
-          <!-- FAQ ITEM 2 -->
           <div class="faq-item border border-gray-300 rounded-lg overflow-hidden">
             <button class="faq-question w-full flex justify-between items-center p-4 bg-gray-300 font-medium text-left">
               <span>How do I create an event?</span>
@@ -98,7 +90,6 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
             </div>
           </div>
 
-          <!-- FAQ ITEM 3 -->
           <div class="faq-item border border-gray-300 rounded-lg overflow-hidden">
             <button class="faq-question w-full flex justify-between items-center p-4 bg-gray-300 font-medium text-left">
               <span>Can members vote on polls?</span>
@@ -109,7 +100,6 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
             </div>
           </div>
 
-          <!-- FAQ ITEM 4 -->
           <div class="faq-item border border-gray-300 rounded-lg overflow-hidden">
             <button class="faq-question w-full flex justify-between items-center p-4 bg-gray-300 font-medium text-left">
               <span>How does the budget splitter work?</span>
@@ -120,7 +110,6 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
             </div>
           </div>
 
-          <!-- FAQ ITEM 5 -->
           <div class="faq-item border border-gray-300 rounded-lg overflow-hidden">
             <button class="faq-question w-full flex justify-between items-center p-4 bg-gray-300 font-medium text-left">
               <span>Is my data secure?</span>
@@ -132,10 +121,8 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
           </div>
         </div>
 
-        <!-- CONTACT US & REPORT US -->
         <div class="flex flex-col gap-4 lg:w-[350px]">
 
-          <!-- STILL HAVE QUESTIONS? -->
           <div class="border border-gray-300 bg-gray-300 rounded-lg p-6">
             <h3 class="text-lg font-semibold mb-2">Still Have Questions?</h3>
             <p class="text-base mb-4">Feel free to reach out. We're here to help you with anything you need!</p>
@@ -146,7 +133,6 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
             </div>
           </div>
         
-          <!-- REPORT A BUG -->
           <div class="border border-gray-300 bg-gray-300 rounded-lg p-6">
             <h3 class="text-lg font-semibold mb-2">Report a Bug</h3>
             <p class="text-base mb-4">Found an issue? Let us know so we can fix it quickly.</p>
@@ -161,22 +147,21 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
     </div>
   </main>
 
-  <!-- ABOUT US MODAL -->
   <div id="aboutUsModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center hidden z-50 p-4">
     <div class="bg-white rounded-2xl shadow-xl relative w-full max-w-2xl max-h-[90vh] overflow-y-auto p-8">
       <button id="closeAboutUsModal" class="absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
       <h1 class="text-3xl font-bold text-[#222] mb-4">About Us</h1>
       <p class="text-gray-700 mb-6 leading-relaxed">
-        <span class="font-semibold text-[#f4b41a]">DiNaDrawing</span> is a collaborative planning platform designed to make organizing events and group activities easy, fun, and efficient. Whether you're preparing a trip, party, or project, DiNaDrawing helps you stay connected, assign tasks, and track your plans in one place.
+        <span class="font-semibold text-[#f4b41a]">DiNaDrawing</span> is a collaborative planning platform designed to make organizing events and group activities easy, fun, and efficient.
       </p>
       <div class="grid md:grid-cols-2 gap-6 mt-8">
         <div class="bg-[#fffaf2] p-6 rounded-xl border border-gray-200 shadow-sm">
           <h2 class="text-xl font-semibold text-[#222] mb-3">Our Mission</h2>
-          <p class="text-gray-700 leading-relaxed text-sm">To simplify teamwork and planning by creating a space where collaboration feels effortless, ensuring every plan—big or small—gets drawn out perfectly.</p>
+          <p class="text-gray-700 leading-relaxed text-sm">To simplify teamwork and planning by creating a space where collaboration feels effortless.</p>
         </div>
         <div class="bg-[#fffaf2] p-6 rounded-xl border border-gray-200 shadow-sm">
           <h2 class="text-xl font-semibold text-[#222] mb-3">Our Vision</h2>
-          <p class="text-gray-700 leading-relaxed text-sm">To become the go-to digital planner for creative teams and friend groups around the world, empowering people to turn their ideas into reality.</p>
+          <p class="text-gray-700 leading-relaxed text-sm">To become the go-to digital planner for creative teams and friend groups around the world.</p>
         </div>
       </div>
       <div class="mt-8">
@@ -211,10 +196,26 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
       </div>
       <footer class="mt-8 text-center text-gray-500 text-xs border-t border-gray-200 pt-4">© 2025 DiNaDrawing. All rights reserved.</footer>
     </div>
-  </div>  <!-- SCRIPTS -->
-  <script>
+  </div>  
 
-  // FAQS CONTENT
+  <div id="logoutModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm hidden z-[70] p-4 flex items-center justify-center">
+    <div class="bg-white rounded-2xl shadow-xl relative w-full max-w-md p-6"
+         role="dialog" aria-modal="true" aria-labelledby="logoutTitle" onclick="event.stopPropagation()">
+      <h2 id="logoutTitle" class="text-xl font-bold text-[#222] mb-2">Log out?</h2>
+      <p class="text-sm text-gray-600 mb-6">Are you sure you want to log out?</p>
+      <div class="flex justify-end gap-3">
+        <button id="cancelLogoutBtn" class="px-4 py-2 rounded-lg border border-gray-300 hover:bg-gray-100 transition">
+          Cancel
+        </button>
+        <button id="confirmLogoutBtn" class="bg-red-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-red-700 transition">
+          Yes
+        </button>
+      </div>
+    </div>
+  </div>
+  
+  <script>
+    // FAQS CONTENT
     const faqItems = document.querySelectorAll('.faq-item');
     faqItems.forEach((item) => {
       const question = item.querySelector('.faq-question');
@@ -283,33 +284,74 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
     }
   </script>
 
-<!-- LOGOUT FUNCTION -->
 <script type="module">
-  import { auth } from './firebase-config.js'; 
-  import { signOut } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+import { auth } from './firebase-config.js'; 
+import { signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
 
-  document.addEventListener('DOMContentLoaded', function() {
-    // support both possible IDs used across pages
-    const candidates = [ 'logoutBtn', 'logoutProfile' ];
-    const logoutElements = candidates.map(id => document.getElementById(id)).filter(Boolean);
+document.addEventListener('DOMContentLoaded', function() {
+  
+  // 1. LISTEN FOR AUTH STATE CHANGES
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      // --- GET USER DATA ---
+      const displayName = user.displayName || user.email.split('@')[0];
+      const defaultPhoto = "Assets/Profile Icon/profile.png"; 
+      const userPhoto = user.photoURL ? user.photoURL : defaultPhoto;
 
-    if (logoutElements.length === 0) {
-      console.error('Logout button not found!');
-      return;
+      // --- UPDATE ELEMENTS ---
+      const navName = document.getElementById('navProfileName');
+      const dropName = document.getElementById('dropdownProfileName');
+      const navImg = document.getElementById('navProfileImg');
+      const dropImg = document.getElementById('dropdownProfileImg');
+
+      if (navName) navName.textContent = displayName;
+      if (dropName) dropName.textContent = displayName;
+      if (navImg) navImg.src = userPhoto;
+      if (dropImg) dropImg.src = userPhoto;
+
+    } else {
+      console.log("No user logged in, redirecting...");
+      window.location.href = 'index.html'; 
     }
-
-    function handleLogout() {
-      signOut(auth).then(() => {
-        console.log('User signed out successfully');
-        window.location.href = 'index.html';
-      }).catch((error) => {
-        console.error('Logout error:', error);
-        alert('Logout failed. Please try again.');
-      });
-    }
-
-    logoutElements.forEach(el => el.addEventListener('click', handleLogout));
   });
+
+  // 2. LOGOUT FUNCTION
+  const logoutSidebar = document.getElementById('logoutBtn');
+  const logoutProfile = document.getElementById('logoutProfile');
+  const logoutModal = document.getElementById('logoutModal');
+  const confirmLogoutBtn = document.getElementById('confirmLogoutBtn');
+  const cancelLogoutBtn = document.getElementById('cancelLogoutBtn');
+
+  function openLogoutModal() {
+    if(logoutModal) logoutModal.classList.remove('hidden');
+  }
+
+  // Bind click events
+  if (logoutSidebar) logoutSidebar.addEventListener('click', openLogoutModal);
+  if (logoutProfile) logoutProfile.addEventListener('click', openLogoutModal);
+
+  // Modal Actions
+  if (confirmLogoutBtn) {
+    confirmLogoutBtn.addEventListener('click', () => {
+        signOut(auth)
+        .then(() => { window.location.href = 'index.html'; })
+        .catch((error) => { console.error('Logout error:', error); });
+    });
+  }
+
+  if (cancelLogoutBtn) {
+    cancelLogoutBtn.addEventListener('click', () => {
+        if(logoutModal) logoutModal.classList.add('hidden');
+    });
+  }
+
+  // Close modal on backdrop click
+  if (logoutModal) {
+    logoutModal.addEventListener('click', (e) => {
+        if (e.target === logoutModal) logoutModal.classList.add('hidden');
+    });
+  }
+});
 </script>
   
 </body>

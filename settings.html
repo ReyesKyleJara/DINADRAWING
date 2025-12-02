@@ -14,91 +14,40 @@
       transition: opacity 240ms ease, transform 240ms ease;
       will-change: opacity, transform;
     }
-
-    .tab-content.show {
-      opacity: 1;
-      transform: translateY(0);
-    }
-
-    .soft-shadow {
-      box-shadow: 0 6px 14px rgba(0,0,0,0.06);
-    }
-    
+    .tab-content.show { opacity: 1; transform: translateY(0); }
+    .soft-shadow { box-shadow: 0 6px 14px rgba(0,0,0,0.06); }
     .tab-btn {
-      background: transparent;
-      color: #6b7280; 
-      font-weight: 600;
-      padding: 6px 18px;
-      border-radius: 6px;
-      border: none;
-      transition: color 160ms ease, background 160ms ease, transform 160ms ease;
+      background: transparent; color: #6b7280; font-weight: 600; padding: 6px 18px;
+      border-radius: 6px; border: none; transition: color 160ms ease, background 160ms ease, transform 160ms ease;
     }
-
     .tab-btn:hover { color: #374151; }
     .tab-selected {
-      background: #f4b41a !important; 
-      color: #111 !important;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.06);
-      padding: 4px 20px !important; 
-      border-radius: 10px !important; 
-      transform: translateY(-1px);
+      background: #f4b41a !important; color: #111 !important; box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+      padding: 4px 20px !important; border-radius: 10px !important; transform: translateY(-1px);
     }
-    
     .thin-btn {
-      padding: 4px 12px !important;
-      border-radius: 8px !important;
-      font-weight: 600;
-      font-size: 0.95rem;
-      height: 32px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
+      padding: 4px 12px !important; border-radius: 8px !important; font-weight: 600;
+      font-size: 0.95rem; height: 32px; display: inline-flex; align-items: center; justify-content: center;
     }
-
     .thin-danger { 
-      padding: 4px 12px !important;
-      border-radius: 8px !important;
-      font-weight: 600;
-      font-size: 0.95rem;
-      height: 32px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
+      padding: 4px 12px !important; border-radius: 8px !important; font-weight: 600;
+      font-size: 0.95rem; height: 32px; display: inline-flex; align-items: center; justify-content: center;
     }
-    
     .appearance-switch {
-      position: relative;
-      width: 100px;            
-      height: 34px;
-      background: #e5e7eb;     
-      padding: 3px;
-      border-radius: 9999px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
+      position: relative; width: 100px; height: 34px; background: #e5e7eb; padding: 3px;
+      border-radius: 9999px; display: flex; align-items: center; justify-content: space-between;
     }
-
     .appearance-switch .option {
-      width: 50px;
-      height: 28px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 20px;
-      cursor: pointer;
+      width: 50px; height: 28px; display: inline-flex; align-items: center; justify-content: center;
+      border-radius: 20px; cursor: pointer;
     }
-
     .appearance-switch .option.left svg { color: #9ca3af; }
     .appearance-switch .option.right svg { color: #9ca3af; }
     .appearance-switch .option.active {
-      background: #ffffff;
-      box-shadow: 0 3px 8px rgba(0,0,0,0.08);
-      border: 1px solid rgba(0,0,0,0.04);
+      background: #ffffff; box-shadow: 0 3px 8px rgba(0,0,0,0.08); border: 1px solid rgba(0,0,0,0.04);
     }
-
     .appearance-switch .option.left.active svg { color: #f59e0b; }
     .appearance-switch .option.right.active svg { color: #374151; }
-    
     /* Password validation styles */
     .req-valid .req-icon { color: #22c55e !important; }
     .req-valid .req-text { color: #16a34a; }
@@ -109,34 +58,29 @@
 </head>
 <body class="flex bg-[#fffaf2]">
 
-<!-- SIDEBAR -->
 <aside id="sidebar"
 class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
        bg-[#f4b41a] rounded-tr-3xl
        p-6 shadow
        hidden md:flex md:flex-col md:gap-6">
 
-  <!-- HEADER -->
   <div class="flex items-center gap-2">
     <img src="Assets/dinadrawing-logo.png" alt="Logo" class="w-14">
     <h2 class="text-xl font-bold text-[#222]">DiNaDrawing</h2>
   </div>
 
-  <!-- NAVIGATIONS -->
   <nav>
     <ul class="space-y-5">
       <li><a href="dashboard.html" class="block px-4 py-2 rounded-lg font-medium text-[#222] hover:bg-[#222] hover:text-white transition">Home</a></li>
-      <li><a href="myplans.html" class="block px-4 py-2 rounded-lg font-medium text-[#222] hover:bg-[#222] hover:text-white transition">My Plans</a></li>
+      <li><a href="myplans.php" class="block px-4 py-2 rounded-lg font-medium text-[#222] hover:bg-[#222] hover:text-white transition">My Plans</a></li>
       <li><a href="help.html" class="block px-4 py-2 rounded-lg font-medium text-[#222] hover:bg-[#222] hover:text-white transition">Help</a></li>
       <li><a href="settings.html" class="block px-4 py-2 rounded-lg font-medium bg-[#222] text-white hover:bg-[#111] transition" aria-current="page">Settings</a></li>
     </ul>
   </nav>
 </aside>
 
-<!-- MAIN CONTENT -->
-  <main class="ml-0 md:ml-64 flex-1 min-h-screen px-12 py-10 pt-28">
+<main class="ml-0 md:ml-64 flex-1 min-h-screen px-12 py-10 pt-20">
 
-<!-- PAGE TITLE (STICKY HEADER) -->
 <div class="flex justify-between items-center border-b-2 border-gray-200 pb-4 mb-6 fixed top-0 md:left-64 left-0 w-[calc(100%-0rem)] md:w-[calc(100%-16rem)] bg-[#fffaf2] z-40 px-12 py-10">
 
   <div class="flex flex-col">
@@ -146,18 +90,16 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
 
   <div class="flex items-center gap-3">
 
-  <!-- PROFILE -->
   <div class="relative">
     <button id="profileBtn" class="flex items-center gap-2 bg-[#f4b41a]/30 border border-[#222] rounded-full px-3 py-1.5 hover:bg-[#f4b41a]/50 transition">
-      <img src="Assets/Profile Icon/profile.png" alt="Profile" class="w-8 h-8 rounded-full border-2 border-[#f4b41a]">
-      <span class="font-medium text-[#222] hidden md:inline">Venice</span>
+      <img id="navProfileImg" src="Assets/Profile Icon/profile.png" alt="Profile" class="w-8 h-8 rounded-full border-2 border-[#f4b41a]">
+      <span id="navProfileName" class="font-medium text-[#222] hidden md:inline">User</span>
     </button>
 
-    <!-- PROFILE DROPDOWN -->
     <div id="profileDropdown" class="absolute right-0 mt-2 w-60 bg-white shadow-lg rounded-2xl border border-gray-200 hidden z-50">
       <div class="p-4 border-b border-gray-200 text-center bg-[#fffaf2] rounded-t-2xl">
-        <img src="Assets/Profile Icon/profile.png" alt="Profile" class="w-12 h-12 mx-auto rounded-full border-2 border-[#f4b41a] mb-2 shadow">
-        <h2 class="text-sm font-semibold text-[#222]">Venice</h2>
+        <img id="dropdownProfileImg" src="Assets/Profile Icon/profile.png" alt="Profile" class="w-12 h-12 mx-auto rounded-full border-2 border-[#f4b41a] mb-2 shadow">
+        <h2 id="dropdownProfileName" class="text-sm font-semibold text-[#222]">User</h2>
       </div>
       <div class="py-2">
         <a href="help.html" class="block px-4 py-2 text-sm hover:bg-gray-50">Help</a>
@@ -170,23 +112,19 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
 </div>
 </div>
 
-    <!-- UNIFIED SETTINGS FRAME -->
     <div class="w-full mt-12">
         <div class="bg-white rounded-2xl soft-shadow overflow-hidden">
           <div class="p-6 md:p-8 space-y-10">
 
-        <!-- PROFILE SECTION -->
         <div>
           <h2 class="text-xl font-bold mb-6">Profile</h2>
           <div class="flex flex-col gap-6 px-6">
             <div class="flex items-center gap-6 mt-4">
 
-              <!-- PROFILE IMAGE -->
               <div class="w-20 h-20 md:w-24 md:h-24 rounded-full overflow-hidden border border-black shadow-md">
                 <img id="profileImage" src="Assets/Profile Icon/profile.png" alt="avatar" class="w-full h-full object-cover">
               </div>
 
-              <!-- CHANGE/REMOVE PHOTO BUTTONS -->
               <div class="flex flex-col gap-2">
                 <div class="flex gap-3">
                   <button id="changeImageBtn" class="bg-[#2a2a2a] text-white px-4 py-2 rounded-xl hover:bg-black">+ Change Profile Photo</button>
@@ -195,18 +133,16 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
               </div>
             </div>
 
-            <!-- NAME -->
             <div class="flex-1">
               <div class="grid grid-cols-1 md:grid-cols-2 gap-y-6 md:gap-x-4 md:[grid-template-columns:repeat(2,min-content)]">
 
-                <!-- CHANGE NAME -->
                 <div class="flex flex-col items-start">
                   <label class="text-sm text-gray-700 block mb-1">Name</label>
                   <div class="relative">
                     <input
                       id="nameInput"
                       type="text"
-                      value="Venice"
+                      placeholder="Your Name"
                       class="w-80 max-w-full border border-gray-300 text-sm rounded-xl px-4 py-2 pr-10 focus:outline-none focus:ring-2 focus:ring-[#f4b41a]"
                     />
                     <button aria-label="edit name" class="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center text-gray-500 hover:text-gray-700 rounded-md">
@@ -217,14 +153,13 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
                   </div>
                 </div>
 
-                <!-- CHANGE USERNAME -->
                 <div class="flex flex-col items-start">
                   <label class="text-sm text-gray-700 block mb-1">Username</label>
                   <div class="relative">
                     <input
                       id="usernameInput"
                       type="text"
-                      value="@gel"
+                      placeholder="@username"
                       class="w-80 max-w-full border border-gray-300 text-sm rounded-xl px-4 py-2 pr-10 focus:outline-none focus:ring-2 focus:ring-[#f4b41a]"
                     />
                     <button aria-label="edit username" class="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center text-gray-500 hover:text-gray-700 rounded-md">
@@ -236,27 +171,22 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
                 </div>
               </div>
               
-              <!-- SINGLE SAVE BUTTON FOR BOTH NAME AND USERNAME -->
               <div class="mt-4">
                 <button id="saveProfileBtn" class="bg-[#222] text-white thin-btn hover:bg-black transition">Save Changes</button>
               </div>
             </div>
           </div>
 
-          <!-- DIVIDER -->
           <hr class="my-8 border-t-2 border-gray-200" />
 
-        <!-- PREFERENCES SECTION -->
         <div>
           <h2 class="text-xl font-bold mb-6">Preferences</h2>
           <div class="flex flex-col gap-8 px-6">
-            <!-- APPEARANCE SECTION -->
             <div>
               <h3 class="text-lg font-semibold mb-4">Appearance</h3>
               <div class="flex items-center gap-[520px]">
                 <span class="font-medium text-gray-700 dark:text-gray-300">Theme</span>
 
-                <!-- DARKMODE/LIGHTMODE -->
                 <div id="appearanceSwitch" class="appearance-switch">
                   <div class="option left active" aria-hidden="true">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="w-4 h-4">
@@ -275,12 +205,10 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
               </div>
             </div>
             
-            <!-- NOTIFICATIONS SECTION -->
             <div>
               <h3 class="text-lg font-semibold mb-3">Notifications</h3>
               <div class="space-y-4">
 
-                <!-- EMAIL REMINDERS -->
                 <div class="flex gap-[501px] items-center">
                   <span>Email reminders</span>
                   <label class="relative inline-flex items-center cursor-pointer">
@@ -290,7 +218,6 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
                   </label>
                 </div>
 
-                <!-- PUSH NOTIFICATIONS -->
                 <div class="flex gap-[490px] items-center">
                   <span>Push notifications</span>
                   <label class="relative inline-flex items-center cursor-pointer">
@@ -300,7 +227,6 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
                   </label>
                 </div>
                 
-                <!-- IN-APP ALERTS -->
                 <div class="flex gap-[527px] items-center">
                   <span>In-app alerts</span>
                   <label class="relative inline-flex items-center cursor-pointer">
@@ -314,15 +240,12 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
           </div>
         </div>
 
-          <!-- DIVIDER -->
           <hr class="my-8 border-t-2 border-gray-200" />
 
-        <!-- ACCOUNT & SECURITY SECTION -->
         <div>
           <h2 class="text-xl font-bold mb-6">Account & Security</h2>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-y-6 md:gap-x-4 md:[grid-template-columns:repeat(2,min-content)]">
 
-            <!-- CHANGE PASSWORD -->
             <div class="flex flex-col gap-3 px-6">
               <div class="grid grid-cols-1 md:grid-cols-2 items-start gap-y-3 md:gap-x-8 mb-2">
                 <div>
@@ -335,7 +258,6 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
               <div class="flex-1">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-y-6 md:gap-x-8 md:[grid-template-columns:repeat(2,min-content)]">
 
-                <!-- CHANGE PASSWORD -->
                 <div class="flex flex-col items-start">
                   <div class="flex flex-col gap-2 w-full">
                     <input type="password" id="oldPass" placeholder="Old Password" class="w-80 max-w-full border border-gray-300 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#f4b41a]" />
@@ -346,7 +268,6 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
                   </div>
                   <button onclick="validatePassword()" class="mt-2 bg-[#222] text-white thin-btn hover:bg-black transition">Save</button>
                   
-                  <!-- PASSWORD REQUIREMENTS VALIDATION BOX -->
                   <div id="passwordRequirements" class="bg-gray-50 border border-gray-200 rounded-lg p-3 text-xs hidden shadow-sm mt-2 w-full">
                     <h4 class="font-semibold mb-2 text-gray-700 text-xs">Requirements:</h4>
                     <div class="space-y-1">
@@ -374,10 +295,9 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
                   </div>
                 </div>
 
-                <!-- UPDATE EMAIL -->
                 <div class="flex flex-col items-start">
                   <div class="flex flex-col gap-2 w-full">
-                    <input type="email" id="currentEmail" placeholder="Current Email" value="angelvenice@gmail.com" class="w-80 max-w-full border border-gray-300 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#f4b41a]" />
+                    <input type="email" id="currentEmail" placeholder="Current Email" value="" class="w-80 max-w-full border border-gray-300 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#f4b41a]" />
                     <input type="email" id="newEmail" placeholder="New Email" class="w-80 max-w-full border border-gray-300 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#f4b41a]" />
                     <input type="email" id="confirmEmail" placeholder="Confirm New Email" class="w-80 max-w-full border border-gray-300 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#f4b41a]" />
                     <span id="emailFormatMsg" class="text-xs text-red-500 hidden">Invalid email</span>
@@ -387,7 +307,6 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
                   </div>
                   <button onclick="validateEmail()" class="mt-2 bg-[#222] text-white thin-btn hover:bg-black transition">Verify</button>
                   
-                  <!-- EMAIL VALIDATION BOX -->
                   <div id="emailValidation" class="bg-gray-50 border border-gray-200 rounded-lg p-3 text-xs hidden shadow-sm mt-2 w-full">
                     <h4 class="font-semibold mb-2 text-gray-700 text-xs">Validation:</h4>
                     <div class="space-y-1">
@@ -404,7 +323,6 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
                 </div>
               </div>
 
-              <!-- PRIVACY SETTINGS -->
               <div class="mt-8">
                 <h3 class="text-lg font-semibold mb-3">Privacy</h3>
                 <div class="space-y-3">
@@ -418,7 +336,7 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
                   </div>
                   <div class="flex justify-between items-center">
                     <label class="text-medium font-medium">Profile Visibility</label>
-                    <select class="border border-gray-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#f4b41a]">
+                    <select class="border border-gray-300 rounded-xl px-3 py-2 text-medium focus:outline-none focus:ring-2 focus:ring-[#f4b41a]">
                       <option>Public</option>
                       <option>Friends</option>
                       <option>Private</option>
@@ -442,7 +360,6 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
 
     </div>
 
-<!-- CHANGE PROFILE MODAL -->
 <div
   id="changeProfileModal"
   class="fixed inset-0 flex items-center justify-center bg-black/40 backdrop-blur-sm z-50 hidden"
@@ -454,7 +371,6 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
     <h2 class="text-2xl font-bold mb-1">Change Profile Photo</h2>
     <p class="text-sm text-gray-500 mb-4">Choose or upload a new profile photo</p>
 
-    <!-- PROFILE PREVIEW -->
     <div class="flex justify-center mb-4">
       <img
         id="profilePreview"
@@ -465,7 +381,6 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
       />
     </div>
 
-    <!-- UPLOAD BUTTON -->
     <div class="flex justify-center gap-4 mb-4">
       <div id="uploadBtn" class="w-8 h-8 rounded-full border flex items-center justify-center cursor-pointer hover:bg-gray-100 transition" style="border-color: #090404;">
         <img src="Assets/upload.png" alt="Upload" class="w-6 h-6 opacity-70">
@@ -478,7 +393,6 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
     <input type="file" id="uploadInput" accept="image/*" class="hidden">
     <hr class="my-4" />
 
-    <!-- PROFILE AVATAR GRID -->
     <div class="grid grid-cols-5 gap-3 mb-6">
       <img src="Assets/Profile Icon/Profile.png" class="w-12 h-12 rounded-full cursor-pointer border hover:border-yellow-500" />
       <img src="Assets/Profile Icon/Profile2.png" class="w-12 h-12 rounded-full cursor-pointer border hover:border-yellow-500" />
@@ -490,7 +404,6 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
       <img src="Assets/Profile Icon/Profile8.png" class="w-12 h-12 rounded-full cursor-pointer border hover:border-yellow-500" />
     </div>
 
-    <!-- CANCEL & SAVE BUTTONS -->
     <div class="flex justify-end gap-3">
       <button class="px-4 py-2 rounded-lg border border-gray-300 hover:bg-gray-100 transition" id="cancelBtnFooter">
         Cancel
@@ -499,9 +412,25 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
         Save Changes
       </button>
     </div>
-  </main>
+  </div>
+</div>
 
-    <!-- SCRIPTS -->
+<div id="logoutModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm hidden z-[70] p-4 flex items-center justify-center">
+  <div class="bg-white rounded-2xl shadow-xl relative w-full max-w-md p-6"
+       role="dialog" aria-modal="true" aria-labelledby="logoutTitle" onclick="event.stopPropagation()">
+    <h2 id="logoutTitle" class="text-xl font-bold text-[#222] mb-2">Log out?</h2>
+    <p class="text-sm text-gray-600 mb-6">Are you sure you want to log out?</p>
+    <div class="flex justify-end gap-3">
+      <button id="cancelLogoutBtn" class="px-4 py-2 rounded-lg border border-gray-300 hover:bg-gray-100 transition">
+        Cancel
+      </button>
+      <button id="confirmLogoutBtn" class="bg-red-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-red-700 transition">
+        Yes
+      </button>
+    </div>
+  </div>
+</div>
+
     <script>
       // SINGLE SAVE BUTTON FOR NAME AND USERNAME
       const nameInput = document.getElementById('nameInput');
@@ -518,13 +447,6 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
           alert('Please fill in both Name and Username.');
         }
       });
-
-      // TAB HEADERS - No longer needed with unified layout
-      // const tabButtons = document.querySelectorAll('.tab-btn');
-      // const tabContents = document.querySelectorAll('.tab-content');
-      // function activateTab(tabName) { ... }
-      // activateTab('profile');
-      // tabButtons.forEach(btn => { ... });
     </script>
 
   <script>
@@ -562,8 +484,11 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
   });
   saveChangesBtn?.addEventListener("click", () => {
     if (mainProfileImg) mainProfileImg.src = selectedSrc;
-    const navProfile = document.getElementById("navProfileImage");
+    // Also update the nav image if it exists
+    const navProfile = document.getElementById("navProfileImg");
+    const dropProfile = document.getElementById("dropdownProfileImg");
     if (navProfile) navProfile.src = selectedSrc;
+    if (dropProfile) dropProfile.src = selectedSrc;
     closeModal();
   });
   document.getElementById("changeImageBtn")?.addEventListener("click", () => {
@@ -615,7 +540,6 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
   });
   </script>
 
-<!--PROFILE DROPDOWN-->
 <script>
   const profileBtn = document.getElementById('profileBtn');
   const profileDropdown = document.getElementById('profileDropdown');
@@ -655,7 +579,6 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
   }
 </script>
 
-<!-- DARKMODE/LIGHTMODE -->
 <script>
   (function(){
     const switchEl = document.getElementById('appearanceSwitch');
@@ -680,36 +603,89 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
   })();
 </script>
 
-<!-- LOGOUT FUNCTION -->
 <script type="module">
-    import { auth } from './firebase-config.js'; 
-    import { signOut } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+import { auth } from './firebase-config.js'; 
+import { signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
 
-    document.addEventListener('DOMContentLoaded', function() {
-      const logoutSidebar = document.getElementById('logoutBtn');
-      const logoutProfile = document.getElementById('logoutProfile');
+document.addEventListener('DOMContentLoaded', function() {
+  
+  // 1. LISTEN FOR AUTH STATE CHANGES
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      // --- GET USER DATA ---
+      const displayName = user.displayName || user.email.split('@')[0];
+      const defaultPhoto = "Assets/Profile Icon/profile.png"; 
+      const userPhoto = user.photoURL ? user.photoURL : defaultPhoto;
+      const userEmail = user.email || "";
 
-      function handleLogout() {
-        signOut(auth).then(() => {
-          console.log('User signed out successfully');
-          window.location.href = 'index.html';
-        }).catch((error) => {
-          console.error('Logout error:', error);
-          alert('Logout failed. Please try again.');
-        });
-      }
+      // --- UPDATE NAV ELEMENTS ---
+      const navName = document.getElementById('navProfileName');
+      const dropName = document.getElementById('dropdownProfileName');
+      const navImg = document.getElementById('navProfileImg');
+      const dropImg = document.getElementById('dropdownProfileImg');
 
-      if (logoutSidebar) {
-        logoutSidebar.addEventListener('click', handleLogout);
-      }
-      if (logoutProfile) {
-        logoutProfile.addEventListener('click', handleLogout);
-      }
+      if (navName) navName.textContent = displayName;
+      if (dropName) dropName.textContent = displayName;
+      if (navImg) navImg.src = userPhoto;
+      if (dropImg) dropImg.src = userPhoto;
+
+      // --- UPDATE SETTINGS SPECIFIC ELEMENTS ---
+      const mainProfileImg = document.getElementById('profileImage');
+      const nameInput = document.getElementById('nameInput');
+      const usernameInput = document.getElementById('usernameInput');
+      const currentEmailInput = document.getElementById('currentEmail');
+
+      if (mainProfileImg) mainProfileImg.src = userPhoto;
+      if (nameInput) nameInput.value = displayName;
+      if (usernameInput) usernameInput.value = "@" + userEmail.split('@')[0];
+      if (currentEmailInput) currentEmailInput.value = userEmail;
+
+    } else {
+      console.log("No user logged in, redirecting...");
+      window.location.href = 'index.html'; 
+    }
+  });
+
+  // 2. LOGOUT FUNCTION
+  const logoutSidebar = document.getElementById('logoutBtn');
+  const logoutProfile = document.getElementById('logoutProfile');
+  const logoutModal = document.getElementById('logoutModal');
+  const confirmLogoutBtn = document.getElementById('confirmLogoutBtn');
+  const cancelLogoutBtn = document.getElementById('cancelLogoutBtn');
+
+  function openLogoutModal() {
+    if(logoutModal) logoutModal.classList.remove('hidden');
+  }
+
+  // Bind click events
+  if (logoutSidebar) logoutSidebar.addEventListener('click', openLogoutModal);
+  if (logoutProfile) logoutProfile.addEventListener('click', openLogoutModal);
+
+  // Modal Actions
+  if (confirmLogoutBtn) {
+    confirmLogoutBtn.addEventListener('click', () => {
+        signOut(auth)
+        .then(() => { window.location.href = 'index.html'; })
+        .catch((error) => { console.error('Logout error:', error); });
     });
-  </script>
+  }
 
-<!--PASSWORD & EMAIL VALIDATION -->
-  <script>
+  if (cancelLogoutBtn) {
+    cancelLogoutBtn.addEventListener('click', () => {
+        if(logoutModal) logoutModal.classList.add('hidden');
+    });
+  }
+
+  // Close modal on backdrop click
+  if (logoutModal) {
+    logoutModal.addEventListener('click', (e) => {
+        if (e.target === logoutModal) logoutModal.classList.add('hidden');
+    });
+  }
+});
+</script>
+
+<script>
   // REAL-TIME PASSWORD VALIDATION
   const oldPassInput = document.getElementById("oldPass");
   const newPassInput = document.getElementById("newPass");
@@ -787,23 +763,25 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
     const strengthLabel = document.getElementById('strengthLabel');
     const validCount = [hasLowerCase, hasUpperCase, hasNumber, hasSpecialChar, isValidLength].filter(Boolean).length;
     
-    strengthLabel.className = '';
-    if (validCount === 5) {
-      strengthLabel.textContent = 'Strong';
-      strengthLabel.classList.add('strong');
-      
-      // Hide validation box after 1 second when all requirements are met
-      setTimeout(() => {
-        if (validCount === 5) {
-          passwordRequirements?.classList.add('hidden');
-        }
-      }, 1000);
-    } else if (validCount >= 3) {
-      strengthLabel.textContent = 'Medium';
-      strengthLabel.classList.add('medium');
-    } else {
-      strengthLabel.textContent = 'Weak';
-      strengthLabel.classList.add('weak');
+    if (strengthLabel) {
+      strengthLabel.className = '';
+      if (validCount === 5) {
+        strengthLabel.textContent = 'Strong';
+        strengthLabel.classList.add('strong');
+        
+        // Hide validation box after 1 second when all requirements are met
+        setTimeout(() => {
+          if (validCount === 5) {
+            passwordRequirements?.classList.add('hidden');
+          }
+        }, 1000);
+      } else if (validCount >= 3) {
+        strengthLabel.textContent = 'Medium';
+        strengthLabel.classList.add('medium');
+      } else {
+        strengthLabel.textContent = 'Weak';
+        strengthLabel.classList.add('weak');
+      }
     }
     
     // Check password match
