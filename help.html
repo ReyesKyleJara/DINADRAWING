@@ -6,68 +6,97 @@
   <title>Help | DiNaDrawing</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Early theme application (same as dashboard/settings) -->
+  <script>
+    (function() {
+      const savedTheme = localStorage.getItem('theme');
+      if (savedTheme === 'dark') {
+        document.documentElement.classList.add('dark-mode');
+        document.body.classList.add('dark-mode');
+      }
+      window.addEventListener('storage', (e) => {
+        if (e.key === 'theme') {
+          if (e.newValue === 'dark') {
+            document.documentElement.classList.add('dark-mode');
+            document.body.classList.add('dark-mode');
+          } else {
+            document.documentElement.classList.remove('dark-mode');
+            document.body.classList.remove('dark-mode');
+          }
+        }
+      });
+    })();
+  </script>
+
   <style>
     body { font-family: 'Poppins', sans-serif; background-color: #fffaf2; color: #222; }
-    /* Dark Mode Styles */
+
+    /* Dark Mode (copied) */
     body.dark-mode { background-color: #1a1a1a !important; color: #e0e0e0 !important; }
     body.dark-mode .bg-white { background-color: #2a2a2a !important; }
     body.dark-mode .bg-\[\#fffaf2\] { background-color: #1a1a1a !important; }
     body.dark-mode .bg-gray-50 { background-color: #2a2a2a !important; }
     body.dark-mode .bg-gray-300 { background-color: #404040 !important; }
     body.dark-mode h1, body.dark-mode h2, body.dark-mode h3,
-    body.dark-mode p, body.dark-mode span, body.dark-mode div, body.dark-mode button { color: #e0e0e0 !important; }
+    body.dark-mode p, body.dark-mode span, body.dark-mode div, body.dark-mode button,
+    body.dark-mode label { color: #e0e0e0 !important; }
     body.dark-mode .text-gray-600, body.dark-mode .text-gray-700, body.dark-mode .text-gray-500 { color: #a0a0a0 !important; }
     body.dark-mode .border-gray-200 { border-color: #404040 !important; }
     body.dark-mode .border-gray-100 { border-color: #353535 !important; }
     body.dark-mode .border-gray-300 { border-color: #454545 !important; }
-    body.dark-mode .shadow, body.dark-mode .shadow-md, body.dark-mode .shadow-lg { box-shadow: 0 4px 6px rgba(0,0,0,0.5) !important; }
     body.dark-mode .faq-question { background-color: #404040 !important; }
     body.dark-mode .faq-answer { background-color: #2a2a2a !important; }
+    body.dark-mode .shadow,
+    body.dark-mode .shadow-md,
+    body.dark-mode .shadow-lg { box-shadow: 0 4px 6px rgba(0,0,0,0.5) !important; }
     body.dark-mode .text-\[\#222\] { color: #e0e0e0 !important; }
 
-    /* Hamburger Menu */
+    /* Hamburger (same) */
     .hamburger { display: flex; flex-direction: column; gap: 4px; cursor: pointer; padding: 8px; border-radius: 8px; transition: background 0.2s; }
-    .hamburger:hover { background: rgba(244, 180, 26, 0.1); }
-    .hamburger span { width: 24px; height: 3px; background: #222; border-radius: 2px; transition: all 0.3s; }
+    .hamburger:hover { background: rgba(244,180,26,0.1); }
+    .hamburger span { width: 24px; height: 3px; background: #222; border-radius: 2px; transition: all .3s; }
     body.dark-mode .hamburger span { background: #e0e0e0; }
 
-    /* Sidebar overlay + slide-in */
+    /* Sidebar overlay + slide */
     .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 45; }
     .sidebar-overlay.active { display: block; }
-    #sidebar { transition: transform 0.3s ease; z-index: 50; transform: translateX(-100%); }
+    #sidebar { transition: transform .3s ease; z-index: 50; transform: translateX(-100%); }
     #sidebar.active { transform: translateX(0); }
     @media (min-width: 769px) {
       #sidebar { transform: translateX(0); }
       #sidebar:not(.active) { transform: translateX(-100%); }
     }
+
+    /* Main + header shift (same) */
+    main { transition: margin-left .3s ease; }
+    @media (min-width: 769px) {
+      main.sidebar-open { margin-left: 16rem; }
+      main:not(.sidebar-open) { margin-left: 0; }
+    }
+    .page-header { transition: left .3s ease, width .3s ease; }
+    @media (min-width: 769px) {
+      .page-header.sidebar-open { left: 16rem; width: calc(100% - 16rem); }
+      .page-header:not(.sidebar-open) { left: 0; width: 100%; }
+    }
   </style>
-  <script>
-    // Apply dark mode preference ASAP
-    (function() {
-      const savedTheme = localStorage.getItem('theme');
-      if (savedTheme === 'dark') document.documentElement.classList.add('dark-mode');
-    })();
-  </script>
 </head>
 <body class="flex bg-[#fffaf2]">
 
 <!-- SIDEBAR OVERLAY -->
 <div id="sidebarOverlay" class="sidebar-overlay"></div>
 
-<!-- SIDEBAR -->
+<!-- SIDEBAR (removed 'hidden md:flex' for smooth animation) -->
 <aside id="sidebar"
 class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
        bg-[#f4b41a] rounded-tr-3xl
-       p-6 shadow
-       hidden md:flex md:flex-col md:gap-6">
+       p-6 shadow flex flex-col gap-6">
 
-  <!-- HEADER -->
   <div class="flex items-center gap-2">
     <img src="Assets/dinadrawing-logo.png" alt="Logo" class="w-14">
     <h2 class="text-xl font-bold text-[#222]">DiNaDrawing</h2>
   </div>
 
-  <!-- NAVIGATIONS -->
   <nav>
     <ul class="space-y-5">
       <li><a href="dashboard.html" class="block px-4 py-2 rounded-lg font-medium text-[#222] hover:bg-[#222] hover:text-white transition">Home</a></li>
@@ -78,30 +107,24 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
   </nav>
 </aside>
 
-<main class="ml-0 md:ml-64 flex-1 min-h-screen px-12 py-10 pt-28 overflow-y-auto">
+<main id="mainContent" class="flex-1 min-h-screen px-12 py-10 pt-28 overflow-y-auto">
   <div class="w-full">
 
     <!-- PAGE HEADER -->
-    <div class="flex justify-between items-center border-b-2 border-gray-200 pb-4 mb-6 fixed top-0 md:left-64 left-0 w-[calc(100%-0rem)] md:w-[calc(100%-16rem)] bg-[#fffaf2] z-40 px-12 py-10">
+    <div class="page-header flex justify-between items-center border-b-2 border-gray-200 pb-4 mb-6 fixed top-0 left-0 w-full bg-[#fffaf2] z-40 px-12 py-10">
       <div class="flex items-center gap-4">
-        <!-- HAMBURGER -->
-        <button id="hamburgerBtn" class="hamburger">
-          <span></span><span></span><span></span>
-        </button>
+        <button id="hamburgerBtn" class="hamburger"><span></span><span></span><span></span></button>
         <div class="flex flex-col">
           <h1 class="text-3xl font-bold">Help & FAQs</h1>
           <span class="text-gray-600 text-sm">Having trouble? Let’s sort it out.</span>
         </div>
       </div>
 
-      <!-- PROFILE -->
       <div class="relative">
         <button id="profileBtn" class="flex items-center gap-2 bg-[#f4b41a]/30 border border-[#222] rounded-full px-3 py-1.5 hover:bg-[#f4b41a]/50 transition">
           <img id="navProfileImg" src="Assets/Profile Icon/profile.png" alt="Profile" class="w-8 h-8 rounded-full border-2 border-[#f4b41a]">
           <span id="navProfileName" class="font-medium text-[#222] hidden md:inline">User</span>
         </button>
-
-        <!-- PROFILE DROPDOWN -->
         <div id="profileDropdown" class="absolute right-0 mt-2 w-60 bg-white shadow-lg rounded-2xl border border-gray-200 hidden z-50">
           <div class="p-4 border-b border-gray-200 text-center bg-[#fffaf2] rounded-t-2xl">
             <img id="dropdownProfileImg" src="Assets/Profile Icon/profile.png" alt="Profile" class="w-12 h-12 mx-auto rounded-full border-2 border-[#f4b41a] mb-2 shadow">
@@ -117,7 +140,7 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
       </div>
     </div>
 
-    <!-- CONTENT -->
+    <!-- CONTENT (unchanged) -->
     <div class="flex flex-col lg:flex-row gap-6 mt-4">
       <!-- FAQS -->
       <div class="flex-1 space-y-2">
@@ -316,7 +339,7 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
   </div>
 </div>
 
-<!-- LOGOUT CONFIRM MODAL -->
+<!-- LOGOUT MODAL -->
 <div id="logoutModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm hidden z-[70] p-4 flex items-center justify-center">
   <div class="bg-white rounded-2xl shadow-xl relative w-full max-w-md p-6"
        role="dialog" aria-modal="true" aria-labelledby="logoutTitle" onclick="event.stopPropagation()">
@@ -329,47 +352,55 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
   </div>
 </div>
 
-<!-- FRONTEND SCRIPTS (merged UI behaviors) -->
+<!-- FRONTEND SCRIPTS -->
 <script>
-  // Dark mode sync across tabs
-  window.addEventListener('storage', function(e) {
-    if (e.key === 'theme') {
-      if (e.newValue === 'dark') {
-        document.documentElement.classList.add('dark-mode');
-        document.body.classList.add('dark-mode');
-      } else {
-        document.documentElement.classList.remove('dark-mode');
-        document.body.classList.remove('dark-mode');
-      }
-    }
-  });
-
-  // DOM ready UI init
+  // Sidebar / layout logic copied from dashboard/settings
   document.addEventListener('DOMContentLoaded', function() {
-    // Apply dark mode on load
-    const savedTheme = localStorage.getItem('theme');
-    if (savedTheme === 'dark') {
-      document.body.classList.add('dark-mode');
-      document.documentElement.classList.add('dark-mode');
-    }
-
-    // Hamburger + sidebar overlay
     const hamburgerBtn = document.getElementById('hamburgerBtn');
     const sidebar = document.getElementById('sidebar');
     const sidebarOverlay = document.getElementById('sidebarOverlay');
-    const isMobile = window.innerWidth < 769;
+    const mainContent = document.getElementById('mainContent');
+    const pageHeader = document.querySelector('.page-header');
 
     const sidebarState = localStorage.getItem('sidebarOpen');
+    const isMobile = window.innerWidth < 769;
+
     if (sidebarState === null) {
-      if (!isMobile) sidebar?.classList.add('active');
+      if (!isMobile) {
+        sidebar.classList.add('active');
+        mainContent.classList.add('sidebar-open');
+        pageHeader.classList.add('sidebar-open');
+      }
     } else if (sidebarState === 'true') {
-      sidebar?.classList.add('active');
+      sidebar.classList.add('active');
+      if (!isMobile) {
+        mainContent.classList.add('sidebar-open');
+        pageHeader.classList.add('sidebar-open');
+      }
+    }
+
+    function applySidebarLayout() {
+      if (window.innerWidth >= 769) {
+        if (sidebar.classList.contains('active')) {
+          mainContent.classList.add('sidebar-open');
+          pageHeader.classList.add('sidebar-open');
+        } else {
+          mainContent.classList.remove('sidebar-open');
+          pageHeader.classList.remove('sidebar-open');
+        }
+      } else {
+        mainContent.classList.remove('sidebar-open');
+        pageHeader.classList.remove('sidebar-open');
+      }
     }
 
     if (hamburgerBtn && sidebar && sidebarOverlay) {
       hamburgerBtn.addEventListener('click', () => {
         const isActive = sidebar.classList.toggle('active');
-        if (window.innerWidth < 769) {
+        if (window.innerWidth >= 769) {
+          mainContent.classList.toggle('sidebar-open');
+          pageHeader.classList.toggle('sidebar-open');
+        } else {
           sidebarOverlay.classList.toggle('active');
         }
         localStorage.setItem('sidebarOpen', isActive);
@@ -393,11 +424,15 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
       });
 
       window.addEventListener('resize', () => {
-        if (window.innerWidth >= 769) {
+        const isNowMobile = window.innerWidth < 769;
+        if (!isNowMobile) {
           sidebarOverlay.classList.remove('active');
         }
+        applySidebarLayout();
       });
     }
+
+    applySidebarLayout();
 
     // FAQ accordion
     const faqItems = document.querySelectorAll('.faq-item');
@@ -583,23 +618,25 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
   });
 </script>
 
-<!-- AUTH + LOGOUT (preserved) -->
+<!-- AUTH + LOGOUT (unchanged backend) -->
 <script type="module">
-  import { auth } from './firebase-config.js'; 
+  import { auth } from './firebase-config.js';
   import { signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
 
-  document.addEventListener('DOMContentLoaded', function() {
-    // Auth -> populate user UI
+  function initAuth() {
+    const navName = document.getElementById('navProfileName');
+    const dropName = document.getElementById('dropdownProfileName');
+    const navImg = document.getElementById('navProfileImg');
+    const dropImg = document.getElementById('dropdownProfileImg');
+
     onAuthStateChanged(auth, (user) => {
       if (user) {
-        const displayName = user.displayName || user.email.split('@')[0];
-        const defaultPhoto = "Assets/Profile Icon/profile.png"; 
-        const userPhoto = user.photoURL ? user.photoURL : defaultPhoto;
+        const displayName = user.displayName || (user.email ? user.email.split('@')[0] : 'User');
+        const defaultPhoto = "Assets/Profile Icon/profile.png";
+        const userPhoto = user.photoURL || defaultPhoto;
 
-        document.getElementById('navProfileName')?.textContent = displayName;
-        document.getElementById('dropdownProfileName')?.textContent = displayName;
-        const navImg = document.getElementById('navProfileImg');
-        const dropImg = document.getElementById('dropdownProfileImg');
+        if (navName) navName.textContent = displayName;
+        if (dropName) dropName.textContent = displayName;
         if (navImg) navImg.src = userPhoto;
         if (dropImg) dropImg.src = userPhoto;
       } else {
@@ -607,29 +644,32 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
       }
     });
 
-    // Logout modal wiring (same pattern as dashboard)
+    // Logout modal hooks (unchanged)
     const logoutSidebar = document.getElementById('logoutBtn');
     const logoutProfile = document.getElementById('logoutProfile');
     const logoutModal = document.getElementById('logoutModal');
     const confirmLogoutBtn = document.getElementById('confirmLogoutBtn');
     const cancelLogoutBtn = document.getElementById('cancelLogoutBtn');
 
-    function openLogoutModal() { logoutModal?.classList.remove('hidden'); }
-    function closeLogoutModal() { logoutModal?.classList.add('hidden'); }
+    function openLogoutModal(){ logoutModal?.classList.remove('hidden'); }
+    function closeLogoutModal(){ logoutModal?.classList.add('hidden'); }
 
     logoutSidebar?.addEventListener('click', openLogoutModal);
     logoutProfile?.addEventListener('click', openLogoutModal);
-
     confirmLogoutBtn?.addEventListener('click', () => {
-      signOut(auth)
-        .then(() => { window.location.href = 'index.html'; })
-        .catch((error) => { console.error('Logout error:', error); });
+      signOut(auth).then(() => { window.location.href = 'index.html'; })
+      .catch(err => console.error('Logout error:', err));
     });
     cancelLogoutBtn?.addEventListener('click', closeLogoutModal);
-
     logoutModal?.addEventListener('click', (e) => { if (e.target === logoutModal) closeLogoutModal(); });
     document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeLogoutModal(); });
-  });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initAuth);
+  } else {
+    initAuth();
+  }
 </script>
 
 </body>
