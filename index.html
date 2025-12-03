@@ -705,16 +705,16 @@
 
           const result = await response.json();
 
-          if (result.success) {
+            if (result.success) {
               currentUser = result.user;
               localStorage.setItem('currentUser', JSON.stringify(currentUser));
               
-          // Show a success popout modal, then open the login modal
-          closeSignupModal();
-          // store credentials so the success modal handler can prefill/login
-          lastSignupEmail = email;
-          lastSignupPassword = password;
-          showSuccessModal();
+              // Show a success popout modal, then open the login modal
+              closeSignupModal();
+              // store credentials so the success modal handler can prefill/login
+              lastSignupEmail = email;
+              lastSignupPassword = password;
+              showSuccessModal();
 
           // After a short delay, hide success modal and open login modal
           setTimeout(() => {
@@ -865,7 +865,7 @@
     }
   });
 
-  // HIDE LOADING SCREEN
+  // HIDE LOADING SCREEN (increased timeout to allow page to fully load)
   setTimeout(function() {
     const loadingScreen = document.getElementById('loadingScreen');
     if (loadingScreen) {
@@ -874,7 +874,7 @@
         loadingScreen.style.display = 'none';
       }, 500);
     }
-  }, 3000);
+  }, 6000);
 
   // SIGNUP MODAL
   function openSignupModal() {
