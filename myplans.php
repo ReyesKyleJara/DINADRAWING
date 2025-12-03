@@ -92,7 +92,6 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
 
   <!-- MAIN CONTENT -->
   <main class="ml-0 md:ml-64 flex-1 min-h-screen px-12 py-10 pt-28">
-
 <!-- PAGE TITLE (STICKY HEADER) -->
 <div class="flex justify-between items-center border-b-2 border-gray-200 pb-4 mb-6 fixed top-0 md:left-64 left-0 w-[calc(100%-0rem)] md:w-[calc(100%-16rem)] bg-[#fffaf2] z-40 px-12 py-10">
 

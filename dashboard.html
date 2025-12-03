@@ -154,128 +154,6 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
     <!-- RIGHT SIDE -->
     <div class="flex items-center gap-4 relative">
 
-      <!-- CREATE EVENT MODAL -->
-      <div id="createEventModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center hidden z-50 p-4">
-        <div class="bg-white rounded-2xl shadow-xl relative w-full max-w-md max-h-[90vh] overflow-y-auto p-6">
-          <button id="closeCreateEvent" class="absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-xl">&times;</button>
-
-          <h2 class="text-2xl font-bold mb-1">Create Event</h2>
-          <p class="text-sm text-gray-500 mb-4">Fill in the details to start planning your event.</p>
-
-          <label class="block text-sm font-medium mb-1">Event Name <span class="text-gray-400 text-xs">(required)</span></label>
-          <input type="text" id="eventName" class="w-full border border-gray-300 rounded-lg px-3 py-2 mb-4" placeholder="Enter event name">
-
-          <label class="block text-sm font-medium mb-1">Description</label>
-          <textarea id="eventDescription" maxlength="200" class="w-full border border-gray-300 rounded-lg px-3 py-2 mb-1 resize-none h-20" placeholder="Write a short description..."></textarea>
-          <div class="text-right text-xs text-gray-500 mb-4"><span id="charCount">0</span>/200</div>
-
-          <div class="grid grid-cols-2 gap-4 mb-4">
-            <div>
-              <label class="block text-sm font-medium mb-1">Date</label>
-              <input type="date" id="eventDate" class="w-full border border-gray-300 rounded-lg px-3 py-2">
-            </div>
-            <div>
-              <label class="block text-sm font-medium mb-1">Time</label>
-              <input type="time" id="eventTime" class="w-full border border-gray-300 rounded-lg px-3 py-2">
-            </div>
-          </div>
-
-          <label class="block text-sm font-medium mb-1">Location</label>
-          <input id="eventLocation" type="text" class="w-full border border-gray-300 rounded-lg px-3 py-2 mb-2" placeholder="Search for a location">
-          <div id="map" class="w-full h-60 rounded-lg border border-gray-300 mb-4"></div>
-
-          <p class="text-gray-500 text-xs mb-4 text-justify">
-            Only Event Name is required. You can leave Description, Date, Time, and Location blank and create a poll for your attendees to vote on these details.
-          </p>
-
-          <div class="flex justify-end gap-3 mb-2">
-            <button id="cancelCreateEvent" class="px-4 py-2 rounded-lg border border-gray-300 hover:bg-gray-100 transition">Cancel</button>
-            <button id="saveCreateEvent" class="bg-[#f4b41a] px-4 py-2 rounded-lg font-medium hover:bg-[#e0a419] transition">Save & Continue</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- JOIN EVENT MODAL -->
-      <div id="joinEventModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center hidden z-50">
-        <div class="bg-white rounded-2xl p-6 w-[500px] shadow-xl relative">
-          <button id="closeJoinEvent" class="absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-xl">&times;</button>
-
-          <h2 class="text-2xl font-bold mb-1">Join Event</h2>
-          <p class="text-sm text-gray-500 mb-4">Enter the event code or link to join.</p>
-
-          <label class="block text-sm font-medium mb-1">Event Code / Link</label>
-          <input type="text" class="w-full border border-gray-300 rounded-lg px-3 py-2 mb-6" placeholder="Paste code or link here">
-
-          <div class="flex justify-end gap-3">
-            <button id="cancelJoinEvent" class="px-4 py-2 rounded-lg border border-gray-300 hover:bg-gray-100 transition">Cancel</button>
-            <button id="joinJoinEvent" class="bg-[#f4b41a] px-4 py-2 rounded-lg font-medium hover:bg-[#e0a419] transition">Join</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- ABOUT US MODAL -->
-      <div id="aboutUsModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm hidden z-[60] p-4">
-        <div class="bg-white rounded-2xl shadow-xl relative w-full max-w-2xl max-h-[90vh] overflow-y-auto p-8 mx-auto my-10"
-             role="dialog" aria-modal="true" aria-labelledby="aboutUsTitle" onclick="event.stopPropagation()">
-          <button id="closeAboutUsModal" class="absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-2xl" aria-label="Close">&times;</button>
-
-          <h1 id="aboutUsTitle" class="text-3xl font-bold text-[#222] mb-4">About Us</h1>
-          <p class="text-gray-700 mb-6 leading-relaxed">
-            <span class="font-semibold text-[#f4b41a]">DiNaDrawing</span> is a collaborative planning platform designed to make organizing events and group activities easy, fun, and efficient.
-            Whether you're preparing a trip, party, or project, DiNaDrawing helps you stay connected, assign tasks, and track your plans in one place.
-          </p>
-
-          <div class="grid md:grid-cols-2 gap-6 mt-8">
-            <div class="bg-[#fffaf2] p-6 rounded-xl border border-gray-200 shadow-sm">
-              <h2 class="text-xl font-semibold text-[#222] mb-3">Our Mission</h2>
-              <p class="text-gray-700 leading-relaxed text-sm">
-                To simplify teamwork and planning by creating a space where collaboration feels effortless, ensuring every plan—big or small—gets drawn out perfectly.
-              </p>
-            </div>
-            <div class="bg-[#fffaf2] p-6 rounded-xl border border-gray-200 shadow-sm">
-              <h2 class="text-xl font-semibold text-[#222] mb-3">Our Vision</h2>
-              <p class="text-gray-700 leading-relaxed text-sm">
-                To become the go-to digital planner for creative teams and friend groups around the world, empowering people to turn their ideas into reality.
-              </p>
-            </div>
-          </div>
-
-          <div class="mt-8">
-            <h2 class="text-2xl font-bold text-[#222] mb-4">Meet the Team</h2>
-            <div class="grid grid-cols-5 gap-4">
-              <div class="flex flex-col items-center bg-[#fffaf2] p-4 rounded-xl border border-gray-200 shadow-sm">
-                <img src="Assets/Profile Icon/Ken.jpg" alt="Ken" class="w-16 h-16 rounded-full border-2 border-[#f4b41a] shadow mb-2">
-                <h3 class="font-semibold text-[#222] text-sm">Ken Mendoza</h3>
-                <p class="text-xs text-gray-600">Front-End Dev</p>
-              </div>
-              <div class="flex flex-col items-center bg-[#fffaf2] p-4 rounded-xl border border-gray-200 shadow-sm">
-                <img src="Assets/Profile Icon/Andrea.jpg" alt="Andrea" class="w-16 h-16 rounded-full border-2 border-[#f4b41a] shadow mb-2">
-                <h3 class="font-semibold text-[#222] text-sm">Andrea Calilap</h3>
-                <p class="text-xs text-gray-600">Front-End Dev</p>
-              </div>
-              <div class="flex flex-col items-center bg-[#fffaf2] p-4 rounded-xl border border-gray-200 shadow-sm">
-                <img src="Assets/Profile Icon/Angel.jpg" alt="Venice" class="w-16 h-16 rounded-full border-2 border-[#f4b41a] shadow mb-2">
-                <h3 class="font-semibold text-[#222] text-sm">Angel Retabale</h3>
-                <p class="text-xs text-gray-600">Project Manager</p>
-              </div>
-              <div class="flex flex-col items-center bg-[#fffaf2] p-4 rounded-xl border border-gray-200 shadow-sm">
-                <img src="Assets/Profile Icon/Jara.jpg" alt="Kyle" class="w-16 h-16 rounded-full border-2 border-[#f4b41a] shadow mb-2">
-                <h3 class="font-semibold text-[#222] text-sm">Kyle Reyes</h3>
-                <p class="text-xs text-gray-600">Back-End Dev</p>
-              </div>
-              <div class="flex flex-col items-center bg-[#fffaf2] p-4 rounded-xl border border-gray-200 shadow-sm">
-                <img src="Assets/Profile Icon/Jovan.jpg" alt="Ralf" class="w-16 h-16 rounded-full border-2 border-[#f4b41a] shadow mb-2">
-                <h3 class="font-semibold text-[#222] text-sm">Ralf Sanchez</h3>
-                <p class="text-xs text-gray-600">Back-End Dev</p>
-              </div>
-            </div>
-          </div>
-
-          <footer class="mt-8 text-center text-gray-500 text-xs border-t border-gray-200 pt-4">
-            © 2025 DiNaDrawing. All rights reserved.
-          </footer>
-        </div>
-      </div>
 
       <!-- NOTIFICATIONS -->
       <div>
@@ -461,6 +339,129 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
     </div>
   </div>
 </div>
+
+      <!-- CREATE EVENT MODAL -->
+      <div id="createEventModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center hidden z-[60] p-4">
+        <div class="bg-white rounded-2xl shadow-xl relative w-full max-w-md max-h-[90vh] overflow-y-auto p-6">
+          <button id="closeCreateEvent" class="absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-xl">&times;</button>
+
+          <h2 class="text-2xl font-bold mb-1">Create Event</h2>
+          <p class="text-sm text-gray-500 mb-4">Fill in the details to start planning your event.</p>
+
+          <label class="block text-sm font-medium mb-1">Event Name <span class="text-gray-400 text-xs">(required)</span></label>
+          <input type="text" id="eventName" class="w-full border border-gray-300 rounded-lg px-3 py-2 mb-4" placeholder="Enter event name">
+
+          <label class="block text-sm font-medium mb-1">Description</label>
+          <textarea id="eventDescription" maxlength="200" class="w-full border border-gray-300 rounded-lg px-3 py-2 mb-1 resize-none h-20" placeholder="Write a short description..."></textarea>
+          <div class="text-right text-xs text-gray-500 mb-4"><span id="charCount">0</span>/200</div>
+
+          <div class="grid grid-cols-2 gap-4 mb-4">
+            <div>
+              <label class="block text-sm font-medium mb-1">Date</label>
+              <input type="date" id="eventDate" class="w-full border border-gray-300 rounded-lg px-3 py-2">
+            </div>
+            <div>
+              <label class="block text-sm font-medium mb-1">Time</label>
+              <input type="time" id="eventTime" class="w-full border border-gray-300 rounded-lg px-3 py-2">
+            </div>
+          </div>
+
+          <label class="block text-sm font-medium mb-1">Location</label>
+          <input id="eventLocation" type="text" class="w-full border border-gray-300 rounded-lg px-3 py-2 mb-2" placeholder="Search for a location">
+          <div id="map" class="w-full h-60 rounded-lg border border-gray-300 mb-4"></div>
+
+          <p class="text-gray-500 text-xs mb-4 text-justify">
+            Only Event Name is required. You can leave Description, Date, Time, and Location blank and create a poll for your attendees to vote on these details.
+          </p>
+
+          <div class="flex justify-end gap-3 mb-2">
+            <button id="cancelCreateEvent" class="px-4 py-2 rounded-lg border border-gray-300 hover:bg-gray-100 transition">Cancel</button>
+            <button id="saveCreateEvent" class="bg-[#f4b41a] px-4 py-2 rounded-lg font-medium hover:bg-[#e0a419] transition">Save & Continue</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- JOIN EVENT MODAL -->
+      <div id="joinEventModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center hidden z-[60] p-4">
+        <div class="bg-white rounded-2xl p-6 w-[500px] shadow-xl relative">
+          <button id="closeJoinEvent" class="absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-xl">&times;</button>
+
+          <h2 class="text-2xl font-bold mb-1">Join Event</h2>
+          <p class="text-sm text-gray-500 mb-4">Enter the event code or link to join.</p>
+
+          <label class="block text-sm font-medium mb-1">Event Code / Link</label>
+          <input type="text" class="w-full border border-gray-300 rounded-lg px-3 py-2 mb-6" placeholder="Paste code or link here">
+
+          <div class="flex justify-end gap-3">
+            <button id="cancelJoinEvent" class="px-4 py-2 rounded-lg border border-gray-300 hover:bg-gray-100 transition">Cancel</button>
+            <button id="joinJoinEvent" class="bg-[#f4b41a] px-4 py-2 rounded-lg font-medium hover:bg-[#e0a419] transition">Join</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ABOUT US MODAL -->
+      <div id="aboutUsModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm hidden z-[60] p-4">
+        <div class="bg-white rounded-2xl shadow-xl relative w-full max-w-2xl max-h-[90vh] overflow-y-auto p-8 mx-auto my-10"
+             role="dialog" aria-modal="true" aria-labelledby="aboutUsTitle" onclick="event.stopPropagation()">
+          <button id="closeAboutUsModal" class="absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-2xl" aria-label="Close">&times;</button>
+
+          <h1 id="aboutUsTitle" class="text-3xl font-bold text-[#222] mb-4">About Us</h1>
+          <p class="text-gray-700 mb-6 leading-relaxed">
+            <span class="font-semibold text-[#f4b41a]">DiNaDrawing</span> is a collaborative planning platform designed to make organizing events and group activities easy, fun, and efficient.
+            Whether you're preparing a trip, party, or project, DiNaDrawing helps you stay connected, assign tasks, and track your plans in one place.
+          </p>
+
+          <div class="grid md:grid-cols-2 gap-6 mt-8">
+            <div class="bg-[#fffaf2] p-6 rounded-xl border border-gray-200 shadow-sm">
+              <h2 class="text-xl font-semibold text-[#222] mb-3">Our Mission</h2>
+              <p class="text-gray-700 leading-relaxed text-sm">
+                To simplify teamwork and planning by creating a space where collaboration feels effortless, ensuring every plan—big or small—gets drawn out perfectly.
+              </p>
+            </div>
+            <div class="bg-[#fffaf2] p-6 rounded-xl border border-gray-200 shadow-sm">
+              <h2 class="text-xl font-semibold text-[#222] mb-3">Our Vision</h2>
+              <p class="text-gray-700 leading-relaxed text-sm">
+                To become the go-to digital planner for creative teams and friend groups around the world, empowering people to turn their ideas into reality.
+              </p>
+            </div>
+          </div>
+
+          <div class="mt-8">
+            <h2 class="text-2xl font-bold text-[#222] mb-4">Meet the Team</h2>
+            <div class="grid grid-cols-5 gap-4">
+              <div class="flex flex-col items-center bg-[#fffaf2] p-4 rounded-xl border border-gray-200 shadow-sm">
+                <img src="Assets/Profile Icon/Ken.jpg" alt="Ken" class="w-16 h-16 rounded-full border-2 border-[#f4b41a] shadow mb-2">
+                <h3 class="font-semibold text-[#222] text-sm">Ken Mendoza</h3>
+                <p class="text-xs text-gray-600">Front-End Dev</p>
+              </div>
+              <div class="flex flex-col items-center bg-[#fffaf2] p-4 rounded-xl border border-gray-200 shadow-sm">
+                <img src="Assets/Profile Icon/Andrea.jpg" alt="Andrea" class="w-16 h-16 rounded-full border-2 border-[#f4b41a] shadow mb-2">
+                <h3 class="font-semibold text-[#222] text-sm">Andrea Calilap</h3>
+                <p class="text-xs text-gray-600">Front-End Dev</p>
+              </div>
+              <div class="flex flex-col items-center bg-[#fffaf2] p-4 rounded-xl border border-gray-200 shadow-sm">
+                <img src="Assets/Profile Icon/Angel.jpg" alt="Venice" class="w-16 h-16 rounded-full border-2 border-[#f4b41a] shadow mb-2">
+                <h3 class="font-semibold text-[#222] text-sm">Angel Retabale</h3>
+                <p class="text-xs text-gray-600">Project Manager</p>
+              </div>
+              <div class="flex flex-col items-center bg-[#fffaf2] p-4 rounded-xl border border-gray-200 shadow-sm">
+                <img src="Assets/Profile Icon/Jara.jpg" alt="Kyle" class="w-16 h-16 rounded-full border-2 border-[#f4b41a] shadow mb-2">
+                <h3 class="font-semibold text-[#222] text-sm">Kyle Reyes</h3>
+                <p class="text-xs text-gray-600">Back-End Dev</p>
+              </div>
+              <div class="flex flex-col items-center bg-[#fffaf2] p-4 rounded-xl border border-gray-200 shadow-sm">
+                <img src="Assets/Profile Icon/Jovan.jpg" alt="Ralf" class="w-16 h-16 rounded-full border-2 border-[#f4b41a] shadow mb-2">
+                <h3 class="font-semibold text-[#222] text-sm">Ralf Sanchez</h3>
+                <p class="text-xs text-gray-600">Back-End Dev</p>
+              </div>
+            </div>
+          </div>
+
+          <footer class="mt-8 text-center text-gray-500 text-xs border-t border-gray-200 pt-4">
+            © 2025 DiNaDrawing. All rights reserved.
+          </footer>
+        </div>
+      </div>
 
 <!-- LOGOUT CONFIRM MODAL -->
 <div id="logoutModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm hidden z-[70] p-4 flex items-center justify-center">
