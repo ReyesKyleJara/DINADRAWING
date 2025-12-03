@@ -1,82 +1,69 @@
 <?php
-
-
-require_once 'db_connection.php';
-
 header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Methods: POST, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type, Authorization");
 header("Content-Type: application/json; charset=UTF-8");
 
+// Handle preflight OPTIONS request
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(200);
     exit;
 }
 
-// Get input JSON as associative array
-$input = json_decode(file_get_contents("php://input"), true);
-$firebase_uid = $input['firebase_uid'] ?? '';
-$name = $input['name'] ?? '';
-$email = $input['email'] ?? '';
+require_once 'db_connection.php';
 
-// Validate required field
-if (empty($firebase_uid)) {
+// Get JSON input
+$data = json_decode(file_get_contents("php://input"), true);
+
+$email = trim($data['email'] ?? '');
+$password = trim($data['password'] ?? '');
+
+// Validate required fields
+if (empty($email) || empty($password)) {
     http_response_code(400);
-    echo json_encode(["success" => false, "message" => "Firebase UID is required"]);
+    echo json_encode(["success" => false, "message" => "Email and password are required"]);
     exit;
 }
 
 try {
-    // Begin transaction to prevent race conditions
-    $conn->beginTransaction();
+    // Ensure users table exists with email/password schema
+    $conn->exec("
+        CREATE TABLE IF NOT EXISTS users (
+            id SERIAL PRIMARY KEY,
+            email VARCHAR(255) UNIQUE NOT NULL,
+            password_hash VARCHAR(255) NOT NULL,
+            name VARCHAR(255),
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    ");
 
-    // Look for existing user
-    $stmt = $conn->prepare("SELECT * FROM users WHERE firebase_uid = ?");
-    $stmt->execute([$firebase_uid]);
+    // Check if user exists
+    $stmt = $conn->prepare("SELECT id, email, name, password_hash FROM users WHERE email = ?");
+    $stmt->execute([$email]);
 
-    if ($stmt->rowCount() > 0) {
-        // User exists - return user info
-        $user = $stmt->fetch(PDO::FETCH_ASSOC);
-        $conn->commit();
-        echo json_encode([
-            "success" => true, 
-            "message" => "User logged in successfully",
-            "user" => $user
-        ]);
+    if ($stmt->rowCount() === 0) {
+        http_response_code(401);
+        echo json_encode(["success" => false, "message" => "Invalid email or password"]);
         exit;
     }
 
-    // User doesn't exist - create new user
-    $insert = $conn->prepare("
-        INSERT INTO users (firebase_uid, name, email) 
-        VALUES (?, ?, ?)
-        RETURNING id, firebase_uid, name, email, created_at
-    ");
-    
-    $insert->execute([$firebase_uid, $name, $email]);
-    $newUser = $insert->fetch(PDO::FETCH_ASSOC);
-    
-    $conn->commit();
+    $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
-    echo json_encode([
-        "success" => true, 
-        "message" => "User created successfully",
-        "user" => $newUser
-    ]);
+    // Verify password
+    if (password_verify($password, $user['password_hash'])) {
+        // Password is correct - login successful
+        echo json_encode(["success" => true, "message" => "Login successful", "user" => [
+            "id" => $user['id'],
+            "email" => $user['email'],
+            "name" => $user['name']
+        ]]);
+    } else {
+        http_response_code(401);
+        echo json_encode(["success" => false, "message" => "Invalid email or password"]);
+    }
 
 } catch (PDOException $e) {
-    // Rollback transaction on error
-    if ($conn->inTransaction()) {
-        $conn->rollBack();
-    }
-    
-    // Handle duplicate entry error
-    if ($e->getCode() == 23505) { // PostgreSQL unique violation
-        http_response_code(409);
-        echo json_encode(["success" => false, "message" => "User already exists"]);
-    } else {
-        http_response_code(500);
-        echo json_encode(["success" => false, "message" => "Database error: " . $e->getMessage()]);
-    }
+    http_response_code(500);
+    echo json_encode(["success" => false, "message" => "Database error: " . $e->getMessage()]);
 }
 ?>
