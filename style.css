@@ -38,30 +38,27 @@ body {
   }
 
 
-/* Dark/Light variables */
-html.light {
-  --bg-color: #ffffff;
-  --text-color: #111111;
-}
-
-html.dark {
-  --bg-color: #111111;
-  --text-color: #ffffff;
-}
-
-/* Apply to body and everything else */
+html,
 body {
-  background-color: var(--bg-color);
-  color: var(--text-color);
-  transition: background-color 0.3s, color 0.3s;
+  background-color: #ffffff;
+  color: #111111;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-/* Optional: highlight active icon */
-.appearance-switch .option.active {
-  filter: brightness(1.3);
-  cursor: pointer;
+/* Kapag naka-dark mode (gamit .dark-mode na class sa JS) */
+html.dark-mode,
+body.dark-mode {
+  background-color: #111111;
+  color: #ffffff;
+  color-scheme: dark; /* para makitulong sa browser UI / scrollbars */
 }
+
+/* Generic appearance switch behaviour – detailed styling nasa settings.html pa rin */
 .appearance-switch .option {
   cursor: pointer;
-  transition: filter 0.2s;
+  transition: filter 0.2s ease;
+}
+
+.appearance-switch .option.active {
+  filter: brightness(1.15);
 }

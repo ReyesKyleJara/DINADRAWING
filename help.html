@@ -6,28 +6,34 @@
   <title>Help | DiNaDrawing</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="style.css">
 
-  <!-- Early theme application (same as dashboard/settings) -->
+    <!-- Early theme application -->
   <script>
     (function() {
       const savedTheme = localStorage.getItem('theme');
+
       if (savedTheme === 'dark') {
         document.documentElement.classList.add('dark-mode');
-        document.body.classList.add('dark-mode');
+      } else {
+        document.documentElement.classList.remove('dark-mode');
       }
-      window.addEventListener('storage', (e) => {
+
+      // Sync theme changes across tabs/pages
+      window.addEventListener('storage', function(e) {
         if (e.key === 'theme') {
           if (e.newValue === 'dark') {
             document.documentElement.classList.add('dark-mode');
-            document.body.classList.add('dark-mode');
+            if (document.body) document.body.classList.add('dark-mode');
           } else {
             document.documentElement.classList.remove('dark-mode');
-            document.body.classList.remove('dark-mode');
+            if (document.body) document.body.classList.remove('dark-mode');
           }
         }
       });
     })();
   </script>
+
 
   <style>
     body { font-family: 'Poppins', sans-serif; background-color: #fffaf2; color: #222; }
@@ -354,8 +360,18 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
 
 <!-- FRONTEND SCRIPTS -->
 <script>
-  // Sidebar / layout logic copied from dashboard/settings
+  // Sidebar 
   document.addEventListener('DOMContentLoaded', function() {
+
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme === 'dark') {
+      document.body.classList.add('dark-mode');
+      document.documentElement.classList.add('dark-mode');
+    } else {
+      document.body.classList.remove('dark-mode');
+      document.documentElement.classList.remove('dark-mode');
+    }
+
     const hamburgerBtn = document.getElementById('hamburgerBtn');
     const sidebar = document.getElementById('sidebar');
     const sidebarOverlay = document.getElementById('sidebarOverlay');
@@ -364,6 +380,7 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
 
     const sidebarState = localStorage.getItem('sidebarOpen');
     const isMobile = window.innerWidth < 769;
+
 
     if (sidebarState === null) {
       if (!isMobile) {

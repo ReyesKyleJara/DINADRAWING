@@ -36,7 +36,7 @@ function signInWithGoogle() {
       console.log("Google Login Success:", user);
 
       // SEND USER DATA TO BACKEND (auth.php)
-      fetch("auth.php", {
+      fetch("/DINADRAWING/Backend/api/auth.php", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

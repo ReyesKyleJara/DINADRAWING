@@ -62,27 +62,26 @@ function card_banner_style($ev){
   <title>My Plans | DiNaDrawing</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <!-- Early theme application (dark mode persistence) -->
+  <!-- Use root style.css -->
+  <link rel="stylesheet" href="style.css">
+
+  <!-- Early theme application (same as dashboard/settings) -->
   <script>
     (function() {
-      const savedTheme = localStorage.getItem('theme');
-      if (savedTheme === 'dark') {
-        document.documentElement.classList.add('dark-mode');
-        document.body.classList.add('dark-mode');
-      }
+      const apply = (val) => {
+        const isDark = val === 'dark';
+        document.documentElement.classList.toggle('dark-mode', isDark);
+        document.body.classList.toggle('dark-mode', isDark);
+      };
+      apply(localStorage.getItem('theme') || 'light');
       window.addEventListener('storage', (e) => {
-        if (e.key === 'theme') {
-          if (e.newValue === 'dark') {
-            document.documentElement.classList.add('dark-mode');
-            document.body.classList.add('dark-mode');
-          } else {
-            document.documentElement.classList.remove('dark-mode');
-            document.body.classList.remove('dark-mode');
-          }
-        }
+        if (e.key === 'theme') apply(e.newValue || 'light');
       });
+      window.setTheme = function(value){ localStorage.setItem('theme', value); apply(value); };
     })();
   </script>
+
+  <!-- Remove duplicate inline dark-mode styles; keep only layout styles -->
   <style>
     body{font-family:'Poppins',sans-serif;background-color:#fffaf2;}
     /* Dark mode palette (frontend only) */

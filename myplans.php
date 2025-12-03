@@ -533,9 +533,17 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
 <script>
   // Sidebar / layout toggle (frontend-only; persists in localStorage)
   document.addEventListener('DOMContentLoaded', function() {
+
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme === 'dark') {
+      document.body.classList.add('dark-mode');
+      document.documentElement.classList.add('dark-mode');
+    }
+
     const hamburgerBtn = document.getElementById('hamburgerBtn');
     const sidebar = document.getElementById('sidebar');
     const sidebarOverlay = document.getElementById('sidebarOverlay');
@@ -614,6 +622,7 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
 
     applySidebarLayout();
   });
+
 
   // UNIFIED VIEW TOGGLE (CONTROLS BOTH SECTIONS)
   const galleryViewBtn = document.getElementById("galleryViewBtn");
