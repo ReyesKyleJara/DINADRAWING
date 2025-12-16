@@ -1,0 +1,43 @@
+CREATE TABLE users (
+    id SERIAL PRIMARY KEY,
+
+    name VARCHAR(100) NOT NULL,
+    username VARCHAR(50) NOT NULL UNIQUE,
+    email VARCHAR(150) NOT NULL UNIQUE,
+
+    password_hash TEXT NOT NULL,
+
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE TABLE events (
+    id SERIAL PRIMARY KEY,
+
+    owner_id INTEGER NOT NULL
+        REFERENCES users(id)
+        ON DELETE CASCADE,
+
+    name VARCHAR(150) NOT NULL,
+    description TEXT,
+
+    date DATE,
+    time TIME,
+
+    location TEXT,
+
+    banner_type VARCHAR(20)
+        CHECK (
+            banner_type IN ('color', 'gradient', 'image')
+            OR banner_type IS NULL
+        ),
+
+    banner_color TEXT,
+    banner_from TEXT,
+    banner_to TEXT,
+    banner_image TEXT,
+
+    archived BOOLEAN NOT NULL DEFAULT FALSE,
+
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);

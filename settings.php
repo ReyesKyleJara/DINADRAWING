@@ -173,7 +173,7 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
             <a href="settings.php" class="block px-4 py-2 text-sm hover:bg-gray-50">Settings</a>
             <button id="logoutProfile" class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50">Log out</button>
           </div>
-        </div>
+        </div>/Applications/XAMPP/xamppfiles/htdocs/DINADRAWING/Backend/event/event/delete.php
       </div>
     </div>
   </div>
