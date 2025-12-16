@@ -41,3 +41,78 @@ CREATE TABLE events (
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+CREATE TABLE posts (
+    id SERIAL PRIMARY KEY,
+    event_id INT NOT NULL REFERENCES events(id) ON DELETE CASCADE,
+    user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    content TEXT,
+    image_path TEXT DEFAULT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-------------------------------------------------------------------
+ALTER TABLE posts ADD COLUMN post_type VARCHAR(20) DEFAULT 'standard';
+
+-- 2. Table for the Poll question and settings
+CREATE TABLE polls (
+    id SERIAL PRIMARY KEY,
+    post_id INT NOT NULL REFERENCES posts(id) ON DELETE CASCADE,
+    question TEXT NOT NULL,
+    allow_multiple BOOLEAN DEFAULT FALSE,
+    is_anonymous BOOLEAN DEFAULT FALSE
+);
+
+-- 3. Table for Poll Options (Choices)
+CREATE TABLE poll_options (
+    id SERIAL PRIMARY KEY,
+    poll_id INT NOT NULL REFERENCES polls(id) ON DELETE CASCADE,
+    option_text TEXT NOT NULL,
+    vote_count INT DEFAULT 0
+);
+
+-- 4. Table to track who voted (to prevent double voting later)
+CREATE TABLE poll_votes (
+    id SERIAL PRIMARY KEY,
+    poll_option_id INT NOT NULL REFERENCES poll_options(id) ON DELETE CASCADE,
+    user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    UNIQUE(poll_option_id, user_id)
+);
+
+
+-- 1. Table for the Task Group (main details)
+CREATE TABLE tasks (
+    id SERIAL PRIMARY KEY,
+    post_id INT NOT NULL REFERENCES posts(id) ON DELETE CASCADE,
+    title TEXT,
+    deadline TIMESTAMP DEFAULT NULL,
+    allow_mention BOOLEAN DEFAULT TRUE,
+    allow_add BOOLEAN DEFAULT TRUE
+);
+
+-- 2. Table for Individual Task Items
+CREATE TABLE task_items (
+    id SERIAL PRIMARY KEY,
+    task_id INT NOT NULL REFERENCES tasks(id) ON DELETE CASCADE,
+    item_text TEXT NOT NULL,
+    assigned_to TEXT -- Stores the name (e.g., "@Andrea")
+);
+
+CREATE TABLE event_members (
+    id SERIAL PRIMARY KEY,
+    event_id INT NOT NULL REFERENCES events(id) ON DELETE CASCADE,
+    user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    role VARCHAR(20) DEFAULT 'member', -- 'admin' or 'member'
+    joined_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(event_id, user_id) -- Prevents joining the same event twice
+);
+
+------------------------------------- 
+
+1. Add the column
+ALTER TABLE events ADD COLUMN invite_code VARCHAR(10) UNIQUE;
+
+-- 2. Generate random 6-character codes for existing events (PostgreSQL syntax)
+UPDATE events 
+SET invite_code = UPPER(SUBSTRING(MD5(RANDOM()::TEXT), 1, 6))
+WHERE invite_code IS NULL;

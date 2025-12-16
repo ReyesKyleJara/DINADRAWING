@@ -18,6 +18,35 @@ if (!$id) {
     die("Event ID missing.");
 }
 
+session_start();
+
+// 1. Get Current User's Avatar
+$currentUserAvatar = 'Assets/Profile Icon/profile.png'; // Default fallback
+
+if (isset($_SESSION['user_id'])) {
+    // Kunin ang fresh data galing database
+    $uStmt = $conn->prepare("SELECT profile_picture FROM users WHERE id = :uid");
+    $uStmt->execute([':uid' => $_SESSION['user_id']]);
+    $userRow = $uStmt->fetch();
+    
+    if ($userRow && !empty($userRow['profile_picture'])) {
+        $dbPic = $userRow['profile_picture'];
+        
+        // 2. Smart Path Detection (Gaya ng ginawa natin sa get_posts.php)
+        if (strpos($dbPic, 'data:') === 0 || strpos($dbPic, 'http') === 0) {
+            // Kung Base64 o URL, gamitin as-is
+            $currentUserAvatar = $dbPic;
+        } else {
+            // Kung file path, siguraduhing walang 'DINADRAWING/' sa unahan para iwas doble
+            // Kasi nasa loob na tayo ng root folder
+            $cleanPath = ltrim($dbPic, '/');
+            $cleanPath = str_replace('DINADRAWING/', '', $cleanPath); 
+            $currentUserAvatar = $cleanPath;
+        }
+    }
+}
+
+
 // Fetch event
 $stmt = $conn->prepare("SELECT * FROM events WHERE id = :id");
 $stmt->bindValue(":id", $id, PDO::PARAM_INT);
@@ -31,6 +60,7 @@ if (!$event) {
 
 $event_name = htmlspecialchars($event['name'] ?? $event['title'] ?? 'Untitled Event', ENT_QUOTES, 'UTF-8');
 $event_desc = htmlspecialchars($event['description'] ?? $event['desc'] ?? '', ENT_QUOTES, 'UTF-8');
+$invite_code = htmlspecialchars($event['invite_code'] ?? 'No Code', ENT_QUOTES, 'UTF-8');
 
 // support either 'place' or 'location' column names
 $event_place = htmlspecialchars($event['place'] ?? $event['location'] ?? $event['loc'] ?? '', ENT_QUOTES, 'UTF-8');
@@ -86,7 +116,7 @@ $banner_inline = banner_style($banner_type,$banner_color,$banner_from,$banner_to
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="Assets/styles/scrollbar.css">
+
 <style>
       body { font-family: 'Poppins', sans-serif; background-color: #fffaf2; }
     #postInput:empty::before { content: attr(data-placeholder); color: #9ca3af; pointer-events: none; }
@@ -320,17 +350,64 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
       <div id="feed-section" class="tab-section active">
       <!-- POST BOX -->
       <div id="postBox" class="bg-white p-4 rounded-lg shadow w-full transition-all duration-300">
-        <div class="flex items-start gap-3">
-          <img src="Assets/Profile Icon/profile.png" alt="User" class="w-10 h-10 rounded-full" />
-          <div class="flex-1">
-            <div class="border border-gray-300 rounded-lg focus-within:border-[#f4b41a] transition-all duration-300 overflow-hidden">
-              <!-- POST INPUT -->
-              <div
-                id="postInput"
-                contenteditable="true"
-                data-placeholder="Announce something to group"
-                class="w-full px-3 py-2 text-sm resize-none min-h-[60px] focus:outline-none"
-              ></div>
+  <div class="flex items-start gap-3">
+<img src="<?php echo htmlspecialchars($currentUserAvatar); ?>" alt="User" class="w-10 h-10 rounded-full object-cover" />
+    <div class="flex-1">
+      <div class="border border-gray-300 rounded-lg focus-within:border-[#f4b41a] transition-all duration-300 overflow-hidden">
+        
+        <div
+          id="postInput"
+          contenteditable="true"
+          data-placeholder="Announce something to group"
+          class="w-full px-3 py-2 text-sm resize-none min-h-[60px] focus:outline-none max-h-[300px] overflow-y-auto"
+        ></div>
+
+        <div id="postImagePreviewContainer" class="hidden p-2 relative">
+            <img id="postImagePreview" src="" alt="Preview" class="max-h-48 rounded-lg border border-gray-200">
+            <button onclick="removePostImage()" class="absolute top-3 right-3 bg-gray-800/70 hover:bg-gray-900 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs">✕</button>
+        </div>
+
+        <input type="file" id="postImageInput" accept="image/*" class="hidden">
+
+        <div id="toolbar" class="hidden flex items-center gap-2 p-2 border-t border-gray-200 text-gray-600 bg-gray-50">
+          <button type="button" onmousedown="keepFocus(event)" onclick="formatText('bold')" class="hover:text-[#f4b41a] font-semibold">B</button>
+          <button type="button" onmousedown="keepFocus(event)" onclick="formatText('italic')" class="hover:text-[#f4b41a] italic">I</button>
+          <button type="button" onmousedown="keepFocus(event)" onclick="formatText('underline')" class="hover:text-[#f4b41a] underline">U</button>
+        </div>
+      </div>
+
+      <div id="postActions" class="hidden mt-3 flex justify-between items-center">
+<div class="flex gap-2">
+  <button onmousedown="keepFocus(event)" onclick="triggerPostImageUpload()" class="bg-gray-100 hover:bg-[#f4b41a]/30 text-gray-600 hover:text-[#f4b41a] rounded-full w-8 h-8 flex items-center justify-center transition" title="Add Image">
+    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+    </svg>
+  </button>
+
+  <button onmousedown="keepFocus(event)" onclick="openPoll()" class="bg-gray-100 hover:bg-[#f4b41a]/30 text-gray-600 hover:text-[#f4b41a] rounded-full w-8 h-8 flex items-center justify-center transition" title="Create Poll">
+    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+    </svg>
+  </button>
+
+  <button onmousedown="keepFocus(event)" onclick="openTask()" class="bg-gray-100 hover:bg-[#f4b41a]/30 text-gray-600 hover:text-[#f4b41a] rounded-full w-8 h-8 flex items-center justify-center transition" title="Assign Task">
+    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+    </svg>
+  </button>
+</div>
+
+        <div class="flex gap-2">
+          <button type="button" class="px-4 py-2 bg-gray-200 rounded-lg text-sm hover:bg-gray-300 transition" onclick="cancelPost()">Cancel</button>
+          <button id="submitPostBtn" type="button" class="px-4 py-2 bg-[#f4b41a] text-[#222] rounded-lg text-sm font-medium hover:bg-[#e3a918] transition" onclick="submitPost()">Post</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="feedContainer" class="mt-6 space-y-4">
+    </div>
 
               <!-- BOLD, ITALIC, & UNDERLINE -->
               <div id="toolbar" class="hidden flex items-center gap-2 p-2 border-t border-gray-200 text-gray-600 bg-gray-50">
@@ -639,8 +716,7 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
       <div id="membersCard" class="bg-white p-4 rounded-lg shadow">
         <h3 class="font-semibold mb-2">Members (1)</h3>
         <div id="membersList" class="grid grid-cols-5 gap-2 mb-3">
-          <img src="Assets/Profile Icon/profile.png" class="w-8 h-8 rounded-full border" alt="Creator">
-          <!-- Other members will be loaded from backend -->
+          <img src="<?php echo htmlspecialchars($currentUserAvatar); ?>" class="w-8 h-8 rounded-full border object-cover" alt="You">          <!-- Other members will be loaded from backend -->
         </div>
         <button onclick="openInvite()" class="w-full bg-[#f4b41a] text-[#222] py-2 rounded-lg font-medium hover:bg-[#e3a918] transition">
           Invite People
@@ -661,19 +737,28 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
   </main>
 
   <!-- MOVED: INVITE PEOPLE MODAL -->
-  <div id="inviteModal" class="fixed inset-0 bg-black/40 hidden items-center justify-center z-[60]">
+<div id="inviteModal" class="fixed inset-0 bg-black/40 hidden items-center justify-center z-[60]">
     <div class="bg-white w-96 rounded-xl shadow-lg p-6 relative">
-      <h2 class="text-lg font-semibold mb-3">Invite People</h2>
       <button onclick="closeInvite()" class="absolute top-3 right-3 text-gray-500 hover:text-black">✕</button>
-      <p class="text-sm text-gray-600 mb-3">Share this link with your friends to invite them to this plan:</p>
+      
+      <h2 class="text-lg font-semibold mb-1">Invite People</h2>
+      <p class="text-sm text-gray-500 mb-5">Share the code or link to invite others.</p>
 
-      <!-- GENERATE LINK -->
-      <div class="flex items-center justify-between bg-gray-100 rounded-lg px-3 py-2 mb-3 border border-gray-300">
-        <input id="inviteLink" type="text" readonly class="bg-transparent text-sm w-full focus:outline-none" value="" />
-        <button onclick="copyLink()" class="ml-2 text-[#f4b41a] font-medium hover:underline">Copy</button>
+      <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Event Code</label>
+      <div class="flex items-center justify-between bg-[#fffaf2] rounded-xl px-4 py-3 mb-5 border-2 border-dashed border-[#f4b41a]">
+        <span class="text-2xl font-bold tracking-[0.2em] text-[#222]" id="displayInviteCode"><?php echo $invite_code; ?></span>
+        <button onclick="copyModalCode()" class="bg-[#f4b41a] text-[#222] text-xs font-bold px-3 py-1.5 rounded hover:bg-[#e3a918] transition">
+          COPY
+        </button>
       </div>
 
-      <button onclick="generateLink()" class="w-full bg-[#f4b41a] text-[#222] py-2 rounded-lg font-medium hover:bg-[#e3a918] transition">Generate New Link</button>
+      <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Or share link</label>
+      <div class="flex items-center justify-between bg-gray-50 rounded-lg px-3 py-2 border border-gray-200">
+        <input id="inviteLinkInput" type="text" readonly class="bg-transparent text-sm w-full focus:outline-none text-gray-600 truncate mr-2" value="" />
+        <button onclick="copyModalLink()" class="text-gray-500 hover:text-[#222] text-sm font-medium transition">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
+        </button>
+      </div>
     </div>
   </div>
 
@@ -1006,7 +1091,7 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
        console.log('Banner payload:', payload);
        try {
         // Use consistent path casing (adjust if your server expects uppercase)
-        const resp = await fetch('/DINADRAWING/Backend/api/event/save_banner.php', {
+        const resp = await fetch('/DINADRAWING/Backend/events/save_banner.php', {
            method:'POST',
            headers:{'Content-Type':'application/json'},
            body: JSON.stringify(payload)
@@ -1044,42 +1129,110 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
      });
   </script>
 
-  <script>
-    // POST BOX 
+<script>
+    // ================================
+    // 1. POST BOX & STANDARD POST LOGIC
+    // ================================
     const postInput = document.getElementById('postInput');
     const toolbar = document.getElementById('toolbar');
     const postActions = document.getElementById('postActions');
+    const submitPostBtn = document.getElementById('submitPostBtn');
+    const postImageInput = document.getElementById('postImageInput');
+    const postImagePreviewContainer = document.getElementById('postImagePreviewContainer');
+    const postImagePreview = document.getElementById('postImagePreview');
+    const feedContainer = document.getElementById('feedContainer');
 
     function expandPostBox() {
       postInput?.classList.add('min-h-[120px]');
       toolbar?.classList.remove('hidden');
       postActions?.classList.remove('hidden');
     }
+    
     function collapsePostBox() {
-      postInput?.classList.remove('min-h-[120px]');
-      toolbar?.classList.add('hidden');
-      postActions?.classList.add('hidden');
+      if (postInput?.innerText.trim() === '' && postImageInput.files.length === 0) {
+          postInput?.classList.remove('min-h-[120px]');
+          toolbar?.classList.add('hidden');
+          postActions?.classList.add('hidden');
+      }
     }
+
     postInput?.addEventListener('focus', expandPostBox);
     document.addEventListener('click', (e) => {
-      const postBox = document.getElementById('postBox');s
-      if (postBox && !postBox.contains(e.target) && (postInput?.innerText.trim() === '')) {
-        collapsePostBox();
-      }
+      const postBox = document.getElementById('postBox');
+      if (postBox && !postBox.contains(e.target)) collapsePostBox();
     });
+
     function keepFocus(e){ e.preventDefault(); }
     function formatText(cmd){
-      postInput?.focus();
-      document.execCommand(cmd === 'underline' ? 'underline' : cmd, false, null);
+      postInput?.focus(); document.execCommand(cmd === 'underline' ? 'underline' : cmd, false, null);
     }
-    function cancelPost(){ if (postInput) postInput.innerHTML=''; collapsePostBox(); }
-    function submitPost(){ collapsePostBox(); }
 
-    // POLL MODAL   
-    function openPoll(){ document.getElementById('pollModal')?.classList.remove('hidden'); }
-    function closePoll(){ document.getElementById('pollModal')?.classList.add('hidden'); }
-    const pollAddOptionBtn = document.getElementById('pollAddOptionBtn');
+    function triggerPostImageUpload() { postImageInput.click(); }
+    postImageInput.addEventListener('change', function() {
+        if (this.files && this.files[0]) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                postImagePreview.src = e.target.result;
+                postImagePreviewContainer.classList.remove('hidden');
+                expandPostBox();
+            };
+            reader.readAsDataURL(this.files[0]);
+        }
+    });
+    function removePostImage() {
+        postImageInput.value = ''; postImagePreview.src = ''; postImagePreviewContainer.classList.add('hidden');
+    }
+    function cancelPost(){ 
+        if (postInput) postInput.innerHTML=''; removePostImage(); collapsePostBox(); 
+    }
+
+    async function submitPost(){ 
+        const content = postInput.innerText.trim();
+        const imageFile = postImageInput.files[0];
+        if (content === '' && !imageFile) return;
+
+        submitPostBtn.disabled = true; submitPostBtn.textContent = 'Posting...';
+        const formData = new FormData();
+        formData.append('event_id', <?php echo (int)$id; ?>);
+        formData.append('content', content);
+        if (imageFile) formData.append('image', imageFile);
+
+        try {
+            const res = await fetch('/DINADRAWING/Backend/events/create_post.php', { method: 'POST', body: formData });
+            const data = await res.json();
+            if (data.success) { cancelPost(); prependNewPost(data.post); } 
+            else { alert('Failed to post: ' + (data.error || 'Unknown error')); }
+        } catch (err) { console.error(err); alert('Network error.'); } 
+        finally { submitPostBtn.disabled = false; submitPostBtn.textContent = 'Post'; }
+    }
+
+    // ================================
+    // 2. POLL MODAL LOGIC
+    // ================================
+    const pollModal = document.getElementById('pollModal');
+    const pollQuestionInput = pollModal?.querySelector('input[placeholder="Enter your question here..."]');
     const pollOptionsContainer = document.getElementById('pollOptionsContainer');
+    const pollAddOptionBtn = document.getElementById('pollAddOptionBtn');
+    const createPollBtn = pollModal?.querySelector('button.bg-\\[\\#f4b41a\\]'); 
+    
+    const pollCheckboxes = pollModal?.querySelectorAll('input[type="checkbox"]'); 
+    const allowMultipleChk = pollCheckboxes?.[0];
+    const isAnonymousChk = pollCheckboxes?.[1];
+
+    function openPoll(){ pollModal?.classList.remove('hidden'); }
+    function closePoll(){ 
+        pollModal?.classList.add('hidden'); 
+        if(pollQuestionInput) pollQuestionInput.value = '';
+        if(pollOptionsContainer) {
+             while(pollOptionsContainer.children.length > 2) {
+                 pollOptionsContainer.removeChild(pollOptionsContainer.lastChild);
+             }
+             pollOptionsContainer.querySelectorAll('input').forEach(i => i.value = '');
+        }
+        if(allowMultipleChk) allowMultipleChk.checked = false;
+        if(isAnonymousChk) isAnonymousChk.checked = false;
+    }
+
     let pollOptionCount = (pollOptionsContainer?.children.length || 1);
     pollAddOptionBtn?.addEventListener('click', () => {
       pollOptionCount++;
@@ -1090,98 +1243,243 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
       pollOptionsContainer?.appendChild(input);
     });
 
-    // POLL POST MENU + ADD OPTION
-    const pollMenuBtn = document.getElementById('pollOptionsBtn');
-    const pollMenu = document.getElementById('pollOptionsMenu');
-    pollMenuBtn?.addEventListener('click', (e)=>{ e.stopPropagation(); pollMenu?.classList.toggle('hidden'); });
-    document.addEventListener('click', (e)=>{
-      if (!pollMenu || !pollMenuBtn) return;
-      if (!pollMenu.classList.contains('hidden') && !pollMenu.contains(e.target) && e.target !== pollMenuBtn){
-        pollMenu.classList.add('hidden');
-      }
-    });
-    const addOptionBtn = document.getElementById('addOptionBtn');
-    const pollOptionsList = document.getElementById('pollOptions');
-    addOptionBtn?.addEventListener('click', ()=>{
-      const wrapper = document.createElement('div');
-      wrapper.className = 'relative w-full bg-gray-200 rounded-full h-6 overflow-hidden flex items-center';
-      wrapper.innerHTML = '<div class="absolute top-0 left-0 bg-[#f4b41a]/40 h-full w-[0%] rounded-full"></div><span class="relative z-10 text-xs text-black pl-3 font-medium" contenteditable="true">New option</span>';
-      pollOptionsList?.appendChild(wrapper);
+    createPollBtn?.addEventListener('click', async () => {
+        const question = pollQuestionInput.value.trim();
+        const options = Array.from(pollOptionsContainer.querySelectorAll('input'))
+                             .map(input => input.value.trim())
+                             .filter(val => val !== ''); 
+
+        if (!question) { alert("Please enter a question."); return; }
+        if (options.length < 2) { alert("Please add at least 2 options."); return; }
+
+        createPollBtn.disabled = true; createPollBtn.textContent = "Creating...";
+
+        const payload = {
+            event_id: <?php echo (int)$id; ?>,
+            question: question,
+            options: options,
+            allow_multiple: allowMultipleChk.checked,
+            is_anonymous: isAnonymousChk.checked
+        };
+
+        try {
+            const res = await fetch('/DINADRAWING/Backend/events/create_poll.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const data = await res.json();
+            if (data.success) {
+                closePoll();
+                prependNewPost(data.post); 
+            } else {
+                alert('Failed to create poll: ' + (data.error || 'Unknown error'));
+            }
+        } catch (err) { console.error(err); alert('Network error.'); }
+        finally { createPollBtn.disabled = false; createPollBtn.textContent = "Create Poll"; }
     });
 
-    // ASSIGNED TASK POST
-    const taskMenuBtn = document.getElementById('taskOptionsBtn');
-    const taskMenu = document.getElementById('taskOptionsMenu');
-    const addTaskBtn = document.getElementById('addTaskBtn');
-    const taskList = document.getElementById('taskList');
-    taskMenuBtn?.addEventListener('click', (e)=>{ e.stopPropagation(); taskMenu?.classList.toggle('hidden'); });
-    document.addEventListener('click', (e)=>{
-      if (!taskMenu || !taskMenuBtn) return;
-      if (!taskMenu.classList.contains('hidden') && !taskMenu.contains(e.target) && e.target !== taskMenuBtn){
-        taskMenu.classList.add('hidden');
-      }
-    });
-    addTaskBtn?.addEventListener('click', ()=>{
-      const row = document.createElement('div');
-      row.className = 'flex items-center justify-between bg-white rounded-full border px-4 py-1.5';
-      row.innerHTML = `
-        <span contenteditable="true" class="text-sm font-medium text-gray-700 outline-none">New Task</span>
-        <span contenteditable="true" class="text-xs text-gray-500 outline-none">@mention</span>
-      `;
-      taskList?.appendChild(row);
-    });
-
-    // TASK MODAL 
-    function openTask(){ document.getElementById('taskModal')?.classList.remove('hidden'); }
-    function closeTask(){ document.getElementById('taskModal')?.classList.add('hidden'); }
-    const taskAddOptionBtn = document.getElementById('taskAddOptionBtn');
+    // ================================
+    // 3. TASK MODAL LOGIC
+    // ================================
+    const taskModal = document.getElementById('taskModal');
+    const taskTitleInput = taskModal?.querySelector('input[placeholder="Enter the task title..."]');
     const taskOptionsContainer = document.getElementById('taskOptionsContainer');
-    let taskCount = (taskOptionsContainer?.children.length || 1);
+    const taskAddOptionBtn = document.getElementById('taskAddOptionBtn');
+    const createTaskBtn = taskModal?.querySelector('button.bg-\\[\\#f4b41a\\]');
+    const taskDeadlineSelect = taskModal?.querySelector('select'); 
+
+    function openTask(){ taskModal?.classList.remove('hidden'); }
+    function closeTask(){ 
+        taskModal?.classList.add('hidden'); 
+        if(taskTitleInput) taskTitleInput.value = '';
+        if(taskOptionsContainer) taskOptionsContainer.innerHTML = '';
+        addTaskRow(1); // Add default row
+    }
+
+    function addTaskRow(count) {
+        const div = document.createElement('div');
+        div.className = 'flex gap-2';
+        div.innerHTML = `
+            <input type="text" placeholder="Task ${count}" class="flex-1 border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#3b82f6] outline-none task-name">
+            <input type="text" placeholder="@Assignee" class="w-1/3 border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#3b82f6] outline-none task-assign">
+        `;
+        taskOptionsContainer.appendChild(div);
+    }
+
+    let taskCount = 1;
+    if(taskOptionsContainer && taskOptionsContainer.children.length === 0) addTaskRow(taskCount);
+
     taskAddOptionBtn?.addEventListener('click', ()=>{
-      taskCount++;
-      const input = document.createElement('input');
-      input.type = 'text';
-      input.placeholder = `Add task ${taskCount}`;
-      input.className = 'w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#3b82f6] focus:outline-none';
-      taskOptionsContainer?.appendChild(input);
+        taskCount++;
+        addTaskRow(taskCount);
     });
 
+    createTaskBtn?.addEventListener('click', async () => {
+        const title = taskTitleInput.value.trim() || 'Assigned Tasks';
+        const deadline = taskDeadlineSelect.value; 
+        
+        const items = [];
+        taskOptionsContainer.querySelectorAll('div.flex').forEach(row => {
+            const txt = row.querySelector('.task-name').value.trim();
+            const assign = row.querySelector('.task-assign').value.trim();
+            if(txt) items.push({ text: txt, assigned: assign });
+        });
+
+        if (items.length === 0) { alert("Please add at least one task."); return; }
+
+        createTaskBtn.disabled = true; createTaskBtn.textContent = "Saving...";
+
+        const payload = {
+            event_id: <?php echo (int)$id; ?>,
+            title: title,
+            deadline: deadline === 'No deadline' ? null : deadline,
+            items: items
+        };
+
+        try {
+            const res = await fetch('/DINADRAWING/Backend/events/create_task.php', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(payload)
+            });
+            const data = await res.json();
+            if (data.success) {
+                closeTask();
+                prependNewPost(data.post);
+            } else {
+                alert('Failed: ' + (data.error || 'Error'));
+            }
+        } catch (e) { console.error(e); }
+        finally { createTaskBtn.disabled = false; createTaskBtn.textContent = "Save"; }
+    });
+
+
+    // ================================
+    // 4. MAIN FEED RENDERING (UPDATED)
+    // ================================
+    function prependNewPost(post) {
+        let postContentHTML = '';
+
+        // --- A. STANDARD POST ---
+        if (post.post_type === 'standard') {
+            postContentHTML = `
+                ${post.content ? `<div class="text-sm text-gray-800 mb-3 whitespace-pre-wrap">${post.content}</div>` : ''}
+                ${post.image_path ? `<div class="mb-3 rounded-lg overflow-hidden border border-gray-100"><img src="${post.image_path}" alt="Post Image" class="w-full h-auto object-cover max-h-[500px]"></div>` : ''}
+            `;
+        } 
+        // --- B. POLL POST ---
+        else if (post.post_type === 'poll') {
+            const pd = post.poll_data;
+            const totalVotes = pd.total_votes || 0;
+            
+            let optionsHTML = '';
+            pd.options.forEach(opt => {
+                const votes = opt.vote_count || 0;
+                const percentage = totalVotes > 0 ? Math.round((votes / totalVotes) * 100) : 0;
+                
+                const barColorBg = votes > 0 ? 'bg-[#f4b41a]' : 'bg-gray-200'; 
+                const textColor = votes > 0 ? 'text-[#222]' : 'text-gray-700';
+                const borderColor = votes > 0 ? 'border-[#f4b41a]' : 'border-gray-300';
+                const inputType = pd.allow_multiple ? 'checkbox' : 'radio';
+
+                optionsHTML += `
+                <div class="relative mb-2">
+                  <div class="absolute inset-0 bg-gray-100 rounded-lg overflow-hidden" aria-hidden="true">
+                    <div class="${barColorBg} h-full transition-all duration-500 ease-out" style="width: ${percentage}%"></div>
+                  </div>
+                  <label class="relative flex items-center justify-between px-4 py-3 rounded-lg border ${borderColor} cursor-pointer hover:bg-gray-50/50 transition z-10">
+                    <div class="flex items-center gap-3">
+                      <input type="${inputType}" name="poll_${post.id}" class="w-4 h-4 text-[#f4b41a] focus:ring-[#f4b41a] border-gray-300" data-option-id="${opt.id}" disabled>
+                      <span class="text-sm font-medium ${textColor}">${opt.option_text}</span>
+                    </div>
+                    <span class="text-xs font-semibold ${textColor}">${percentage}%</span>
+                  </label>
+                </div>`;
+            });
+
+            postContentHTML = `
+            <div class="bg-gray-50 rounded-xl p-4 border border-gray-200 mb-3">
+              <h3 class="text-base font-bold text-[#222] mb-4">${pd.question}</h3>
+              <div class="space-y-2">
+                ${optionsHTML}
+              </div>
+              <div class="flex justify-between items-center mt-4 text-xs text-gray-500 font-medium px-1">
+                <span>${totalVotes} votes • ${pd.is_anonymous ? 'Anonymous' : 'Public'}</span>
+                <button class="hidden bg-[#f4b41a] text-[#222] px-3 py-1.5 rounded-md hover:bg-[#e3a918] transition">Vote</button>
+              </div>
+            </div>`;
+        }
+        // --- C. TASK POST ---
+        else if (post.post_type === 'task') {
+            const td = post.task_data;
+            let itemsHTML = '';
+            
+            if (td.items && td.items.length > 0) {
+                td.items.forEach(item => {
+                    itemsHTML += `
+                    <div class="flex items-center justify-between bg-white rounded-full border px-4 py-1.5 mb-2">
+                      <span class="text-sm font-medium text-gray-700">${item.item_text}</span>
+                      <span class="text-xs text-gray-500">${item.assigned_to ? item.assigned_to : ''}</span>
+                    </div>`;
+                });
+            } else {
+                itemsHTML = '<p class="text-sm text-gray-500 italic">No tasks added.</p>';
+            }
+
+            let deadlineHTML = '';
+            if (td.deadline) {
+                const d = new Date(td.deadline);
+                deadlineHTML = `<span class="text-xs text-gray-500 bg-gray-200 px-2 py-1 rounded">Due: ${d.toLocaleDateString()}</span>`;
+            }
+
+            postContentHTML = `
+            <div class="bg-gray-50 rounded-xl p-4 border border-gray-200 mb-3">
+              <div class="flex justify-between items-center mb-4">
+                  <h3 class="text-base font-bold text-[#222] text-center">${td.title}</h3>
+                  ${deadlineHTML}
+              </div>
+              <div class="space-y-2">
+                ${itemsHTML}
+              </div>
+              <button class="w-full bg-gray-100 hover:bg-gray-200 rounded-full h-7 text-xs text-gray-400 font-medium flex items-center justify-start pl-3 transition mt-3">
+                + Add task
+              </button>
+            </div>`;
+        }
+
+        // --- FINAL WRAPPER ---
+        const finalHTML = `
+        <div class="bg-white p-4 rounded-lg shadow w-full transition-all duration-300 animate-fade-in mb-4" data-post-id="${post.id}">
+          <div class="flex items-start gap-3 mb-3">
+            <img src="${post.user.avatar}" alt="${post.user.name}" class="w-10 h-10 rounded-full object-cover shadow-sm" />
+            <div>
+              <h4 class="font-semibold text-[#222] text-sm flex items-center gap-2">
+                  ${post.user.name}
+                  ${post.post_type === 'poll' ? '<span class="bg-blue-100 text-blue-800 text-[10px] px-2 py-0.5 rounded-full font-bold uppercase">Poll</span>' : ''}
+                  ${post.post_type === 'task' ? '<span class="bg-green-100 text-green-800 text-[10px] px-2 py-0.5 rounded-full font-bold uppercase">Task</span>' : ''}
+              </h4>
+              <p class="text-xs text-gray-500">${post.created_at}</p>
+            </div>
+          </div>
+          
+          ${postContentHTML}
+
+          <div class="flex items-center gap-4 pt-2 border-t border-gray-100 text-gray-500 text-sm font-medium">
+            <button class="flex items-center gap-1.5 hover:text-[#f4b41a] transition">
+               <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg> Like
+            </button>
+            <button class="flex items-center gap-1.5 hover:text-[#f4b41a] transition">
+               <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg> Comment
+            </button>
+          </div>
+        </div>
+        `;
+        feedContainer.insertAdjacentHTML('afterbegin', finalHTML);
+    }
 </script>
 
-  <script>
-    // INVITE PEOPLE
-    const inviteModal = document.getElementById('inviteModal');
-    const inviteLinkInput = document.getElementById('inviteLink');
 
-    function openInvite() {
-      inviteModal?.classList.remove('hidden');
-      inviteModal?.classList.add('flex');
-      generateLink();
-    }
-
-    function closeInvite() {
-      inviteModal?.classList.add('hidden');
-      inviteModal?.classList.remove('flex');
-    }
-
-    function generateLink() {
-      const code = Math.random().toString(36).slice(2, 10);
-      const inviteLink = `https://dinadrawing.com/invite?event=<?php echo (int)$id; ?>&code=${code}`;
-      if (inviteLinkInput) inviteLinkInput.value = inviteLink;
-    }
-
-    function copyLink() {
-      const text = inviteLinkInput?.value || '';
-      if (navigator.clipboard?.writeText) {
-        navigator.clipboard.writeText(text).then(() => alert('Copied to clipboard!'));
-      } else if (inviteLinkInput) {
-        inviteLinkInput.select();
-        document.execCommand('copy');
-        alert('Copied to clipboard!');
-      }
-    }
-    
-  </script>
 
   <!-- BUDGET SETUP MODAL -->
   <div id="budgetModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[65] hidden items-center justify-center">
@@ -1265,28 +1563,6 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
     </div>
   </div>
 
-  <!-- CHANGE PROFILE MODAL -->
-  <div id="changeProfileModal" class="fixed inset-0 flex items-center justify-center bg-black/40 backdrop-blur-sm z-50 hidden">
-    <div class="bg-white rounded-2xl p-6 w-full max-w-md shadow-xl relative">
-      <button id="cancelBtn" class="absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-xl">&times;</button>
-      <h2 class="text-2xl font-bold mb-1">Change Profile Photo</h2>
-      <p class="text-sm text-gray-500 mb-4">Choose or upload a new profile photo</p>
-      <div class="flex justify-center mb-4">
-        <img id="profilePreview" src="Assets/Profile Icon/profile.png" alt="Profile Preview" class="w-32 h-32 rounded-full object-cover border shadow-md" style="border-color: #090404;" />
-      </div>
-      <div class="flex justify-center gap-4 mb-4">
-        <div id="uploadBtn" class="w-8 h-8 rounded-full border flex items-center justify-center cursor-pointer hover:bg-gray-100 transition" style="border-color: #090404;">
-          <img src="Assets/upload.png" alt="Upload" class="w-6 h-6 opacity-70">
-        </div>
-        <img src="Assets/Profile Icon/Profile8.png" class="w-12 h-12 rounded-full cursor-pointer border hover:border-yellow-500" />
-      </div>
-      <div class="flex justify-end gap-3">
-        <button class="px-4 py-2 rounded-lg border border-gray-300 hover:bg-gray-100 transition" id="cancelBtnFooter">Cancel</button>
-        <button class="bg-[#f4b41a] px-4 py-2 rounded-lg text-black hover:bg-[#e0a419] transition" id="saveChangesBtn">Save Changes</button>
-      </div>
-    </div>
-  </div>
-
   <script>
     // TAB SWITCHING
     function switchTab(tabName) {
@@ -1315,26 +1591,68 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
 
   <script>
     // EVENT DETAILS SAVE BUTTON
+    // EVENT DETAILS SAVE BUTTON
     document.getElementById("saveSettingsBtn")?.addEventListener("click", () => {
+      
+      // 1. Get Values
+      const nameVal = document.getElementById("eventName").value.trim();
+      const descVal = document.getElementById("eventDesc").value.trim();
+      const locationVal = document.getElementById("eventPlace").value.trim();
+      
+      // 2. Handle Date & Time Separation (kasi datetime-local ang input mo)
+      const dateTimeVal = document.getElementById("eventDate").value; 
+      let datePart = null;
+      let timePart = null;
+      
+      if (dateTimeVal) {
+          // Format ng datetime-local ay "YYYY-MM-DDTHH:MM"
+          const parts = dateTimeVal.split('T');
+          datePart = parts[0]; // "2025-12-25"
+          if (parts.length > 1) {
+              timePart = parts[1]; // "08:00"
+          }
+      }
+
+      // 3. Prepare Payload (Match sa database columns!)
       const payload = {
         id: <?php echo (int)$id; ?>,
-        name: document.getElementById("eventName").value,
-        description: document.getElementById("eventDesc").value,
-        date: document.getElementById("eventDate").value || null,
-        place: document.getElementById("eventPlace").value || null
+        name: nameVal,
+        description: descVal,
+        date: datePart,
+        time: timePart,
+        location: locationVal 
       };
-      fetch('update_event.php', {
+
+      // 4. Send to Correct Backend URL
+      const btn = document.getElementById("saveSettingsBtn");
+      const originalText = btn.textContent;
+      btn.textContent = "Saving...";
+      btn.disabled = true;
+
+      fetch('/DINADRAWING/Backend/events/update.php', {  // <-- TAMA NA ANG PATH
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
-      }).then(r => r.json()).then(res => {
+      })
+      .then(r => r.json())
+      .then(res => {
         if (res.success) {
-          alert('Event saved');
-          // Optionally refresh the page or update UI
+          alert('Settings saved successfully!');
+          // Update the Banner Text instantly without refresh
+          const bannerTitle = document.getElementById('bannerText');
+          if(bannerTitle) bannerTitle.textContent = nameVal;
         } else {
-          alert('Save failed: ' + (res.error || 'unknown'));
+          alert('Save failed: ' + (res.error || res.message || 'unknown error'));
         }
-      }).catch(()=> alert('Save failed'));
+      })
+      .catch((err) => {
+          console.error(err);
+          alert('Network error: Save failed. Check console.');
+      })
+      .finally(() => {
+          btn.textContent = originalText;
+          btn.disabled = false;
+      });
     });
     
     // Delete event (call server)
@@ -1348,6 +1666,189 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
         if (res.success) window.location.href='myplans.php';
         else alert('Delete failed: '+(res.error||'unknown'));
       }).catch(()=>alert('Delete failed'));
+    });
+
+    // ================================
+    // 4. LOAD EXISTING POSTS ON PAGE LOAD 
+    // ================================
+    async function loadEventPosts() {
+        // Maglagay ng loading loading indicator kung gusto mo (optional)
+        feedContainer.innerHTML = '<p class="text-center text-gray-500 py-4">Loading posts...</p>';
+
+        try {
+            const res = await fetch(`/DINADRAWING/Backend/events/get_posts.php?event_id=<?php echo (int)$id; ?>`);
+            const data = await res.json();
+
+            if (data.success) {
+                feedContainer.innerHTML = ''; // Clear loading message
+                if (data.posts.length === 0) {
+                    feedContainer.innerHTML = '<p class="text-center text-gray-500 py-8">No posts yet. Be the first to post!</p>';
+                } else {
+                    // Baliktarin ang array kasi 'prependNewPost' ang gamit natin (nag-a-add sa taas).
+                    // Gusto natin ang oldest muna ang ma-render, tapos newest sa dulo para nasa taas siya.
+                    data.posts.reverse().forEach(post => {
+                        prependNewPost(post);
+                    });
+                }
+            } else {
+                feedContainer.innerHTML = '<p class="text-center text-red-500 py-4">Failed to load posts.</p>';
+                console.error('Error fetching posts:', data.error);
+            }
+        } catch (err) {
+            console.error('Network error loading posts:', err);
+            feedContainer.innerHTML = '<p class="text-center text-red-500 py-4">Network error. Could not load posts.</p>';
+        }
+    }
+
+    // Call the function immediately when the script runs (page load)
+    document.addEventListener("DOMContentLoaded", () => {
+        loadEventPosts();
+    });
+
+    // ================================
+    // 5. LOAD MEMBERS (SIDEBAR)
+    // ================================
+    async function loadMembers() {
+        const listContainer = document.getElementById('membersList');
+        const countLabel = document.querySelector('#membersCard h3');
+        if(!listContainer) return;
+
+        try {
+            const res = await fetch(`/DINADRAWING/Backend/events/get_members.php?event_id=<?php echo (int)$id; ?>`);
+            const data = await res.json();
+
+            if (data.success && data.members) {
+                // Update Count
+                if(countLabel) countLabel.textContent = `Members (${data.members.length})`;
+
+                // Update List
+                listContainer.innerHTML = '';
+                data.members.slice(0, 9).forEach(m => {
+                    const img = document.createElement('img');
+                    img.src = m.avatar;
+                    img.className = "w-8 h-8 rounded-full border object-cover";
+                    img.alt = m.name;
+                    img.title = m.name; // Tooltip on hover
+                    listContainer.appendChild(img);
+                });
+
+                // If more than 9 members
+                if (data.members.length > 9) {
+                    const more = document.createElement('span');
+                    more.className = "w-8 h-8 flex items-center justify-center rounded-full bg-gray-200 text-sm font-medium";
+                    more.textContent = "+" + (data.members.length - 9);
+                    listContainer.appendChild(more);
+                }
+            }
+        } catch (e) { console.error("Error loading members", e); }
+    }
+
+    // Add to DOMContentLoaded
+    document.addEventListener("DOMContentLoaded", () => {
+        loadEventPosts();
+        loadMembers(); // <--- Add this line
+    });
+// ================================
+    // 6. AUTO-LOAD MEMBERS & NOTIFY
+    // ================================
+    
+    let lastMemberCount = -1; // -1 means "first load" (wag mag notify)
+
+    async function loadMembers() {
+        const listContainer = document.getElementById('membersList');
+        const countLabel = document.querySelector('#membersCard h3');
+        
+        if(!listContainer) return;
+
+        try {
+            // Add ?t= timestamp to avoid browser caching
+            const res = await fetch(`/DINADRAWING/Backend/events/get_members.php?event_id=<?php echo (int)$id; ?>&t=${Date.now()}`);
+            const data = await res.json();
+
+            if (data.success && data.members) {
+                const currentCount = data.members.length;
+
+                // --- CHECK FOR NEW MEMBERS ---
+                // Kung hindi ito first load (-1) AT mas madami na ang members ngayon...
+                if (lastMemberCount !== -1 && currentCount > lastMemberCount) {
+                    showToast("A new member has joined your plan!");
+                }
+                
+                // Update tracker
+                lastMemberCount = currentCount; 
+
+                // --- UPDATE UI ---
+                if(countLabel) countLabel.textContent = `Members (${currentCount})`;
+                listContainer.innerHTML = '';
+                
+                // Render List
+                data.members.slice(0, 9).forEach(m => {
+                    const wrapper = document.createElement('div');
+                    wrapper.className = "relative inline-block w-8 h-8 cursor-pointer group"; 
+
+                    const img = document.createElement('img');
+                    img.src = m.avatar;
+                    img.className = `w-8 h-8 rounded-full border-2 object-cover ${m.is_owner ? 'border-[#f4b41a]' : 'border-transparent'}`;
+                    img.alt = m.name;
+                    wrapper.appendChild(img);
+
+                    if (m.is_owner) {
+                        const badge = document.createElement('div');
+                        badge.className = "absolute -bottom-1 -right-1 bg-white rounded-full p-[1px] shadow-sm z-20";
+                        badge.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 text-[#f4b41a] fill-[#f4b41a]" viewBox="0 0 24 24"><path d="M12 2L14.4 9.6H22L16 14.4L18.4 22L12 17.6L5.6 22L8 14.4L2 9.6H9.6L12 2Z" stroke="none"/></svg>`; 
+                        wrapper.appendChild(badge);
+                    }
+                    
+                    // Tooltip
+                    const tooltip = document.createElement('div');
+                    tooltip.className = "absolute bottom-full left-1/2 -translate-x-1/2 mb-1 hidden group-hover:block whitespace-nowrap bg-gray-900 text-white text-[10px] py-1 px-2 rounded z-50 pointer-events-none";
+                    tooltip.textContent = m.name + (m.is_owner ? " (Creator)" : "");
+                    wrapper.appendChild(tooltip);
+
+                    listContainer.appendChild(wrapper);
+                });
+
+                if (currentCount > 9) {
+                    const more = document.createElement('span');
+                    more.className = "w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 text-xs font-semibold text-gray-500 border border-gray-200";
+                    more.textContent = "+" + (currentCount - 9);
+                    listContainer.appendChild(more);
+                }
+            }
+        } catch (e) { console.error("Error loading members", e); }
+    }
+
+    // --- NOTIFICATION FUNCTIONS ---
+    function showToast(msg) {
+        const toast = document.getElementById('toastNotification');
+        const txt = document.getElementById('toastMessage');
+        if(toast && txt) {
+            txt.textContent = msg;
+            toast.classList.remove('translate-y-24'); // Slide Up
+            
+            // Auto hide after 4 seconds
+            setTimeout(() => {
+                hideToast();
+            }, 4000);
+        }
+    }
+
+    function hideToast() {
+        const toast = document.getElementById('toastNotification');
+        if(toast) {
+            toast.classList.add('translate-y-24'); // Slide Down (Hide)
+        }
+    }
+
+    // INITIALIZE & START POLLING
+    document.addEventListener("DOMContentLoaded", () => {
+        if(typeof loadEventPosts === 'function') loadEventPosts();
+        
+        // Load immediately
+        loadMembers(); 
+        
+        // Then check every 5 seconds (5000ms)
+        setInterval(loadMembers, 5000);
     });
   </script>
 
@@ -1764,7 +2265,7 @@ async function createEventAndOpenPlan() {
     location: document.getElementById('createLocation').value || null
   };
 
-  const res = await fetch('/DINADRAWING/Backend/api/event/create.php', {
+  const res = await fetch('/DINADRAWING/Backend/events/create.php', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload)

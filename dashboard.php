@@ -622,7 +622,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const payload = { name, description, date, time, location };
     btn.disabled = true; btn.textContent = 'Saving...';
     try {
-      const resp = await fetch('/DINADRAWING/Backend/api/event/create.php', {
+      const resp = await fetch('/DINADRAWING/Backend/events/create.php', {
         method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
       });
       const text = await resp.text();

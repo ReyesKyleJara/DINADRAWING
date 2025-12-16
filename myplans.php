@@ -294,25 +294,39 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
 
     <section class="mb-10">
       
-      <div id="galleryView" class="flex flex-wrap gap-6">
+<div id="galleryView" class="flex flex-wrap gap-6">
         <?php if (!empty($events)): ?>
           <?php foreach ($events as $ev): ?>
-            <div class="relative w-64 bg-white border border-gray-300 rounded-2xl overflow-hidden shadow group">
-              <div class="font-bold p-4 text-lg flex justify-between items-start" style="<?php echo card_banner_style($ev); ?>">
-                <div>
-                  <span class="font-medium"><?php echo h($ev['name'] ?? 'Untitled'); ?></span>
-                  <div class="text-sm font-normal text-[#222]/80"><?php echo h($ev['loc'] ?? '-'); ?></div>
+            <div class="relative w-64 bg-white border border-gray-300 rounded-2xl overflow-hidden shadow group flex flex-col h-full">
+              <div class="font-bold p-4 text-lg flex justify-between items-start h-24" style="<?php echo card_banner_style($ev); ?>">
+                <div class="relative z-10 flex flex-col gap-1">
+                   <?php if(!empty($ev['invite_code'])): ?>
+                    <div class="inline-flex items-center gap-1 bg-black/50 backdrop-blur-sm text-white text-[10px] px-2 py-0.5 rounded-full cursor-pointer hover:bg-black/70 transition w-fit"
+                         onclick="copyToClipboard('<?php echo h($ev['invite_code']); ?>', this)" title="Click to copy code">
+                        <span class="uppercase tracking-wider">CODE: <?php echo h($ev['invite_code']); ?></span>
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" viewBox="0 0 20 20" fill="currentColor">
+                          <path d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" />
+                          <path d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 3H9a3 3 0 01-3-3z" />
+                        </svg>
+                    </div>
+                   <?php endif; ?>
                 </div>
-                <div class="relative">
-                  <button onclick="showPlanActions(event,this)" class="text-[#222] hover:text-gray-700 px-2 py-1 rounded-lg hover:bg-[#f5c94a]/30 transition">⋮</button>
+                <div class="relative z-10">
+                  <button onclick="showPlanActions(event,this)" class="text-white hover:text-gray-200 px-2 py-1 rounded-lg hover:bg-black/20 transition text-xl leading-none">⋮</button>
                 </div>
               </div>
-              <div class="flex items-center justify-between p-4">
+              
+              <div class="p-4 flex-1">
+                  <h3 class="font-bold text-[#222] text-lg leading-tight mb-1 line-clamp-2"><?php echo h($ev['name'] ?? 'Untitled'); ?></h3>
+                  <p class="text-sm text-gray-500"><?php echo h($ev['loc'] ?? 'No location'); ?></p>
+              </div>
+
+              <div class="px-4 pb-4 flex items-center justify-between mt-auto">
                 <div class="text-center">
-                  <div class="text-xs text-gray-700"><?php echo formatMonth($ev['dt']); ?></div>
-                  <div class="text-2xl font-bold text-[#222]"><?php echo formatDay($ev['dt']); ?></div>
+                  <div class="text-xs text-gray-500 uppercase font-semibold"><?php echo formatMonth($ev['dt']); ?></div>
+                  <div class="text-xl font-bold text-[#222]"><?php echo formatDay($ev['dt']); ?></div>
                 </div>
-                <button class="bg-[#222] text-white text-sm px-4 py-1.5 rounded-lg hover:bg-[#444] transition"
+                <button class="bg-[#222] text-white text-sm px-5 py-2 rounded-xl hover:bg-[#444] transition shadow-sm"
                         onclick="window.location.href='plan.php?id=<?php echo (int)$ev['id']; ?>'">View</button>
               </div>
             </div>
@@ -975,28 +989,78 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
     charCount.textContent = desc.value.length;
   });
 
-  // JOIN EVENT MODAL
+// ==========================================
+  // JOIN EVENT MODAL LOGIC (Consolidated)
+  // ==========================================
   const joinEventModal = document.getElementById("joinEventModal");
+  const joinInput = joinEventModal.querySelector('input'); // The input field
+  const joinBtn = document.getElementById("joinJoinEvent"); // The Join button
+
+  // Open Modal
   document.getElementById("openJoinEvent").addEventListener("click", () => {
     document.body.classList.add('modal-open');
     joinEventModal.classList.remove("hidden");
-  });
-  document.getElementById("closeJoinEvent").addEventListener("click", () => {
-    joinEventModal.classList.add("hidden");
-    document.body.classList.remove('modal-open');
-  });
-  document.getElementById("cancelJoinEvent").addEventListener("click", () => {
-    joinEventModal.classList.add("hidden");
-    document.body.classList.remove('modal-open');
-  });
-  document.getElementById("joinJoinEvent").addEventListener("click", () => {
-    joinEventModal.classList.add("hidden");
-    document.body.classList.remove('modal-open');
-  });
-  joinEventModal.addEventListener("click", function (e) {
-    if (e.target === this) { this.classList.add("hidden"); document.body.classList.remove('modal-open'); }
+    joinInput.value = ''; // Clear previous input
+    joinInput.focus();
   });
 
+  // Close Logic
+  function closeJoinModal() {
+    joinEventModal.classList.add("hidden");
+    document.body.classList.remove('modal-open');
+  }
+  document.getElementById("closeJoinEvent").addEventListener("click", closeJoinModal);
+  document.getElementById("cancelJoinEvent").addEventListener("click", closeJoinModal);
+  
+  // Close on outside click
+  joinEventModal.addEventListener("click", function (e) {
+    if (e.target === this) closeJoinModal();
+  });
+
+  // JOIN LOGIC (CONNECTS TO BACKEND)
+  joinBtn.addEventListener("click", async () => {
+      const code = joinInput.value.trim();
+      
+      if (!code) { alert("Please enter a code."); return; }
+
+      joinBtn.disabled = true;
+      joinBtn.textContent = "Joining...";
+
+      try {
+          const res = await fetch('/DINADRAWING/Backend/events/join_event.php', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ code: code })
+          });
+          const data = await res.json();
+
+          if (data.success) {
+              // Redirect to the plan
+              window.location.href = `plan.php?id=${data.event_id}`;
+          } else {
+              alert(data.error || "Failed to join event.");
+          }
+      } catch (e) {
+          console.error(e);
+          alert("Network error.");
+      } finally {
+          joinBtn.disabled = false;
+          joinBtn.textContent = "Join";
+      }
+  });
+
+  // Helper to copy code from card
+  window.copyToClipboard = function(text, el) {
+      navigator.clipboard.writeText(text).then(() => {
+          const original = el.innerHTML;
+          // Temporarily change text to "Copied!"
+          el.innerHTML = '<span class="text-green-400 font-bold text-[10px]">Copied!</span>';
+          setTimeout(() => { el.innerHTML = original; }, 1500);
+      });
+      // Prevent clicking the card behind it
+      if(event) { event.stopPropagation(); event.preventDefault(); }
+  };
+  
   // NOTIFICATIONS + PROFILE
   const notificationBtn = document.getElementById("notificationBtn");
   const notificationPanel = document.getElementById("notificationPanel");
