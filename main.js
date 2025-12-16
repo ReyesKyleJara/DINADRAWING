@@ -1,29 +1,23 @@
-import { signInWithGoogle } from "google-auth.js";
+import { signInWithGoogle } from "./google-auth.js";
 
 document.addEventListener("DOMContentLoaded", () => {
-  // FIX: CHANGE FROM .google-btn to #googleLogin
+  // 1. Google Login Button (Login Modal)
   const googleBtn = document.getElementById("googleLogin");
   if (googleBtn) {
-    googleBtn.addEventListener("click", signInWithGoogle);
-    console.log("✅ Google login button event listener added");
-  } else {
-    console.error("❌ Google login button not found!");
+    googleBtn.addEventListener("click", (e) => {
+      e.preventDefault();
+      signInWithGoogle();
+    });
+    console.log("✅ Google login button listener attached");
   }
-});
 
-// HANDLE MODAL OPEN/CLOSE
-document.getElementById("loginBtn").addEventListener("click", () => {
-  document.getElementById("loginModal").classList.remove("hidden");
-});
-
-document.getElementById("closeModal").addEventListener("click", () => {
-  document.getElementById("loginModal").classList.add("hidden");
-});
-
-// FAQ ACCORDION TOGGLE
-document.querySelectorAll(".faq-toggle").forEach((btn) => {
-  btn.addEventListener("click", () => {
-    const answer = btn.nextElementSibling;
-    answer.classList.toggle("hidden");
-  });
+  // 2. Google Login Button (Signup Modal)
+  const googleBtnSignup = document.getElementById("googleLoginSignup");
+  if (googleBtnSignup) {
+    googleBtnSignup.addEventListener("click", (e) => {
+      e.preventDefault();
+      signInWithGoogle();
+    });
+    console.log("✅ Google signup button listener attached");
+  }
 });

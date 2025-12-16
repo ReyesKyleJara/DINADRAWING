@@ -1,3 +1,22 @@
+<?php
+session_start();
+
+// 🔒 SECURITY CHECK: If PHP session is missing, kick user out immediately.
+if (!isset($_SESSION['user_id'])) {
+    header("Location: index.html");
+    exit;
+}
+
+// Prepare user data for the frontend
+$userData = [
+    'name' => $_SESSION['name'] ?? 'User',
+    'username' => $_SESSION['username'] ?? 'User',
+    'email' => $_SESSION['email'] ?? '',
+    // Use default profile picture if none is set
+    'photo' => $_SESSION['profile_picture'] ?? 'Assets/Profile Icon/profile.png' 
+];
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -92,40 +111,33 @@
 </head>
 <body class="flex bg-[#fffaf2]">
 
-<!-- SIDEBAR OVERLAY -->
 <div id="sidebarOverlay" class="sidebar-overlay"></div>
 
-<!-- SIDEBAR -->
 <aside id="sidebar"
 class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
        bg-[#f4b41a] rounded-tr-3xl
        p-6 shadow
        hidden md:flex md:flex-col md:gap-6">
 
-  <!-- HEADER -->
   <div class="flex items-center gap-2">
     <img src="Assets/dinadrawing-logo.png" alt="Logo" class="w-14">
     <h2 class="text-xl font-bold text-[#222]">DiNaDrawing</h2>
   </div>
 
-  <!-- NAVIGATIONS -->
   <nav>
     <ul class="space-y-5">
       <li><a href="dashboard.html" class="block px-4 py-2 rounded-lg font-medium bg-[#222] text-white hover:bg-[#111] transition">Home</a></li>
       <li><a href="myplans.php" class="block px-4 py-2 rounded-lg font-medium text-[#222] hover:bg-[#222] hover:text-white transition">My Plans</a></li>
-      <li><a href="help.html" class="block px-4 py-2 rounded-lg font-medium text-[#222] hover:bg-[#222] hover:text-white transition">Help</a></li>
-      <li><a href="settings.html" class="block px-4 py-2 rounded-lg font-medium text-[#222] hover:bg-[#222] hover:text-white transition">Settings</a></li>
+      <li><a href="help.php" class="block px-4 py-2 rounded-lg font-medium text-[#222] hover:bg-[#222] hover:text-white transition">Help</a></li>
+      <li><a href="settings.php" class="block px-4 py-2 rounded-lg font-medium text-[#222] hover:bg-[#222] hover:text-white transition">Settings</a></li>
     </ul>
   </nav>
 </aside>
 
-<!-- MAIN -->
 <main id="mainContent" class="flex-1 min-h-screen px-12 py-10 pt-28">
 
-<!-- PAGE HEADER -->
 <div class="page-header flex justify-between items-center border-b-2 border-gray-200 pb-4 mb-6 fixed top-0 left-0 w-full bg-[#fffaf2] z-40 px-12 py-10">
   <div class="flex items-center gap-4">
-    <!-- HAMBURGER -->
     <button id="hamburgerBtn" class="hamburger">
       <span></span><span></span><span></span>
     </button>
@@ -137,25 +149,21 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
   </div>
 
   <div class="flex items-center gap-3">
-    <!-- CREATE EVENT -->
     <button id="openCreateEvent"
       class="border border-[#222] bg-white px-4 py-2 rounded-2xl font-medium hover:bg-[#222] hover:text-white transition">
       <span class="hidden md:inline">+ Create Event</span>
       <span class="md:hidden">Create</span>
     </button>
 
-    <!-- JOIN EVENT -->
     <button id="openJoinEvent"
       class="border border-[#222] bg-white px-4 py-2 rounded-2xl font-medium hover:bg-[#222] hover:text-white transition">
       <span class="hidden md:inline">Join Event</span>
       <span class="md:hidden">Join</span>
     </button>
 
-    <!-- RIGHT SIDE -->
     <div class="flex items-center gap-4 relative">
 
 
-      <!-- NOTIFICATIONS -->
       <div>
         <button id="notificationBtn"
           class="relative w-9 h-9 flex items-center justify-center rounded-full bg-white border border-[#222] hover:bg-[#222] hover:text-white transition">
@@ -167,14 +175,12 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
         </button>
       </div>
 
-      <!-- PROFILE -->
       <div class="relative">
         <button id="profileBtn" class="flex items-center gap-2 bg-[#f4b41a]/30 border border-[#222] rounded-full px-3 py-1.5 hover:bg-[#f4b41a]/50 transition">
           <img id="navProfileImg" src="Assets/Profile Icon/profile.png" alt="Profile" class="w-8 h-8 rounded-full border-2 border-[#f4b41a]">
           <span id="navProfileName" class="font-medium text-[#222] hidden md:inline">User</span>
         </button>
 
-        <!-- PROFILE DROPDOWN -->
         <div id="profileDropdown" class="absolute right-0 mt-2 w-60 bg-white shadow-lg rounded-2xl border border-gray-200 hidden z-50">
           <div class="p-4 border-b border-gray-200 text-center bg-[#fffaf2] rounded-t-2xl">
             <img id="dropdownProfileImg" src="Assets/Profile Icon/profile.png" alt="Profile" class="w-12 h-12 mx-auto rounded-full border-2 border-[#f4b41a] mb-2 shadow">
@@ -183,13 +189,12 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
           <div class="py-2">
             <a href="help.html" class="block px-4 py-2 text-sm hover:bg-gray-50">Help</a>
             <button id="aboutUsBtn" type="button" class="w-full text-left px-4 py-2 text-sm hover:bg-gray-50">About Us</button>
-            <a href="settings.html" class="block px-4 py-2 text-sm hover:bg-gray-50">Settings</a>
+            <a href="settings.php" class="block px-4 py-2 text-sm hover:bg-gray-50">Settings</a>
             <button id="logoutProfile" class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50">Log out</button>
           </div>
         </div>
       </div>
 
-      <!-- NOTIFICATION DROPDOWN -->
       <div id="notificationPanel"
           class="absolute top-full right-0 mt-2 w-[90vw] md:w-60 lg:w-80 max-w-[28rem]
                 bg-white shadow-lg rounded-2xl border border-gray-200 hidden z-50">
@@ -219,7 +224,6 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
   </div>
 </div>
 
-<!-- BANNER CAROUSEL -->
 <div class="mt-4 relative overflow-hidden rounded-2xl shadow-md" style="height: 16rem;">
   <div id="bannerCarousel" class="flex transition-transform duration-1000 ease-in-out h-full" style="width: 300%;">
     <img src="Assets/1.png" alt="Banner 1" class="w-1/3 h-full object-cover flex-shrink-0">
@@ -228,9 +232,7 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
   </div>
 </div>
 
-<!-- DASHBOARD GRID -->
 <div class="mt-8">
-  <!-- YOUR UPCOMING PLANS -->
   <section class="col-span-2 bg-white rounded-2xl shadow p-6 flex flex-col">
     <div class="flex justify-between items-center mb-4">
       <h3 class="font-semibold text-lg">Your Upcoming Plans</h3>
@@ -240,7 +242,6 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
       </div>
     </div>
 
-    <!-- LIST VIEW -->
     <div id="listView" class="space-y-4">
       <div class="flex items-stretch rounded-2xl overflow-hidden shadow border border-gray-300">
         <div class="bg-white flex flex-col items-center justify-center w-24 py-4 border-r border-gray-200">
@@ -289,10 +290,8 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
       </div>
     </div>
 
-    <!-- CALENDAR VIEW -->
     <div id="calendarView" class="hidden">
       <div id="customCalendar" class="custom-calendar w-full">
-        <!-- CONTROLS -->
         <div class="flex justify-between items-center mb-6">
           <div class="flex gap-3">
             <select id="monthSelect" class="px-4 py-2 border border-gray-300 rounded-lg bg-white text-[#222] font-medium focus:outline-none focus:ring-2 focus:ring-[#f4b41a]">
@@ -327,7 +326,6 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
   </section>
 </div>
 
-<!-- EVENT DETAIL MODAL -->
 <div id="eventDetailModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center hidden z-50 p-4">
   <div class="bg-white rounded-2xl shadow-xl relative w-full max-w-md p-8">
     <button id="closeEventDetail" class="absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
@@ -340,7 +338,6 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
   </div>
 </div>
 
-      <!-- CREATE EVENT MODAL -->
       <div id="createEventModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center hidden z-[60] p-4">
         <div class="bg-white rounded-2xl shadow-xl relative w-full max-w-md max-h-[90vh] overflow-y-auto p-6">
           <button id="closeCreateEvent" class="absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-xl">&times;</button>
@@ -381,7 +378,6 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
         </div>
       </div>
 
-      <!-- JOIN EVENT MODAL -->
       <div id="joinEventModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center hidden z-[60] p-4">
         <div class="bg-white rounded-2xl p-6 w-[500px] shadow-xl relative">
           <button id="closeJoinEvent" class="absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-xl">&times;</button>
@@ -399,7 +395,6 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
         </div>
       </div>
 
-      <!-- ABOUT US MODAL -->
       <div id="aboutUsModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm hidden z-[60] p-4">
         <div class="bg-white rounded-2xl shadow-xl relative w-full max-w-2xl max-h-[90vh] overflow-y-auto p-8 mx-auto my-10"
              role="dialog" aria-modal="true" aria-labelledby="aboutUsTitle" onclick="event.stopPropagation()">
@@ -463,7 +458,6 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
         </div>
       </div>
 
-<!-- LOGOUT CONFIRM MODAL -->
 <div id="logoutModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm hidden z-[70] p-4 flex items-center justify-center">
   <div class="bg-white rounded-2xl shadow-xl relative w-full max-w-md p-6"
        role="dialog" aria-modal="true" aria-labelledby="logoutTitle" onclick="event.stopPropagation()">
@@ -476,7 +470,6 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
   </div>
 </div>
 
-<!-- SCRIPTS -->
 <script>
 // Initialize dark mode + sidebar toggle + saved user + banner carousel
 document.addEventListener('DOMContentLoaded', function() {
@@ -555,15 +548,6 @@ document.addEventListener('DOMContentLoaded', function() {
         pageHeader.classList.remove('sidebar-open');
       }
     });
-  }
-
-  // Check auth status via localStorage (kept)
-  const savedUser = localStorage.getItem('currentUser');
-  if (!savedUser) {
-    window.location.href = "index.html";
-  } else {
-    const user = JSON.parse(savedUser);
-    console.log('Welcome, ' + user.name);
   }
 
   // Banner Carousel
@@ -746,59 +730,6 @@ if (aboutUsModal) {
 }
 </script>
 
-<!-- LOGOUT + AUTH (backend preserved) -->
-<script type="module">
-  import { auth } from './firebase-config.js';
-  import { signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
-
-  document.addEventListener('DOMContentLoaded', function() {
-    // Auth state -> populate UI
-    onAuthStateChanged(auth, (user) => {
-      if (user) {
-        const displayName = user.displayName || user.email.split('@')[0];
-        document.getElementById('userDisplayName').textContent = displayName;
-        document.getElementById('navProfileName').textContent = displayName;
-        document.getElementById('dropdownProfileName').textContent = displayName;
-
-        const defaultPhoto = "Assets/Profile Icon/profile.png";
-        const userPhoto = user.photoURL ? user.photoURL : defaultPhoto;
-        document.getElementById('navProfileImg').src = userPhoto;
-        document.getElementById('dropdownProfileImg').src = userPhoto;
-      } else {
-        console.log("No user logged in, redirecting...");
-        window.location.href = 'index.html';
-      }
-    });
-
-    // Logout modal
-    const logoutSidebar = document.getElementById('logoutBtn');
-    const logoutProfile = document.getElementById('logoutProfile');
-    const logoutModal = document.getElementById('logoutModal');
-    const confirmLogoutBtn = document.getElementById('confirmLogoutBtn');
-    const cancelLogoutBtn = document.getElementById('cancelLogoutBtn');
-
-    function handleLogout() { logoutModal?.classList.remove('hidden'); }
-
-    confirmLogoutBtn?.addEventListener('click', () => {
-      signOut(auth)
-        .then(() => { window.location.href = 'index.html'; })
-        .catch((error) => { console.error('Logout error:', error); });
-    });
-    cancelLogoutBtn?.addEventListener('click', () => { logoutModal?.classList.add('hidden'); });
-
-    logoutModal?.addEventListener('click', (e) => {
-      if (e.target === logoutModal) logoutModal.classList.add('hidden');
-    });
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') logoutModal?.classList.add('hidden');
-    });
-
-    if (logoutSidebar) logoutSidebar.addEventListener('click', handleLogout);
-    if (logoutProfile) logoutProfile.addEventListener('click', handleLogout);
-  });
-</script>
-
-<!-- GOOGLE MAPS (frontend preserved) -->
 <script>
   const API_KEY = 'AIzaSyAGsgQDC6nVu9GQ9CYHQ2TTkbcX6qiF3Qc';
   window.gm_authFailure = function() {
@@ -878,7 +809,6 @@ if (aboutUsModal) {
   });
 </script>
 
-<!-- ENHANCED CALENDAR SCRIPTS -->
 <script>
   const calendarDays = document.getElementById('calendarDays');
   const monthSelect = document.getElementById('monthSelect');
@@ -988,6 +918,78 @@ if (aboutUsModal) {
   renderCalendar();
 </script>
 
-  
+<script>
+  // =========================================
+  // 👇 UPDATED AUTH SCRIPT (PHP-BASED) 👇
+  // =========================================
+
+  // Inject PHP session data directly into JS
+  const currentUser = <?php echo json_encode($userData); ?>;
+
+  document.addEventListener('DOMContentLoaded', function() {
+    
+    // UI Update Helper
+    function setUI(user) {
+      if (!user) return;
+      
+      const ids = ['userDisplayName', 'navProfileName', 'dropdownProfileName'];
+      ids.forEach(id => {
+        const el = document.getElementById(id);
+        if(el) el.textContent = user.name || user.username;
+      });
+
+      const navImg = document.getElementById('navProfileImg');
+      const ddImg  = document.getElementById('dropdownProfileImg');
+      
+      // Use the photo from PHP session
+      if (navImg && user.photo) navImg.src = user.photo;
+      if (ddImg && user.photo) ddImg.src  = user.photo;
+    }
+
+    // 1. Initialize UI immediately with PHP data
+    setUI(currentUser);
+
+    // 2. LOGOUT Logic (Redirects to PHP logout script)
+    const logoutProfile = document.getElementById('logoutProfile');
+    const logoutModal   = document.getElementById('logoutModal');
+    const confirmLogoutBtn = document.getElementById('confirmLogoutBtn');
+    const cancelLogoutBtn  = document.getElementById('cancelLogoutBtn');
+
+    // Trigger Modal
+    if(logoutProfile) {
+      logoutProfile.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        logoutModal.classList.remove('hidden');
+        document.getElementById('profileDropdown')?.classList.add('hidden'); // Close dropdown
+      });
+    }
+
+    // Cancel Logout
+    if(cancelLogoutBtn) {
+      cancelLogoutBtn.addEventListener('click', () => {
+        logoutModal.classList.add('hidden');
+      });
+    }
+
+    // Confirm Logout -> Redirect to PHP Logout
+    if(confirmLogoutBtn) {
+      confirmLogoutBtn.addEventListener('click', () => {
+        // Clear local storage just in case
+        localStorage.removeItem('currentUser');
+        localStorage.removeItem('authSource');
+        // Redirect to logout script
+        window.location.href = '/DINADRAWING/Backend/auth/logout.php';
+      });
+    }
+    
+    // Close modal on outside click
+    if(logoutModal) {
+      logoutModal.addEventListener('click', (e) => {
+        if (e.target === logoutModal) logoutModal.classList.add('hidden');
+      });
+    }
+  });
+</script>
+
 </body>
-</html>

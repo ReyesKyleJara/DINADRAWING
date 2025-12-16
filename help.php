@@ -1,3 +1,21 @@
+<?php
+session_start();
+
+// 1. SECURITY CHECK: If PHP session is missing, kick user out immediately.
+if (!isset($_SESSION['user_id'])) {
+    header("Location: index.html");
+    exit;
+}
+
+// 2. PREPARE USER DATA (Synced with Database/Google)
+$userData = [
+    'name' => $_SESSION['name'] ?? 'User',
+    'username' => $_SESSION['username'] ?? 'User',
+    'email' => $_SESSION['email'] ?? '',
+    'photo' => $_SESSION['profile_picture'] ?? 'Assets/Profile Icon/profile.png' 
+];
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -8,37 +26,19 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="style.css">
 
-    <!-- Early theme application -->
   <script>
     (function() {
       const savedTheme = localStorage.getItem('theme');
-
       if (savedTheme === 'dark') {
         document.documentElement.classList.add('dark-mode');
-      } else {
-        document.documentElement.classList.remove('dark-mode');
       }
-
-      // Sync theme changes across tabs/pages
-      window.addEventListener('storage', function(e) {
-        if (e.key === 'theme') {
-          if (e.newValue === 'dark') {
-            document.documentElement.classList.add('dark-mode');
-            if (document.body) document.body.classList.add('dark-mode');
-          } else {
-            document.documentElement.classList.remove('dark-mode');
-            if (document.body) document.body.classList.remove('dark-mode');
-          }
-        }
-      });
     })();
   </script>
-
 
   <style>
     body { font-family: 'Poppins', sans-serif; background-color: #fffaf2; color: #222; }
 
-    /* Dark Mode (copied) */
+    /* Dark Mode */
     body.dark-mode { background-color: #1a1a1a !important; color: #e0e0e0 !important; }
     body.dark-mode .bg-white { background-color: #2a2a2a !important; }
     body.dark-mode .bg-\[\#fffaf2\] { background-color: #1a1a1a !important; }
@@ -58,7 +58,7 @@
     body.dark-mode .shadow-lg { box-shadow: 0 4px 6px rgba(0,0,0,0.5) !important; }
     body.dark-mode .text-\[\#222\] { color: #e0e0e0 !important; }
 
-    /* Hamburger (same) */
+    /* Hamburger */
     .hamburger { display: flex; flex-direction: column; gap: 4px; cursor: pointer; padding: 8px; border-radius: 8px; transition: background 0.2s; }
     .hamburger:hover { background: rgba(244,180,26,0.1); }
     .hamburger span { width: 24px; height: 3px; background: #222; border-radius: 2px; transition: all .3s; }
@@ -74,7 +74,7 @@
       #sidebar:not(.active) { transform: translateX(-100%); }
     }
 
-    /* Main + header shift (same) */
+    /* Main + header shift */
     main { transition: margin-left .3s ease; }
     @media (min-width: 769px) {
       main.sidebar-open { margin-left: 16rem; }
@@ -89,10 +89,8 @@
 </head>
 <body class="flex bg-[#fffaf2]">
 
-<!-- SIDEBAR OVERLAY -->
 <div id="sidebarOverlay" class="sidebar-overlay"></div>
 
-<!-- SIDEBAR (removed 'hidden md:flex' for smooth animation) -->
 <aside id="sidebar"
 class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
        bg-[#f4b41a] rounded-tr-3xl
@@ -105,10 +103,10 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
 
   <nav>
     <ul class="space-y-5">
-      <li><a href="dashboard.html" class="block px-4 py-2 rounded-lg font-medium text-[#222] hover:bg-[#222] hover:text-white transition">Home</a></li>
+      <li><a href="dashboard.php" class="block px-4 py-2 rounded-lg font-medium text-[#222] hover:bg-[#222] hover:text-white transition">Home</a></li>
       <li><a href="myplans.php" class="block px-4 py-2 rounded-lg font-medium text-[#222] hover:bg-[#222] hover:text-white transition">My Plans</a></li>
-      <li><a href="help.html" class="block px-4 py-2 rounded-lg font-medium bg-[#222] text-white hover:bg-[#111] transition">Help</a></li>
-      <li><a href="settings.html" class="block px-4 py-2 rounded-lg font-medium text-[#222] hover:bg-[#222] hover:text-white transition">Settings</a></li>
+      <li><a href="help.php" class="block px-4 py-2 rounded-lg font-medium bg-[#222] text-white hover:bg-[#111] transition">Help</a></li>
+      <li><a href="settings.php" class="block px-4 py-2 rounded-lg font-medium text-[#222] hover:bg-[#222] hover:text-white transition">Settings</a></li>
     </ul>
   </nav>
 </aside>
@@ -116,7 +114,6 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
 <main id="mainContent" class="flex-1 min-h-screen px-12 py-10 pt-28 overflow-y-auto">
   <div class="w-full">
 
-    <!-- PAGE HEADER -->
     <div class="page-header flex justify-between items-center border-b-2 border-gray-200 pb-4 mb-6 fixed top-0 left-0 w-full bg-[#fffaf2] z-40 px-12 py-10">
       <div class="flex items-center gap-4">
         <button id="hamburgerBtn" class="hamburger"><span></span><span></span><span></span></button>
@@ -139,16 +136,14 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
           <div class="py-2">
             <a href="help.html" class="block px-4 py-2 text-sm hover:bg-gray-50">Help</a>
             <button id="aboutUsBtn" class="w-full text-left px-4 py-2 text-sm hover:bg-gray-50">About Us</button>
-            <a href="settings.html" class="block px-4 py-2 text-sm hover:bg-gray-50">Settings</a>
+            <a href="settings.php" class="block px-4 py-2 text-sm hover:bg-gray-50">Settings</a>
             <button id="logoutProfile" class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50">Log out</button>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- CONTENT (unchanged) -->
     <div class="flex flex-col lg:flex-row gap-6 mt-4">
-      <!-- FAQS -->
       <div class="flex-1 space-y-2">
         <div class="faq-item border border-gray-300 rounded-lg overflow-hidden">
           <button class="faq-question w-full flex justify-between items-center p-4 bg-gray-300 font-medium text-left">
@@ -201,7 +196,6 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
         </div>
       </div>
 
-      <!-- SIDE CARDS -->
       <div class="flex flex-col gap-4 lg:w-[350px]">
         <div class="border border-gray-300 bg-gray-300 rounded-lg p-6">
           <h3 class="text-lg font-semibold mb-2">Still Have Questions?</h3>
@@ -228,7 +222,6 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
   </div>
 </main>
 
-<!-- CONTACT MODAL -->
 <div id="contactModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center hidden z-50 p-4">
   <div class="bg-white rounded-2xl shadow-xl relative w-full max-w-lg max-h-[90vh] overflow-y-auto p-6">
     <button id="closeContactModal" class="absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
@@ -253,7 +246,6 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
   </div>
 </div>
 
-<!-- REPORT MODAL -->
 <div id="reportModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center hidden z-50 p-4">
   <div class="bg-white rounded-2xl shadow-xl relative w-full max-w-lg max-h-[90vh] overflow-y-auto p-6">
     <button id="closeReportModal" class="absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
@@ -285,7 +277,6 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
   </div>
 </div>
 
-<!-- ABOUT US MODAL -->
 <div id="aboutUsModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center hidden z-50 p-4">
   <div class="bg-white rounded-2xl shadow-xl relative w-full max-w-2xl max-h-[90vh] overflow-y-auto p-8">
     <button id="closeAboutUsModal" class="absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
@@ -337,7 +328,6 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
   </div>
 </div>
 
-<!-- SUCCESS TOAST -->
 <div id="helpSuccessToast" class="hidden fixed bottom-6 right-6 z-60">
   <div class="bg-[#f4b41a] text-[#222] px-4 py-3 rounded-lg shadow-lg flex items-center gap-3">
     <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
@@ -345,7 +335,6 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
   </div>
 </div>
 
-<!-- LOGOUT MODAL -->
 <div id="logoutModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm hidden z-[70] p-4 flex items-center justify-center">
   <div class="bg-white rounded-2xl shadow-xl relative w-full max-w-md p-6"
        role="dialog" aria-modal="true" aria-labelledby="logoutTitle" onclick="event.stopPropagation()">
@@ -358,7 +347,6 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
   </div>
 </div>
 
-<!-- FRONTEND SCRIPTS -->
 <script>
   // Sidebar 
   document.addEventListener('DOMContentLoaded', function() {
@@ -608,7 +596,6 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
 
     if (reportScreenshot) {
       reportScreenshot.addEventListener('change', () => {
-        // Keep simple validation; preview container exists if you want to extend
         validateReportForm();
       });
     }
@@ -635,58 +622,74 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
   });
 </script>
 
-<!-- AUTH + LOGOUT (unchanged backend) -->
-<script type="module">
-  import { auth } from './firebase-config.js';
-  import { signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+<script>
+  // Inject PHP session data directly into JS
+  const currentUser = <?php echo json_encode($userData); ?>;
 
-  function initAuth() {
-    const navName = document.getElementById('navProfileName');
-    const dropName = document.getElementById('dropdownProfileName');
-    const navImg = document.getElementById('navProfileImg');
-    const dropImg = document.getElementById('dropdownProfileImg');
+  document.addEventListener('DOMContentLoaded', function() {
+    
+    // UI Update Helper
+    function setUI(user) {
+      if (!user) return;
+      
+      const ids = ['userDisplayName', 'navProfileName', 'dropdownProfileName'];
+      ids.forEach(id => {
+        const el = document.getElementById(id);
+        if(el) el.textContent = user.name || user.username;
+      });
 
-    onAuthStateChanged(auth, (user) => {
-      if (user) {
-        const displayName = user.displayName || (user.email ? user.email.split('@')[0] : 'User');
-        const defaultPhoto = "Assets/Profile Icon/profile.png";
-        const userPhoto = user.photoURL || defaultPhoto;
+      const navImg = document.getElementById('navProfileImg');
+      const ddImg  = document.getElementById('dropdownProfileImg');
+      
+      // Use the photo from PHP session
+      if (navImg && user.photo) navImg.src = user.photo;
+      if (ddImg && user.photo) ddImg.src  = user.photo;
+    }
 
-        if (navName) navName.textContent = displayName;
-        if (dropName) dropName.textContent = displayName;
-        if (navImg) navImg.src = userPhoto;
-        if (dropImg) dropImg.src = userPhoto;
-      } else {
-        window.location.href = 'index.html';
-      }
-    });
+    // 1. Initialize UI immediately with PHP data
+    setUI(currentUser);
 
-    // Logout modal hooks (unchanged)
-    const logoutSidebar = document.getElementById('logoutBtn');
+    // 2. LOGOUT Logic (Redirects to PHP logout script)
     const logoutProfile = document.getElementById('logoutProfile');
-    const logoutModal = document.getElementById('logoutModal');
+    const logoutModal   = document.getElementById('logoutModal');
     const confirmLogoutBtn = document.getElementById('confirmLogoutBtn');
-    const cancelLogoutBtn = document.getElementById('cancelLogoutBtn');
+    const cancelLogoutBtn  = document.getElementById('cancelLogoutBtn');
 
-    function openLogoutModal(){ logoutModal?.classList.remove('hidden'); }
-    function closeLogoutModal(){ logoutModal?.classList.add('hidden'); }
+    // Trigger Modal
+    if(logoutProfile) {
+      logoutProfile.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        logoutModal.classList.remove('hidden');
+        document.getElementById('profileDropdown')?.classList.add('hidden'); // Close dropdown
+      });
+    }
 
-    logoutSidebar?.addEventListener('click', openLogoutModal);
-    logoutProfile?.addEventListener('click', openLogoutModal);
-    confirmLogoutBtn?.addEventListener('click', () => {
-      signOut(auth).then(() => { window.location.href = 'index.html'; })
-      .catch(err => console.error('Logout error:', err));
-    });
-    cancelLogoutBtn?.addEventListener('click', closeLogoutModal);
-    logoutModal?.addEventListener('click', (e) => { if (e.target === logoutModal) closeLogoutModal(); });
-    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeLogoutModal(); });
-  }
+    // Cancel Logout
+    if(cancelLogoutBtn) {
+      cancelLogoutBtn.addEventListener('click', () => {
+        logoutModal.classList.add('hidden');
+      });
+    }
 
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initAuth);
-  } else {
-    initAuth();
-  }
+    // Confirm Logout -> Redirect to PHP Logout
+    if(confirmLogoutBtn) {
+      confirmLogoutBtn.addEventListener('click', () => {
+        // Clear local storage just in case
+        localStorage.removeItem('currentUser');
+        localStorage.removeItem('authSource');
+        // Redirect to logout script
+        window.location.href = '/DINADRAWING/Backend/auth/logout.php';
+      });
+    }
+    
+    // Close modal on outside click
+    if(logoutModal) {
+      logoutModal.addEventListener('click', (e) => {
+        if (e.target === logoutModal) logoutModal.classList.add('hidden');
+      });
+    }
+  });
 </script>
 
 </body>

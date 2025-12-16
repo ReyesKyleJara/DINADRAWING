@@ -1,39 +1,64 @@
 <?php
+session_start();
+
+// 1. SECURITY CHECK: Kung walang session, sipain pabalik sa index.
+if (!isset($_SESSION['user_id'])) {
+    header("Location: index.html");
+    exit;
+}
+
+// 2. PREPARE USER DATA (Profile Picture galing sa Google/Database)
+$userData = [
+    'name' => $_SESSION['name'] ?? 'User',
+    'username' => $_SESSION['username'] ?? 'User',
+    'email' => $_SESSION['email'] ?? '',
+    // Ito yung kukuha ng picture na sinave natin sa google.php
+    'photo' => $_SESSION['profile_picture'] ?? 'Assets/Profile Icon/profile.png' 
+];
+
+// 3. DATABASE CONNECTION & LOGIC (Nanatiling pareho sa dati mong code)
 ini_set('display_errors',1);
 error_reporting(E_ALL);
 
-$pdo = new PDO(
-  "pgsql:host=127.0.0.1;port=5432;dbname=dinadrawing",
-  "kai",
-  "DND2025",
-  [
-    PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,
-    PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC
-  ]
-);
+try {
+    // Note: Kung may config file ka, pwede mo ring gamitin ang require_once dito.
+    // Pero for safety, ginamit ko muna ang existing connection code mo para gumana agad ang plans.
+    $pdo = new PDO(
+      "pgsql:host=127.0.0.1;port=5432;dbname=dinadrawing",
+      "kai",
+      "DND2025",
+      [
+        PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,
+        PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC
+      ]
+    );
 
-$showArchived = !empty($_GET['archived']);
-$where = $showArchived ? "archived IS TRUE" : "archived IS NOT TRUE";
+    $showArchived = !empty($_GET['archived']);
+    $where = $showArchived ? "archived IS TRUE" : "archived IS NOT TRUE";
 
-$stmt = $pdo->query("
-  SELECT
-    id,
-    name,
-    description,
-    CASE
-      WHEN date IS NOT NULL AND time IS NOT NULL THEN date::text || ' ' || time::text
-      WHEN date IS NOT NULL THEN date::text
-      WHEN time IS NOT NULL THEN time::text
-      ELSE NULL
-    END AS dt,
-    location AS loc,
-    banner_type, banner_color, banner_from, banner_to, banner_image,
-    archived
-  FROM events
-  WHERE $where
-  ORDER BY date NULLS LAST, id DESC
-");
-$events = $stmt->fetchAll();
+    $stmt = $pdo->query("
+      SELECT
+        id,
+        name,
+        description,
+        CASE
+          WHEN date IS NOT NULL AND time IS NOT NULL THEN date::text || ' ' || time::text
+          WHEN date IS NOT NULL THEN date::text
+          WHEN time IS NOT NULL THEN time::text
+          ELSE NULL
+        END AS dt,
+        location AS loc,
+        banner_type, banner_color, banner_from, banner_to, banner_image,
+        archived
+      FROM events
+      WHERE $where
+      ORDER BY date NULLS LAST, id DESC
+    ");
+    $events = $stmt->fetchAll();
+
+} catch (PDOException $e) {
+    die("Database Error: " . $e->getMessage());
+}
 
 function h($s){ return htmlspecialchars($s??'',ENT_QUOTES,'UTF-8'); }
 function formatMonth($dt){ $ts=$dt?strtotime($dt):false; return $ts?date('M',$ts):'-'; }
@@ -55,6 +80,7 @@ function card_banner_style($ev){
   return "background:#f4b41a;color:#222;";
 }
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -74,44 +100,39 @@ function card_banner_style($ev){
   </script>
 
   <style>
+    /* STYLES START HERE (Kopya lang ito sa original file mo) */
     body { font-family: 'Poppins', sans-serif; background-color: #fffaf2; color: #222; }
 
-    /* --- DARK MODE STYLES (From Dashboard) --- */
+    /* --- DARK MODE STYLES --- */
     body.dark-mode { background-color: #1a1a1a !important; color: #e0e0e0 !important; }
     body.dark-mode .bg-white { background-color: #2a2a2a !important; }
     body.dark-mode .bg-\[\#fffaf2\] { background-color: #1a1a1a !important; }
     body.dark-mode h1, body.dark-mode h2, body.dark-mode h3, body.dark-mode h4,
     body.dark-mode p, body.dark-mode span, body.dark-mode div, body.dark-mode li { color: #e0e0e0 !important; }
     
-    /* Text Colors */
     body.dark-mode .text-gray-600, body.dark-mode .text-gray-700, body.dark-mode .text-gray-500 { color: #a0a0a0 !important; }
     body.dark-mode .text-\[\#222\] { color: #e0e0e0 !important; }
     
-    /* Borders & Shadows */
     body.dark-mode .border-gray-200 { border-color: #404040 !important; }
     body.dark-mode .border-gray-100 { border-color: #353535 !important; }
     body.dark-mode .border-gray-300 { border-color: #454545 !important; }
     body.dark-mode .shadow, body.dark-mode .shadow-md, body.dark-mode .shadow-lg { box-shadow: 0 4px 6px rgba(0,0,0,0.5) !important; }
     
-    /* Inputs & Forms */
     body.dark-mode input, body.dark-mode textarea, body.dark-mode select {
       background-color: #2a2a2a !important; color: #e0e0e0 !important; border-color: #454545 !important;
     }
     body.dark-mode input::placeholder, body.dark-mode textarea::placeholder { color: #707070 !important; }
     body.dark-mode label { color: #e0e0e0 !important; }
 
-    /* Specific to My Plans Page (Tables & Dropdowns) */
-    body.dark-mode .bg-gray-50 { background-color: #2a2a2a !important; } /* Table Header */
-    body.dark-mode tr.hover\:bg-gray-50:hover { background-color: #333 !important; } /* Table Row Hover */
+    body.dark-mode .bg-gray-50 { background-color: #2a2a2a !important; } 
+    body.dark-mode tr.hover\:bg-gray-50:hover { background-color: #333 !important; }
     body.dark-mode .divide-gray-200 > :not([hidden]) ~ :not([hidden]) { border-color: #404040 !important; }
     
-    /* Hamburger Menu */
     .hamburger { display: flex; flex-direction: column; gap: 4px; cursor: pointer; padding: 8px; border-radius: 8px; transition: background 0.2s; }
     .hamburger:hover { background: rgba(244,180,26,0.1); }
     .hamburger span { width: 24px; height: 3px; background: #222; border-radius: 2px; transition: all .3s; }
     body.dark-mode .hamburger span { background: #e0e0e0; }
 
-    /* Layout/Sidebar Transitions */
     .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 45; }
     .sidebar-overlay.active { display: block; }
     #sidebar { transition: transform .3s ease; z-index: 50; transform: translateX(-100%); }
@@ -152,10 +173,10 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
 
   <nav>
     <ul class="space-y-5">
-      <li><a href="dashboard.html" class="block px-4 py-2 rounded-lg font-medium text-[#222] hover:bg-[#222] hover:text-white transition">Home</a></li>
+      <li><a href="dashboard.php" class="block px-4 py-2 rounded-lg font-medium text-[#222] hover:bg-[#222] hover:text-white transition">Home</a></li>
       <li><a href="myplans.php" class="block px-4 py-2 rounded-lg font-medium bg-[#222] text-white hover:bg-[#111] transition">My Plans</a></li>
-      <li><a href="help.html" class="block px-4 py-2 rounded-lg font-medium text-[#222] hover:bg-[#222] hover:text-white transition">Help</a></li>
-      <li><a href="settings.html" class="block px-4 py-2 rounded-lg font-medium text-[#222] hover:bg-[#222] hover:text-white transition">Settings</a></li>
+      <li><a href="help.php" class="block px-4 py-2 rounded-lg font-medium text-[#222] hover:bg-[#222] hover:text-white transition">Help</a></li>
+      <li><a href="settings.php" class="block px-4 py-2 rounded-lg font-medium text-[#222] hover:bg-[#222] hover:text-white transition">Settings</a></li>
     </ul>
   </nav>
 </aside>
@@ -206,15 +227,13 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
             <div class="py-2">
               <a href="help.html" class="block px-4 py-2 text-sm hover:bg-gray-50">Help</a>
               <button id="aboutUsBtn" class="w-full text-left px-4 py-2 text-sm hover:bg-gray-50">About Us</button>
-              <a href="settings.html" class="block px-4 py-2 text-sm hover:bg-gray-50">Settings</a>
+              <a href="settings.php" class="block px-4 py-2 text-sm hover:bg-gray-50">Settings</a>
               <button id="logoutProfile" class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50">Log out</button>
             </div>
           </div>
         </div>
 
-        <div id="notificationPanel"
-             class="absolute top-full right-0 mt-2 w-[90vw] md:w-60 lg:w-80 max-w-[28rem]
-                    bg-white shadow-lg rounded-2xl border border-gray-200 hidden z-50">
+        <div id="notificationPanel" class="absolute top-full right-0 mt-2 w-[90vw] md:w-60 lg:w-80 max-w-[28rem] bg-white shadow-lg rounded-2xl border border-gray-200 hidden z-50">
           <div class="p-4 border-b border-gray-200 flex justify-between items-center">
             <h4 class="font-semibold">Notifications</h4>
             <a href="#" id="clearNotificationsTop" class="text-sm text-[#2563eb] hover:underline">Mark all as read</a>
@@ -224,7 +243,7 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
               <img src="Assets/Profile Icon/profile2.png" alt="User" class="w-10 h-10 rounded-full border border-gray-200">
               <p class="text-sm"><strong>Kyle</strong> added 'Rice' to Assigned Tasks in <strong>Family Reunion.</strong></p>
             </li>
-            </ul>
+          </ul>
           <div class="border-t border-gray-200 p-3 text-center">
             <a href="#" id="clearNotificationsBottom" class="text-sm text-[#2563eb] hover:underline">Clear All Notifications</a>
           </div>
@@ -349,69 +368,6 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
         </div>
       </div>
     </section>
-
-    <section>
-      <h2 class="text-lg font-semibold mb-4">Your Ongoing Plans &gt;</h2>
-      <div id="galleryView2" class="flex flex-wrap gap-6">
-        <div class="relative w-64 bg-white border border-gray-300 rounded-2xl overflow-hidden shadow group">
-          <div class="bg-blue-500 text-[#222] font-bold p-4 text-lg flex justify-between items-start">
-            <div>
-              <span class="font-medium">Dagat naaa!</span>
-              <div class="text-sm font-normal text-[#222]/80">-</div>
-            </div>
-            <div class="relative">
-              <button onclick="showPlanActions(event,this)" class="text-[#222] hover:text-gray-700 px-2 py-1 rounded-lg hover:bg-blue-400/30 transition">⋮</button>
-            </div>
-          </div>
-          <div class="flex items-center justify-between p-4">
-            <div class="text-center">
-              <div class="text-xs text-gray-700">-</div>
-              <div class="text-2xl font-bold text-[#222]">-</div>
-            </div>
-            <button onclick="window.location.href='plan.php?id=<?php echo !empty($events) ? (int)$events[0]['id'] : 0; ?>'"
-              class="bg-[#222] text-white text-sm px-4 py-1.5 rounded-lg hover:bg-[#444] transition">View</button>
-          </div>
-        </div>
-      </div>
-      <div id="listView2" class="hidden">
-        <div class="bg-white rounded-2xl shadow border border-gray-200 overflow-hidden">
-          <table class="w-full">
-            <thead class="bg-gray-50 border-b border-gray-200">
-              <tr>
-                <th class="text-left px-6 py-3 text-sm font-medium text-gray-700">Plan Name</th>
-                <th class="text-left px-6 py-3 text-sm font-medium text-gray-700">Location</th>
-                <th class="text-left px-6 py-3 text-sm font-medium text-gray-700">Date</th>
-                <th class="text-left px-6 py-3 text-sm font-medium text-gray-700"></th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-gray-200">
-              <tr class="hover:bg-gray-50 transition">
-                <td class="px-6 py-4">
-                  <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center">
-                      <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                      </svg>
-                    </div>
-                    <span class="font-medium text-[#222]">Dagat naaa!</span>
-                  </div>
-                </td>
-                <td class="px-6 py-4 text-gray-600">-</td>
-                <td class="px-6 py-4 text-gray-600">-</td>
-                <td class="px-6 py-4">
-                  <div class="flex gap-2">
-                    <button onclick="window.location.href='plan.php?id=<?php echo !empty($events) ? (int)$events[0]['id'] : 0; ?>'" class="bg-[#222] text-white text-sm px-4 py-1.5 rounded-lg hover:bg-[#444] transition">View</button>
-                    <div class="relative">
-                      <button onclick="showPlanActions(event,this)" class="text-gray-600 hover:text-[#222] px-2 py-1 rounded-lg hover:bg-gray-100 transition">⋮</button>
-                    </div>
-                  </div>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </section>
   </div>
 </main>
 
@@ -421,13 +377,13 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
     <h2 class="text-2xl font-bold mb-1">Create Event</h2>
     <p class="text-sm text-gray-500 mb-4">Fill in the details to start planning your event.</p>
     <label class="block text-sm font-medium mb-1">Event Name <span class="text-gray-400 text-xs">(required)</span> </label>
-    <input type="text" class="w-full border border-gray-300 rounded-lg px-3 py-2 mb-4" placeholder="Enter event name">
+    <input type="text" id="eventName" class="w-full border border-gray-300 rounded-lg px-3 py-2 mb-4" placeholder="Enter event name">
     <label class="block text-sm font-medium mb-1">Description </label>
     <textarea id="eventDescription" maxlength="200" class="w-full border border-gray-300 rounded-lg px-3 py-2 mb-1 resize-none h-20" placeholder="Write a short description..."></textarea>
     <div class="text-right text-xs text-gray-500 mb-4"><span id="charCount">0</span>/200</div>
     <div class="grid grid-cols-2 gap-4 mb-4">
-      <div><label class="block text-sm font-medium mb-1">Date</label><input type="date" class="w-full border border-gray-300 rounded-lg px-3 py-2"></div>
-      <div><label class="block text-sm font-medium mb-1">Time</label><input type="time" class="w-full border border-gray-300 rounded-lg px-3 py-2"></div>
+      <div><label class="block text-sm font-medium mb-1">Date</label><input id="eventDate" type="date" class="w-full border border-gray-300 rounded-lg px-3 py-2"></div>
+      <div><label class="block text-sm font-medium mb-1">Time</label><input id="eventTime" type="time" class="w-full border border-gray-300 rounded-lg px-3 py-2"></div>
     </div>
     <label class="block text-sm font-medium mb-1">Location</label>
     <input id="eventLocation" type="text" class="w-full border border-gray-300 rounded-lg px-3 py-2 mb-2" placeholder="Search for a location">
@@ -460,7 +416,7 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
     <h2 id="logoutTitle" class="text-xl font-bold text-[#222] mb-2">Log out?</h2>
     <p class="text-sm text-gray-600 mb-6">Are you sure you want to log out?</p>
     <div class="flex justify-end gap-3">
-      <button id="cancelLogoutBtn" class="px-4 py-2 rounded-lg border border-gray-300 hover:bg-gray-100 transition">Continue planning</button>
+      <button id="cancelLogoutBtn" class="px-4 py-2 rounded-lg border border-gray-300 hover:bg-gray-100 transition">Cancel</button>
       <button id="confirmLogoutBtn" class="bg-red-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-red-700 transition">Yes</button>
     </div>
   </div>
@@ -531,13 +487,10 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
     </div>
   </div>
 </div>
-
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-
 <script>
   // Sidebar / layout toggle (frontend-only; persists in localStorage)
   document.addEventListener('DOMContentLoaded', function() {
-
     const savedTheme = localStorage.getItem('theme');
     if (savedTheme === 'dark') {
       document.body.classList.add('dark-mode');
@@ -633,13 +586,11 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
   const listView2 = document.getElementById("listView2");
 
   galleryViewBtn.addEventListener("click", () => {
-    // Show gallery view for both sections
     galleryView.classList.remove("hidden");
     listView.classList.add("hidden");
-    galleryView2.classList.remove("hidden");
-    listView2.classList.add("hidden");
+    if(galleryView2) galleryView2.classList.remove("hidden");
+    if(listView2) listView2.classList.add("hidden");
     
-    // Update button styles
     galleryViewBtn.classList.add("bg-[#f4b41a]", "text-[#222]");
     galleryViewBtn.classList.remove("text-gray-600");
     listViewBtn.classList.remove("bg-[#f4b41a]", "text-[#222]");
@@ -647,13 +598,11 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
   });
 
   listViewBtn.addEventListener("click", () => {
-    // Show list view for both sections
     galleryView.classList.add("hidden");
     listView.classList.remove("hidden");
-    galleryView2.classList.add("hidden");
-    listView2.classList.remove("hidden");
+    if(galleryView2) galleryView2.classList.add("hidden");
+    if(listView2) listView2.classList.remove("hidden");
     
-    // Update button styles
     listViewBtn.classList.add("bg-[#f4b41a]", "text-[#222]");
     listViewBtn.classList.remove("text-gray-600");
     galleryViewBtn.classList.remove("bg-[#f4b41a]", "text-[#222]");
@@ -672,7 +621,6 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
 
   function openPanelNearButton(panel, btn) {
     if (!panel || !btn) return;
-    // deactivate the header more button first
     if (headerMoreBtn) {
       headerMoreBtn.classList.remove('bg-[#f4b41a]', 'text-[#222]');
       const s = headerMoreBtn.querySelector('svg');
@@ -682,17 +630,14 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
       }
     }
 
-    // hide the other panel
     if (panel === archivePanel) trashPanel?.classList.add('hidden');
     if (panel === trashPanel) archivePanel?.classList.add('hidden');
 
-    // Temporarily make visible to measure size
     panel.style.visibility = 'hidden';
     panel.classList.remove('hidden');
     const mRect = panel.getBoundingClientRect();
     const btnRect = btn.getBoundingClientRect();
 
-    // Prefer below the button, clamp to viewport
     const gap = 8;
     let left = btnRect.left + window.scrollX;
     if (left + mRect.width + 8 > window.innerWidth + window.scrollX) {
@@ -707,7 +652,6 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
     panel.style.top = top + 'px';
     panel.style.visibility = 'visible';
 
-    // Mark the clicked header button active (yellow)
     btn.classList.add('bg-[#f4b41a]', 'text-[#222]');
     const svg = btn.querySelector('svg');
     if (svg) {
@@ -716,16 +660,12 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
     }
   }
 
-  // header more button toggles the small menu
   headerMoreBtn?.addEventListener('click', (e) => {
     e.stopPropagation();
-    // close panels
     archivePanel?.classList.add('hidden');
     trashPanel?.classList.add('hidden');
-    // toggle menu
     if (!headerMoreMenu) return;
     if (headerMoreMenu.classList.contains('hidden')) {
-      // position below the button
       headerMoreMenu.classList.remove('hidden');
       headerMoreMenu.style.visibility = 'hidden';
       const mRect = headerMoreMenu.getBoundingClientRect();
@@ -736,7 +676,6 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
       headerMoreMenu.style.left = left + 'px';
       headerMoreMenu.style.top = top + 'px';
       headerMoreMenu.style.visibility = 'visible';
-      // mark active
       headerMoreBtn.classList.add('bg-[#f4b41a]', 'text-[#222]');
       headerMoreBtn.querySelector('svg')?.classList.remove('text-gray-600');
       headerMoreBtn.querySelector('svg')?.classList.add('text-[#222]');
@@ -748,7 +687,6 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
     }
   });
 
-  // menu items open the panels anchored to the three-dots button
   headerMenuArchive?.addEventListener('click', (e) => {
     e.stopPropagation();
     headerMoreMenu?.classList.add('hidden');
@@ -763,9 +701,7 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
   closeArchive?.addEventListener('click', (e) => { e.stopPropagation(); archivePanel.classList.add('hidden'); headerMoreBtn?.classList.remove('bg-[#f4b41a]','text-[#222]'); headerMoreBtn?.querySelector('svg')?.classList.remove('text-[#222]'); headerMoreBtn?.querySelector('svg')?.classList.add('text-gray-600'); });
   closeTrash?.addEventListener('click', (e) => { e.stopPropagation(); trashPanel.classList.add('hidden'); headerMoreBtn?.classList.remove('bg-[#f4b41a]','text-[#222]'); headerMoreBtn?.querySelector('svg')?.classList.remove('text-[#222]'); headerMoreBtn?.querySelector('svg')?.classList.add('text-gray-600'); });
 
-  // Close panels when clicking outside
   document.addEventListener('click', (e) => {
-    // hide header menu if clicked outside
     if (headerMoreMenu && !headerMoreMenu.contains(e.target) && e.target !== headerMoreBtn) {
       headerMoreMenu.classList.add('hidden');
       headerMoreBtn?.classList.remove('bg-[#f4b41a]','text-[#222]');
@@ -786,7 +722,6 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
     }
   });
 
-  // Global context for the plan actions modal
   window.__planActionContext = {};
 
   function showPlanActions(e, button) {
@@ -796,38 +731,27 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
     const card = button.closest('.group') || button.closest('tr') || button.closest('div');
     if (!card) return;
 
-    // Try to infer a title from the card
     let title = 'Plan';
     const titleEl = card.querySelector('span.font-medium, .font-medium, .text-lg, .font-bold');
     if (titleEl) title = titleEl.textContent.trim();
 
     window.__planActionContext = { card, title };
 
-    // Anchor to the clicked button so the modal appears closer to the card
     const btnRect = button.getBoundingClientRect();
-
-    // Temporarily show the modal invisibly to measure its size
     modal.style.visibility = 'hidden';
     modal.classList.remove('hidden');
     const mRect = modal.getBoundingClientRect();
-
-    // Calculate preferred left: try to place to the right of the button, but clamp to viewport
     const gap = 6;
     let left = btnRect.right + gap + window.scrollX;
     if (left + mRect.width + 8 > window.innerWidth + window.scrollX) {
-      // not enough space on the right; place it slightly overlapping the card (closer)
       left = Math.max(8 + window.scrollX, btnRect.left - mRect.width - gap + window.scrollX);
     }
-
-    // Vertically center the modal near the button
     let top = btnRect.top + window.scrollY + (btnRect.height / 2) - (mRect.height / 2);
-    // clamp top to viewport
     top = Math.max(8 + window.scrollY, Math.min(top, window.scrollY + window.innerHeight - mRect.height - 8));
 
     modal.style.left = left + 'px';
     modal.style.top = top + 'px';
     modal.style.visibility = 'visible';
-    // modal is already visible (class removed)
   }
 
   function hidePlanActionModal() {
@@ -845,16 +769,11 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
     const cancelBtn = document.getElementById('actionConfirmCancel');
 
     msg.textContent = message;
-
-    // Position the confirm modal near the action modal
     const actionModal = document.getElementById('planActionModal');
     const rect = actionModal.getBoundingClientRect();
     confirmModal.style.top = (rect.top + window.scrollY + 46) + 'px';
     confirmModal.style.left = (rect.left + window.scrollX) + 'px';
 
-    // Options handling (no typing required)
-    // - { type: 'delete' } -> require checking an "I understand" checkbox (strong wording)
-    // - { type: 'archive' } -> require checking an "I understand" checkbox
     let requireCheckbox = false;
     if (options.type === 'delete') {
       requireCheckbox = true;
@@ -881,7 +800,6 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
       okBtn.removeEventListener('click', okHandler);
       cancelBtn.removeEventListener('click', cancelHandler);
       checkbox.removeEventListener('change', checkboxHandler);
-      // keep the confirm modal until explicitly closed by handlers
     }
 
     function okHandler() {
@@ -894,7 +812,6 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
     function cancelHandler() {
       cleanup();
       confirmModal.classList.add('hidden');
-      // do NOT re-open action modal automatically
     }
 
     function checkboxHandler() {
@@ -909,7 +826,6 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
   function archivePlan() {
     const title = window.__planActionContext.title || 'this plan';
     openActionConfirm('Are you sure?', () => {
-      // Backend Logic for Archiving should go here
       alert(`Archived "${title}"`);
     }, { type: 'archive' });
   }
@@ -917,12 +833,10 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
   function deletePlan() {
     const title = window.__planActionContext.title || 'this plan';
     openActionConfirm('Are you sure?', () => {
-      // Backend Logic for Deleting should go here
       alert(`Deleted "${title}"`);
     }, { type: 'delete' });
   }
 
-  // DOWNLOAD PDF (accepts optional title)
   async function downloadPDF(titleOverride) {
     const title = titleOverride || window.__planActionContext.title || 'Plan';
     const { jsPDF } = window.jspdf;
@@ -955,7 +869,6 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
       });
     }
 
-    // Helper to sanitize text (remove stray ampersands and excessive whitespace)
     function sanitizeText(s) {
       if (!s && s !== '') return '-';
       try {
@@ -965,30 +878,25 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
       }
     }
 
-    // Header background
     doc.setFillColor(244, 180, 26);
     doc.rect(0, 0, pageWidth, headerHeight, 'F');
 
-    // Try to load the logo from the Assets folder and place it on the header
     const logoData = await loadImageDataURL('Assets/dinadrawing-logo.png');
     const logoSize = 48;
     if (logoData) {
       doc.addImage(logoData, 'PNG', margin, 12, logoSize, logoSize);
     }
 
-    // Title centered in the header
     doc.setFontSize(20);
     doc.setTextColor(0, 0, 0);
     doc.setFont('helvetica', 'bold');
     const titleX = margin + (logoData ? logoSize + 12 : 0);
     doc.text('DiNaDrawing Plan Receipt', titleX, 42);
 
-    // Divider under header
     doc.setDrawColor(220);
     doc.setLineWidth(0.8);
     doc.line(margin, headerHeight + 8, pageWidth - margin, headerHeight + 8);
 
-    // Body content
     let y = headerHeight + 36;
     doc.setFontSize(12);
     doc.setFont('helvetica', 'bold');
@@ -1025,21 +933,17 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
     hidePlanActionModal();
   }
 
-  // Wire up the buttons inside the global action modal
   document.getElementById('actionArchiveBtn').addEventListener('click', () => archivePlan());
   document.getElementById('actionDownloadBtn').addEventListener('click', () => downloadPDF());
   document.getElementById('actionDeleteBtn').addEventListener('click', () => deletePlan());
 
-  // Close action modal when clicking outside, but DO NOT auto-close the confirm modal
   document.addEventListener('click', (e) => {
     const actionModal = document.getElementById('planActionModal');
     if (!actionModal.contains(e.target)) {
       actionModal.classList.add('hidden');
     }
-    // Do not close the confirmation modal on outside clicks; require explicit Cancel/Confirm
   });
 
-  // Close dropdown when clicking outside
   document.addEventListener('click', (e) => {
     if (!e.target.closest('.relative')) {
       document.querySelectorAll('.group .absolute.mt-2').forEach(m => m.classList.add('hidden'));
@@ -1154,10 +1058,7 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
 
 <script>
   const API_KEY = 'AIzaSyAGsgQDC6nVu9GQ9CYHQ2TTkbcX6qiF3Qc';
-  window.gm_authFailure = function() {
-    console.error('Google Maps authentication failure (gm_authFailure).');
-    alert('Google Maps authentication failed. See console for details.');
-  };
+  window.gm_authFailure = function() { console.error('Google Maps authentication failure.'); alert('Google Maps authentication failed.'); };
   let map, marker, autocomplete;
 
   function initMapOnce() {
@@ -1201,12 +1102,8 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
       const s = document.createElement('script');
       s.setAttribute('data-gm-loader', '1');
       s.src = `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(apiKey)}&libraries=places`;
-      s.async = true;
-      s.defer = true;
-      s.onload = () => {
-        if (window.google && google.maps) resolve();
-        else reject(new Error('Google Maps loaded but google.maps is not available.'));
-      };
+      s.async = true; s.defer = true;
+      s.onload = () => { if (window.google && google.maps) resolve(); else reject(new Error('Google Maps loaded but google.maps is not available.')); };
       s.onerror = (e) => reject(new Error('Failed to load Google Maps script: ' + e.message));
       document.head.appendChild(s);
     });
@@ -1214,88 +1111,87 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
 
   const openBtn = document.getElementById("openCreateEvent");
   openBtn?.addEventListener("click", () => {
-    if (!API_KEY) {
-      alert('Provide a valid Google Maps API key.');
-      return;
-    }
-    loadGoogleMaps(API_KEY)
-      .then(() => {
+    if (!API_KEY) { alert('Provide a valid Google Maps API key.'); return; }
+    loadGoogleMaps(API_KEY).then(() => {
         if (!map) initMapOnce();
-        setTimeout(() => {
-          if (map) {
-            google.maps.event.trigger(map, 'resize');
-            map.setCenter(marker?.getPosition() || { lat: 14.5995, lng: 120.9842 });
-          }
-        }, 250);
-      })
-      .catch(err => {
-        console.error('Maps load error:', err);
-        alert('Google Maps failed to load. Check console for details.');
-      });
+        setTimeout(() => { if (map) { google.maps.event.trigger(map, 'resize'); map.setCenter(marker?.getPosition() || { lat: 14.5995, lng: 120.9842 }); } }, 250);
+    }).catch(err => { console.error('Maps load error:', err); alert('Google Maps failed to load.'); });
   });
 </script>
 
-<script type="module">
-import { auth } from './firebase-config.js'; 
-import { signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+<script>
+  // =========================================
+  // UPDATED AUTH SCRIPT (PHP-BASED)
+  // =========================================
 
-document.addEventListener('DOMContentLoaded', function() {
-  
-  onAuthStateChanged(auth, (user) => {
-    if (user) {
-      const displayName = user.displayName || user.email.split('@')[0];
-      const defaultPhoto = "Assets/Profile Icon/profile.png"; 
-      const userPhoto = user.photoURL ? user.photoURL : defaultPhoto;
+  // Inject PHP session data directly into JS
+  const currentUser = <?php echo json_encode($userData); ?>;
 
-      const navName = document.getElementById('navProfileName');
-      const dropName = document.getElementById('dropdownProfileName');
+  document.addEventListener('DOMContentLoaded', function() {
+    
+    // UI Update Helper
+    function setUI(user) {
+      if (!user) return;
+      
+      const ids = ['userDisplayName', 'navProfileName', 'dropdownProfileName'];
+      ids.forEach(id => {
+        const el = document.getElementById(id);
+        if(el) el.textContent = user.name || user.username;
+      });
+
       const navImg = document.getElementById('navProfileImg');
-      const dropImg = document.getElementById('dropdownProfileImg');
+      const ddImg  = document.getElementById('dropdownProfileImg');
+      
+      // Use the photo from PHP session
+      if (navImg && user.photo) navImg.src = user.photo;
+      if (ddImg && user.photo) ddImg.src  = user.photo;
+    }
 
-      if (navName) navName.textContent = displayName;
-      if (dropName) dropName.textContent = displayName;
-      if (navImg) navImg.src = userPhoto;
-      if (dropImg) dropImg.src = userPhoto;
+    // 1. Initialize UI immediately with PHP data
+    setUI(currentUser);
 
-    } else {
-      console.log("No user logged in, redirecting...");
-      window.location.href = 'index.html'; 
+    // 2. LOGOUT Logic (Redirects to PHP logout script)
+    const logoutProfile = document.getElementById('logoutProfile');
+    const logoutModal   = document.getElementById('logoutModal');
+    const confirmLogoutBtn = document.getElementById('confirmLogoutBtn');
+    const cancelLogoutBtn  = document.getElementById('cancelLogoutBtn');
+
+    // Trigger Modal
+    if(logoutProfile) {
+      logoutProfile.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        logoutModal.classList.remove('hidden');
+        document.getElementById('profileDropdown')?.classList.add('hidden'); // Close dropdown
+      });
+    }
+
+    // Cancel Logout
+    if(cancelLogoutBtn) {
+      cancelLogoutBtn.addEventListener('click', () => {
+        logoutModal.classList.add('hidden');
+      });
+    }
+
+    // Confirm Logout -> Redirect to PHP Logout
+    if(confirmLogoutBtn) {
+      confirmLogoutBtn.addEventListener('click', () => {
+        // Clear local storage just in case
+        localStorage.removeItem('currentUser');
+        localStorage.removeItem('authSource');
+        // Redirect to logout script
+        window.location.href = '/DINADRAWING/Backend/auth/logout.php';
+      });
+    }
+    
+    // Close modal on outside click
+    if(logoutModal) {
+      logoutModal.addEventListener('click', (e) => {
+        if (e.target === logoutModal) logoutModal.classList.add('hidden');
+      });
     }
   });
-
-  const logoutSidebar = document.getElementById('logoutBtn');
-  const logoutProfile = document.getElementById('logoutProfile');
-  const logoutModal = document.getElementById('logoutModal');
-  const confirmLogoutBtn = document.getElementById('confirmLogoutBtn');
-  const cancelLogoutBtn = document.getElementById('cancelLogoutBtn');
-
-  function openLogoutModal() {
-    if(logoutModal) logoutModal.classList.remove('hidden');
-  }
-
-  if (logoutSidebar) logoutSidebar.addEventListener('click', openLogoutModal);
-  if (logoutProfile) logoutProfile.addEventListener('click', openLogoutModal);
-
-  if (confirmLogoutBtn) {
-    confirmLogoutBtn.addEventListener('click', () => {
-        signOut(auth)
-        .then(() => { window.location.href = 'index.html'; })
-        .catch((error) => { console.error('Logout error:', error); });
-    });
-  }
-
-  if (cancelLogoutBtn) {
-    cancelLogoutBtn.addEventListener('click', () => {
-        if(logoutModal) logoutModal.classList.add('hidden');
-    });
-  }
-
-  if (logoutModal) {
-    logoutModal.addEventListener('click', (e) => {
-        if (e.target === logoutModal) logoutModal.classList.add('hidden');
-    });
-  }
-});
 </script>
+
 </body>
 </html>
