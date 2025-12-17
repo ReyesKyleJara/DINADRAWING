@@ -116,7 +116,6 @@ $banner_inline = banner_style($banner_type,$banner_color,$banner_from,$banner_to
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.css" rel="stylesheet">
-
 <style>
       body { font-family: 'Poppins', sans-serif; background-color: #fffaf2; }
     #postInput:empty::before { content: attr(data-placeholder); color: #9ca3af; pointer-events: none; }
@@ -2286,5 +2285,35 @@ document.getElementById('createEventSubmitBtn')?.addEventListener('click', (e) =
   createEventAndOpenPlan();
 });
   </script>
+
+  <script>
+    // Buksan ang Modal
+    function openInvite() {
+        const modal = document.getElementById('inviteModal');
+        if(modal) {
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        } else {
+            console.error("Error: inviteModal not found inside HTML");
+        }
+    }
+
+    // Isara ang Modal
+    function closeInvite() {
+        const modal = document.getElementById('inviteModal');
+        if(modal) {
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+    }
+
+    // Copy Code Function
+    function copyCode() {
+        const codeText = document.getElementById('modalInviteCode').innerText;
+        navigator.clipboard.writeText(codeText).then(() => {
+            alert('Code copied: ' + codeText);
+        });
+    }
+</script>
 </body>
 </html>
