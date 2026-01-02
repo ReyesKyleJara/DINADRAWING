@@ -1,19 +1,23 @@
 <?php
-// File: DINADRAWING/Backend/events/delete.php
+// File: DINADRAWING/Backend/events/reschedule.php
 session_start();
 header('Content-Type: application/json');
 
-if (!isset($_SESSION['user_id'])) {
-    echo json_encode(['success' => false, 'error' => 'Unauthorized']);
-    exit;
+// 1. Check Login
+if (!isset($_SESSION['user_id'])) { 
+    echo json_encode(['success'=>false, 'error'=>'Unauthorized']); 
+    exit; 
 }
 
+// 2. Get Input
 $input = json_decode(file_get_contents('php://input'), true);
 $id = $input['id'] ?? 0;
+$newDate = $input['date'] ?? '';
 $userId = $_SESSION['user_id'];
 
-require_once __DIR__ . "/../config/database.php"; 
-// Fallback connection
+// 3. Connect to Database
+require_once __DIR__ . "/../config/database.php";
+// Fallback connection if config file is missing
 if (function_exists('getDatabaseConnection')) {
     $pdo = getDatabaseConnection();
 } else {
@@ -21,19 +25,19 @@ if (function_exists('getDatabaseConnection')) {
 }
 
 try {
-    // 1. Verify Ownership
+    // 4. Verify Ownership (Security)
     $stmt = $pdo->prepare("SELECT owner_id FROM events WHERE id = :id");
     $stmt->execute([':id' => $id]);
     $event = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if (!$event || $event['owner_id'] != $userId) {
-        echo json_encode(['success' => false, 'error' => 'Access denied']);
+        echo json_encode(['success'=>false, 'error'=>'Access denied']); 
         exit;
     }
 
-    // 2. SOFT DELETE (This puts it in the Trash Bin)
-    $pdo->prepare("UPDATE events SET deleted_at = NOW() WHERE id = :id")->execute([':id' => $id]);
-
+    // 5. Update the Date
+    $pdo->prepare("UPDATE events SET date = :date WHERE id = :id")->execute([':date' => $newDate, ':id' => $id]);
+    
     echo json_encode(['success' => true]);
 
 } catch (Exception $e) {

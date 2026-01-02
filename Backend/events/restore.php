@@ -1,5 +1,5 @@
 <?php
-// File: DINADRAWING/Backend/events/archive.php
+// File: DINADRAWING/Backend/events/restore_plan.php
 session_start();
 header('Content-Type: application/json');
 
@@ -10,26 +10,20 @@ $id = $input['id'] ?? 0;
 $userId = $_SESSION['user_id'];
 
 require_once __DIR__ . "/../config/database.php";
-if (function_exists('getDatabaseConnection')) {
-    $pdo = getDatabaseConnection();
-} else {
-    $pdo = new PDO("pgsql:host=127.0.0.1;port=5432;dbname=dinadrawing", "kai", "DND2025");
-}
+$pdo = getDatabaseConnection();
 
 try {
-    // 1. Check ownership
+    // Check ownership
     $stmt = $pdo->prepare("SELECT owner_id FROM events WHERE id = :id");
     $stmt->execute([':id' => $id]);
-    $event = $stmt->fetch(PDO::FETCH_ASSOC);
+    $event = $stmt->fetch();
 
     if (!$event || $event['owner_id'] != $userId) {
         echo json_encode(['success'=>false, 'error'=>'Access denied']); exit;
     }
 
-    // 2. Toggle Archive Status (If active -> archive, If archived -> unarchive)
-    // We use a trick: NOT archived
-    $pdo->prepare("UPDATE events SET archived = NOT archived WHERE id = :id")->execute([':id' => $id]);
-    
+    // Restore (Set deleted_at back to NULL)
+    $pdo->prepare("UPDATE events SET deleted_at = NULL WHERE id = :id")->execute([':id' => $id]);
     echo json_encode(['success' => true]);
 
 } catch (Exception $e) {

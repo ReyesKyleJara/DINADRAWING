@@ -187,7 +187,7 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
             <h2 id="dropdownProfileName" class="text-sm font-semibold text-[#222]">User</h2>
           </div>
           <div class="py-2">
-            <a href="help.html" class="block px-4 py-2 text-sm hover:bg-gray-50">Help</a>
+            <a href="help.php" class="block px-4 py-2 text-sm hover:bg-gray-50">Help</a>
             <button id="aboutUsBtn" type="button" class="w-full text-left px-4 py-2 text-sm hover:bg-gray-50">About Us</button>
             <a href="settings.php" class="block px-4 py-2 text-sm hover:bg-gray-50">Settings</a>
             <button id="logoutProfile" class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50">Log out</button>

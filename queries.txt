@@ -128,3 +128,33 @@ CREATE TABLE event_members (
 UPDATE events
 SET invite_code = UPPER(SUBSTRING(MD5(RANDOM()::TEXT), 1, 6))
 WHERE invite_code IS NULL;
+
+
+-- Table for Expenses
+CREATE TABLE IF NOT EXISTS budget_expenses (
+    id SERIAL PRIMARY KEY,
+    event_id INT NOT NULL REFERENCES events(id) ON DELETE CASCADE,
+    name VARCHAR(255) NOT NULL,
+    estimated_cost NUMERIC(10, 2) DEFAULT 0,
+    actual_cost NUMERIC(10, 2) DEFAULT 0,
+    is_paid BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Table for Contributions (Who pays what)
+CREATE TABLE IF NOT EXISTS budget_contributions (
+    id SERIAL PRIMARY KEY,
+    event_id INT NOT NULL REFERENCES events(id) ON DELETE CASCADE,
+    member_name VARCHAR(255),
+    avatar VARCHAR(255),
+    amount NUMERIC(10, 2) DEFAULT 0,
+    is_paid BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Fix the contributions table (usually the cause because of long avatar URLs)
+ALTER TABLE budget_contributions ALTER COLUMN avatar TYPE TEXT;
+ALTER TABLE budget_contributions ALTER COLUMN member_name TYPE TEXT;
+
+-- Fix the expenses table (just in case)
+ALTER TABLE budget_expenses ALTER COLUMN name TYPE TEXT;
