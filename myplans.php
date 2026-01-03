@@ -211,14 +211,25 @@ function card_banner_style($ev){
           <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3c0 .386-.146.735-.395 1.002L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
           <span id="notificationDot" class="absolute top-1 right-1 w-2.5 h-2.5 bg-[#f4b41a] rounded-full"></span>
         </button>
-        <div id="notificationPanel" class="absolute top-full right-0 mt-2 w-[90vw] md:w-60 lg:w-80 max-w-[28rem] bg-white shadow-lg rounded-2xl border border-gray-200 hidden z-50">
-          <div class="p-4 border-b border-gray-200 flex justify-between items-center"><h4 class="font-semibold">Notifications</h4><a href="#" id="clearNotificationsTop" class="text-sm text-[#2563eb] hover:underline">Mark all as read</a></div>
-          <ul id="notificationList" class="p-4 space-y-3 max-h-64 overflow-y-auto">
-            <li class="flex items-start gap-3 bg-white hover:bg-gray-50 p-2 rounded-lg cursor-pointer">
-              <p class="text-sm"><strong>System</strong> Welcome to DiNaDrawing!</p>
-            </li>
-          </ul>
-        </div>
+        <div id="notificationPanel" class="absolute top-full right-0 mt-3 w-80 sm:w-96 bg-white shadow-xl rounded-2xl border border-gray-100 hidden z-50 overflow-hidden">
+  
+  <div class="px-5 py-4 border-b border-gray-100 flex justify-between items-center bg-white">
+    <h4 class="font-bold text-lg text-[#222]">Notifications</h4>
+    <button onclick="markAllRead()" class="text-sm font-medium text-blue-600 hover:text-blue-700 hover:underline">
+      Mark all as read
+    </button>
+  </div>
+
+  <ul id="notificationList" class="max-h-[60vh] overflow-y-auto">
+    <li class="p-6 text-center text-gray-400 text-sm">Loading...</li>
+  </ul>
+
+  <div class="border-t border-gray-100 p-3 bg-gray-50/50 text-center">
+    <button onclick="document.getElementById('notificationList').innerHTML = '<li class=\'p-6 text-center text-gray-400 text-sm\'>No new notifications</li>';" class="text-sm font-medium text-blue-600 hover:underline">
+        Clear All Notifications
+    </button>
+  </div>
+</div>
       </div>
 
       <div class="relative">
@@ -270,8 +281,10 @@ function card_banner_style($ev){
               <button onclick="window.location.href='<?php echo $showArchived ? 'myplans.php' : 'myplans.php?archived=1'; ?>'" 
                       class="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 text-sm transition">
                 <?php if($showArchived): ?>
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-green-600" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm.707-10.293a1 1 0 00-1.414-1.414l-3 3a1 1 0 000 1.414l3 3a1 1 0 001.414-1.414L9.414 11H13a1 1 0 100-2H9.414l1.293-1.293z" clip-rule="evenodd" /></svg>
-                    <span>Active Plans</span>
+                  <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+</svg>        
+                  <span>Active Plans</span>
                 <?php else: ?>
                     <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-500" viewBox="0 0 20 20" fill="currentColor"><path d="M4 3a1 1 0 00-1 1v2a1 1 0 001 1h12a1 1 0 001-1V4a1 1 0 00-1-1H4zm0 8v4a2 2 0 002 2h8a2 2 0 002-2v-4H4z"/></svg>
                     <span>Archived Plans</span>
@@ -757,25 +770,42 @@ function card_banner_style($ev){
   });
 
   // ==========================================
-  // 2. HEADER MENU & VIEW TOGGLES
+  // 2. HEADER MENU & VIEW TOGGLES (Fixed Colors)
   // ==========================================
   const galleryViewBtn = document.getElementById("galleryViewBtn");
   const listViewBtn = document.getElementById("listViewBtn");
+  
   if (galleryViewBtn && listViewBtn) {
       galleryViewBtn.addEventListener("click", () => {
+        // Show Gallery, Hide List
         document.getElementById("galleryView").classList.remove("hidden");
         document.getElementById("listView").classList.add("hidden");
+        
+        // Style Gallery Button (Active: Yellow/Black)
         galleryViewBtn.classList.add("bg-[#f4b41a]", "text-[#222]");
+        galleryViewBtn.classList.remove("text-gray-600", "bg-transparent");
+        
+        // Style List Button (Inactive: Light Gray)
         listViewBtn.classList.remove("bg-[#f4b41a]", "text-[#222]");
+        listViewBtn.classList.add("text-gray-600", "bg-transparent");
       });
+
       listViewBtn.addEventListener("click", () => {
+        // Show List, Hide Gallery
         document.getElementById("galleryView").classList.add("hidden");
         document.getElementById("listView").classList.remove("hidden");
+        
+        // Style List Button (Active: Yellow/Black)
         listViewBtn.classList.add("bg-[#f4b41a]", "text-[#222]");
+        listViewBtn.classList.remove("text-gray-600", "bg-transparent");
+        
+        // Style Gallery Button (Inactive: Light Gray)
         galleryViewBtn.classList.remove("bg-[#f4b41a]", "text-[#222]");
+        galleryViewBtn.classList.add("text-gray-600", "bg-transparent");
       });
   }
 
+  // Header Dropdowns
   const headerMoreBtn = document.getElementById('headerMoreBtn');
   const headerMoreMenu = document.getElementById('headerMoreMenu');
   const trashPanel = document.getElementById('trashListPanel');
@@ -798,43 +828,137 @@ function card_banner_style($ev){
 
   document.getElementById('closeTrashPanel')?.addEventListener('click', () => trashPanel.classList.add('hidden'));
 
+// ==========================================
+  // 3. DROPDOWNS, NOTIFICATIONS & MODALS (Consolidated)
   // ==========================================
-  // 3. DROPDOWNS & MODALS
-  // ==========================================
-  const notificationBtn = document.getElementById("notificationBtn");
-  const notificationPanel = document.getElementById("notificationPanel");
+  
+  // --- VARIABLES ---
   const profileBtn = document.getElementById('profileBtn');
   const profileDropdown = document.getElementById('profileDropdown');
+  const notifBtn = document.getElementById("notificationBtn");
+  const notifPanel = document.getElementById("notificationPanel");
+  const notifDot = document.getElementById("notificationDot");
+  const notifList = document.getElementById("notificationList");
 
-  notificationBtn?.addEventListener("click", (e) => {
-    e.stopPropagation();
-    profileDropdown?.classList.add('hidden');
-    notificationPanel?.classList.toggle("hidden");
-  });
-
+  // --- PROFILE DROPDOWN ---
   profileBtn?.addEventListener('click', (e) => {
     e.stopPropagation();
-    notificationPanel?.classList.add('hidden');
+    notifPanel?.classList.add('hidden'); // Close notifications
     profileDropdown?.classList.toggle('hidden');
   });
 
-  // Logout & About Us logic
+  // --- NOTIFICATION DROPDOWN ---
+  notifBtn?.addEventListener("click", (e) => {
+      e.stopPropagation();
+      profileDropdown?.classList.add('hidden'); // Close profile
+      
+      notifPanel?.classList.toggle("hidden");
+      
+      // Load data only if opening
+      if (notifPanel && !notifPanel.classList.contains("hidden")) {
+          loadNotifications();
+      }
+  });
+
+  // --- NOTIFICATION LOGIC ---
+  async function loadNotifications() {
+      try {
+          const res = await fetch('/DINADRAWING/Backend/events/get_notifications.php');
+          const data = await res.json();
+          
+          if (data.success && data.notifications.length > 0) {
+              // Render List
+              if(notifList) notifList.innerHTML = data.notifications.map(n => renderNotificationItem(n)).join('');
+              
+              // Handle Red Dot
+              const hasUnread = data.notifications.some(n => !n.is_read);
+              if (hasUnread && notifDot) notifDot.classList.remove('hidden');
+              else if (notifDot) notifDot.classList.add('hidden');
+
+          } else {
+              if(notifList) notifList.innerHTML = `<li class="p-8 text-center text-gray-500 text-sm">No notifications yet.</li>`;
+              if (notifDot) notifDot.classList.add('hidden');
+          }
+      } catch (e) { console.error("Notification Error:", e); }
+  }
+
+  function renderNotificationItem(n) {
+      const bgClass = n.is_read ? 'bg-white' : 'bg-blue-50/40';
+      return `
+      <li class="flex items-start gap-3 p-3 border-b border-gray-50 last:border-0 hover:bg-gray-50 transition ${bgClass}">
+        <img src="${n.actor_avatar}" class="w-9 h-9 rounded-full object-cover border border-gray-200 shrink-0">
+        <div class="flex-1 text-sm leading-snug text-gray-600">
+          <p>
+             <span class="font-bold text-gray-900">${n.actor_name}</span> 
+             ${n.action_text} 
+             <span class="font-bold text-gray-900">${n.event_name}</span>.
+          </p>
+          <span class="text-xs text-gray-400 mt-0.5 block">${n.time_ago}</span>
+        </div>
+      </li>
+      `;
+  }
+
+  // Exposed function for "Mark all as read" button
+  window.markAllRead = async function() {
+      await fetch('/DINADRAWING/Backend/events/mark_read.php');
+      loadNotifications();
+  };
+  
+  // Auto-load red dot on startup
+  document.addEventListener('DOMContentLoaded', loadNotifications);
+
+  // --- LOGOUT MODAL ---
   const logoutProfile = document.getElementById('logoutProfile');
   const logoutModal = document.getElementById('logoutModal');
-  if(logoutProfile) logoutProfile.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); logoutModal.classList.remove('hidden'); profileDropdown?.classList.add('hidden'); });
+  
+  if(logoutProfile) {
+      logoutProfile.addEventListener('click', (e) => { 
+          e.preventDefault(); e.stopPropagation(); 
+          logoutModal.classList.remove('hidden'); 
+          profileDropdown?.classList.add('hidden'); 
+      });
+  }
   document.getElementById('cancelLogoutBtn')?.addEventListener('click', () => logoutModal.classList.add('hidden'));
-  document.getElementById('confirmLogoutBtn')?.addEventListener('click', () => { localStorage.removeItem('currentUser'); window.location.href = '/DINADRAWING/Backend/auth/logout.php'; });
+  document.getElementById('confirmLogoutBtn')?.addEventListener('click', () => { 
+      localStorage.removeItem('currentUser'); 
+      window.location.href = '/DINADRAWING/Backend/auth/logout.php'; 
+  });
 
+  // --- ABOUT US MODAL ---
   const aboutUsBtn = document.getElementById('aboutUsBtn');
   const aboutUsModal = document.getElementById('aboutUsModal');
-  if(aboutUsBtn) aboutUsBtn.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); aboutUsModal.classList.remove('hidden'); profileDropdown?.classList.add('hidden'); });
+  
+  if(aboutUsBtn) {
+      aboutUsBtn.addEventListener('click', (e) => { 
+          e.preventDefault(); e.stopPropagation(); 
+          aboutUsModal.classList.remove('hidden'); 
+          profileDropdown?.classList.add('hidden'); 
+      });
+  }
   document.getElementById('closeAboutUsModal')?.addEventListener('click', () => aboutUsModal.classList.add('hidden'));
 
+  // --- CLICK OUTSIDE TO CLOSE ---
   document.addEventListener('click', (e) => {
-    if (headerMoreMenu && !headerMoreMenu.contains(e.target) && e.target !== headerMoreBtn) headerMoreMenu.classList.add('hidden');
-    if (profileDropdown && !profileDropdown.contains(e.target) && !profileBtn.contains(e.target)) profileDropdown.classList.add('hidden');
-    if (notificationPanel && !notificationPanel.contains(e.target) && !notificationBtn.contains(e.target)) notificationPanel.classList.add('hidden');
-    if (document.getElementById('planActionModal') && !document.getElementById('planActionModal').contains(e.target)) document.getElementById('planActionModal').classList.add('hidden');
+    // Close Notification Panel
+    if (notifPanel && !notifPanel.classList.contains('hidden') && !notifPanel.contains(e.target) && !notifBtn.contains(e.target)) {
+        notifPanel.classList.add('hidden');
+    }
+    // Close Profile Dropdown
+    if (profileDropdown && !profileDropdown.classList.contains('hidden') && !profileDropdown.contains(e.target) && !profileBtn.contains(e.target)) {
+        profileDropdown.classList.add('hidden');
+    }
+    // Close Header Menu
+    const headerMoreMenu = document.getElementById('headerMoreMenu');
+    const headerMoreBtn = document.getElementById('headerMoreBtn');
+    if (headerMoreMenu && !headerMoreMenu.contains(e.target) && e.target !== headerMoreBtn) {
+        headerMoreMenu.classList.add('hidden');
+    }
+    // Close Plan Action Modal
+    const planActionModal = document.getElementById('planActionModal');
+    if (planActionModal && !planActionModal.contains(e.target)) {
+        planActionModal.classList.add('hidden');
+    }
   });
 
   // ==========================================
@@ -896,7 +1020,7 @@ function card_banner_style($ev){
       
       if(title) title.textContent = "Delete Plan";
       msg.textContent = `Move "${window.__planActionContext.title}" to Trash?`;
-      if(chk) chk.classList.add('hidden'); // Hide checkbox for simple trash move
+      if(chk) chk.classList.remove('hidden'); // Show check for delete
       
       okBtn.textContent = "Delete";
       okBtn.disabled = false;
@@ -917,7 +1041,7 @@ function card_banner_style($ev){
 
       if(title) title.textContent = "Leave Plan";
       msg.textContent = `Are you sure you want to leave "${window.__planActionContext.title}"?`;
-      if(chk) chk.classList.add('hidden'); 
+      if(chk) chk.classList.add('hidden'); // Hide check for leave
       
       okBtn.textContent = "Leave"; 
       okBtn.disabled = false;
@@ -985,6 +1109,8 @@ function card_banner_style($ev){
       } catch(e) { alert("Network Error"); btn.disabled = false; btn.textContent = "Delete"; }
   }
 
+
+  
   // Helper: Execute Leave
   async function executeLeave() {
       const btn = document.getElementById('actionConfirmOk');
@@ -1193,6 +1319,7 @@ function card_banner_style($ev){
           if((await res.json()).success) location.reload();
       } catch(e) { alert("Network Error"); }
   };
+
 </script>
 </body>
 </html>

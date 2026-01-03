@@ -329,8 +329,8 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
     <ul class="space-y-5">
       <li><a href="dashboard.php" class="block px-4 py-2 rounded-lg font-medium text-[#222] hover:bg-[#222] hover:text-white transition">Home</a></li>
       <li><a href="myplans.php" class="block px-4 py-2 rounded-lg font-medium text-[#222] hover:bg-[#222] hover:text-white transition">My Plans</a></li>
-      <li><a href="help.html" class="block px-4 py-2 rounded-lg font-medium text-[#222] hover:bg-[#222] hover:text-white transition">Help</a></li>
-      <li><a href="settings.html" class="block px-4 py-2 rounded-lg font-medium text-[#222] hover:bg-[#222] hover:text-white transition">Settings</a></li>
+      <li><a href="help.php" class="block px-4 py-2 rounded-lg font-medium text-[#222] hover:bg-[#222] hover:text-white transition">Help</a></li>
+      <li><a href="settings.php" class="block px-4 py-2 rounded-lg font-medium text-[#222] hover:bg-[#222] hover:text-white transition">Settings</a></li>
     </ul>
   </nav>
 </aside>
@@ -405,11 +405,11 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
 
         <input type="file" id="postImageInput" accept="image/*" class="hidden">
 
-        <div id="toolbar" class="hidden flex items-center gap-2 p-2 border-t border-gray-200 text-gray-600 bg-gray-50">
-          <button type="button" onmousedown="keepFocus(event)" onclick="formatText('bold')" class="hover:text-[#f4b41a] font-semibold">B</button>
-          <button type="button" onmousedown="keepFocus(event)" onclick="formatText('italic')" class="hover:text-[#f4b41a] italic">I</button>
-          <button type="button" onmousedown="keepFocus(event)" onclick="formatText('underline')" class="hover:text-[#f4b41a] underline">U</button>
-        </div>
+<div id="toolbar" class="hidden flex items-center gap-1 p-2 border-t border-gray-200 text-gray-600 bg-gray-50">
+  <button id="btnBold" type="button" onmousedown="keepFocus(event)" onclick="formatText('bold')" class="w-7 h-7 rounded hover:bg-gray-200 hover:text-[#f4b41a] font-bold transition flex items-center justify-center">B</button>
+  <button id="btnItalic" type="button" onmousedown="keepFocus(event)" onclick="formatText('italic')" class="w-7 h-7 rounded hover:bg-gray-200 hover:text-[#f4b41a] italic transition flex items-center justify-center">I</button>
+  <button id="btnUnderline" type="button" onmousedown="keepFocus(event)" onclick="formatText('underline')" class="w-7 h-7 rounded hover:bg-gray-200 hover:text-[#f4b41a] underline transition flex items-center justify-center">U</button>
+</div>
       </div>
 
       <div id="postActions" class="hidden mt-3 flex justify-between items-center">
@@ -482,17 +482,22 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
           <button onclick="closePoll()" class="absolute top-3 right-3 text-gray-500 hover:text-black">✕</button>
 
           <div class="space-y-2" id="pollQuestionSection">
-            <input type="text" placeholder="Enter your question here..." class="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#3b82f6] focus:outline-none" />
+            <input type="text" id="pollQuestionInput" placeholder="Enter your question here..." class="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#3b82f6] focus:outline-none" />
+            
             <div id="pollOptionsContainer" class="space-y-2">
-              <input type="text" placeholder="Add option 1" class="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#3b82f6] focus:outline-none" />
+              <input type="text" placeholder="Add option 1" class="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#3b82f6] focus:outline-none option-input" />
+              <input type="text" placeholder="Add option 2" class="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#3b82f6] focus:outline-none option-input" />
             </div>
+            
             <button id="pollAddOptionBtn" class="text-sm text-[#3b82f6] font-medium hover:underline">+ Add more option</button>
           </div>
-          <p class="font-semibold mb-2">Poll Settings</p>
+
+          <p class="font-semibold mb-2 mt-4">Poll Settings</p>
+          
           <div class="flex items-center justify-between mb-2">
             <span>Allow multiple votes</span>
             <label class="relative inline-flex items-center cursor-pointer">
-              <input type="checkbox" class="sr-only peer" />
+              <input type="checkbox" id="pollAllowMultiple" class="sr-only peer" />
               <div class="w-10 h-5 bg-gray-300 rounded-full peer-checked:bg-[#f4b41a] transition"></div>
               <span class="absolute left-0.5 top-0.5 w-4 h-4 bg-white rounded-full transition-all peer-checked:translate-x-5"></span>
             </label>
@@ -501,13 +506,13 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
           <div class="flex items-center justify-between mb-4">
             <span>Anonymous voting</span>
             <label class="relative inline-flex items-center cursor-pointer">
-              <input type="checkbox" class="sr-only peer" />
+              <input type="checkbox" id="pollIsAnonymous" class="sr-only peer" />
               <div class="w-10 h-5 bg-gray-300 rounded-full peer-checked:bg-[#f4b41a] transition"></div>
               <span class="absolute left-0.5 top-0.5 w-4 h-4 bg-white rounded-full transition-all peer-checked:translate-x-5"></span>
             </label>
           </div>
 
-          <button class="w-full bg-[#f4b41a] text-[#222] font-medium py-2 rounded-lg hover:bg-[#e3a918] transition">Create Poll</button>
+          <button id="btnCreatePoll" class="w-full bg-[#f4b41a] text-[#222] font-medium py-2 rounded-lg hover:bg-[#e3a918] transition">Create Poll</button>
         </div>
       </div>
 
@@ -1270,6 +1275,11 @@ const postImagePreviewContainer = document.getElementById('postImagePreviewConta
 const postImagePreview = document.getElementById('postImagePreview');
 const feedContainer = document.getElementById('feedContainer');
 
+// Toolbar Buttons
+const btnBold = document.getElementById('btnBold');
+const btnItalic = document.getElementById('btnItalic');
+const btnUnderline = document.getElementById('btnUnderline');
+
 function expandPostBox() {
   postInput?.classList.add('min-h-[120px]');
   toolbar?.classList.remove('hidden');
@@ -1291,10 +1301,45 @@ document.addEventListener('click', (e) => {
 });
 
 function keepFocus(e){ e.preventDefault(); }
+
 function formatText(cmd){
-  postInput?.focus(); document.execCommand(cmd === 'underline' ? 'underline' : cmd, false, null);
+  postInput?.focus(); 
+  document.execCommand(cmd === 'underline' ? 'underline' : cmd, false, null);
+  checkToolbarState(); // Check highlighting immediately after clicking
 }
 
+// --- HIGHLIGHTING LOGIC ---
+function checkToolbarState() {
+    if (!btnBold || !btnItalic || !btnUnderline) return;
+
+    // Check Bold
+    if (document.queryCommandState('bold')) {
+        btnBold.classList.add('text-[#f4b41a]', 'bg-gray-200');
+    } else {
+        btnBold.classList.remove('text-[#f4b41a]', 'bg-gray-200');
+    }
+
+    // Check Italic
+    if (document.queryCommandState('italic')) {
+        btnItalic.classList.add('text-[#f4b41a]', 'bg-gray-200');
+    } else {
+        btnItalic.classList.remove('text-[#f4b41a]', 'bg-gray-200');
+    }
+
+    // Check Underline
+    if (document.queryCommandState('underline')) {
+        btnUnderline.classList.add('text-[#f4b41a]', 'bg-gray-200');
+    } else {
+        btnUnderline.classList.remove('text-[#f4b41a]', 'bg-gray-200');
+    }
+}
+
+// Listen for interactions to update button states
+postInput?.addEventListener('keyup', checkToolbarState);
+postInput?.addEventListener('mouseup', checkToolbarState);
+postInput?.addEventListener('click', checkToolbarState);
+
+// --- IMAGE UPLOAD LOGIC ---
 function triggerPostImageUpload() { postImageInput.click(); }
 postImageInput.addEventListener('change', function() {
     if (this.files && this.files[0]) {
@@ -1318,10 +1363,12 @@ function cancelPost(){
     if (postInput) postInput.innerHTML=''; 
     removePostImage(); 
     collapsePostBox(); 
+    checkToolbarState(); // Reset buttons
 }
 
 async function submitPost(){ 
-    const content = postInput.innerText.trim();
+    // Use innerHTML to capture bold/italic tags
+    const content = postInput.innerHTML.trim(); 
     const imageFile = postImageInput.files[0];
     if (content === '' && !imageFile) return;
 
@@ -1345,43 +1392,54 @@ async function submitPost(){
 // ==========================================
 // 2. POLL MODAL LOGIC
 // ==========================================
+// ==========================================
+// 2. POLL MODAL LOGIC (Fixed for Settings)
+// ==========================================
 const pollModal = document.getElementById('pollModal');
-const pollQuestionInput = pollModal?.querySelector('input[placeholder="Enter your question here..."]');
+const pollQuestionInput = document.getElementById('pollQuestionInput');
 const pollOptionsContainer = document.getElementById('pollOptionsContainer');
 const pollAddOptionBtn = document.getElementById('pollAddOptionBtn');
-const createPollBtn = pollModal?.querySelector('button.bg-\\[\\#f4b41a\\]'); 
-    
-const pollCheckboxes = pollModal?.querySelectorAll('input[type="checkbox"]'); 
-const allowMultipleChk = pollCheckboxes?.[0];
-const isAnonymousChk = pollCheckboxes?.[1];
+const createPollBtn = document.getElementById('btnCreatePoll'); 
+
+// Specific IDs for the toggles
+const allowMultipleChk = document.getElementById('pollAllowMultiple');
+const isAnonymousChk = document.getElementById('pollIsAnonymous');
 
 function openPoll(){ pollModal?.classList.remove('hidden'); }
+
 function closePoll(){ 
     pollModal?.classList.add('hidden'); 
+    // Reset Form
     if(pollQuestionInput) pollQuestionInput.value = '';
+    
+    // Reset Options to just 2
     if(pollOptionsContainer) {
-         while(pollOptionsContainer.children.length > 2) {
-             pollOptionsContainer.removeChild(pollOptionsContainer.lastChild);
-         }
-         pollOptionsContainer.querySelectorAll('input').forEach(i => i.value = '');
+         pollOptionsContainer.innerHTML = `
+            <input type="text" placeholder="Add option 1" class="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#3b82f6] focus:outline-none option-input" />
+            <input type="text" placeholder="Add option 2" class="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#3b82f6] focus:outline-none option-input" />
+         `;
     }
+    // Reset Toggles
     if(allowMultipleChk) allowMultipleChk.checked = false;
     if(isAnonymousChk) isAnonymousChk.checked = false;
 }
 
-let pollOptionCount = (pollOptionsContainer?.children.length || 1);
+// Add New Option Input
 pollAddOptionBtn?.addEventListener('click', () => {
-  pollOptionCount++;
+  const count = pollOptionsContainer.children.length + 1;
   const input = document.createElement('input');
   input.type = 'text';
-  input.placeholder = `Add option ${pollOptionCount}`;
-  input.className = 'w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#3b82f6] focus:outline-none';
+  input.placeholder = `Add option ${count}`;
+  input.className = 'w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#3b82f6] focus:outline-none option-input';
   pollOptionsContainer?.appendChild(input);
 });
 
+// Create Poll Action
 createPollBtn?.addEventListener('click', async () => {
     const question = pollQuestionInput.value.trim();
-    const options = Array.from(pollOptionsContainer.querySelectorAll('input'))
+    
+    // Collect all inputs with class .option-input
+    const options = Array.from(pollOptionsContainer.querySelectorAll('.option-input'))
                          .map(input => input.value.trim())
                          .filter(val => val !== ''); 
 
@@ -1390,12 +1448,13 @@ createPollBtn?.addEventListener('click', async () => {
 
     createPollBtn.disabled = true; createPollBtn.textContent = "Creating...";
 
+    // Capture the TOGGLE state correctly using IDs
     const payload = {
         event_id: <?php echo (int)$id; ?>,
         question: question,
         options: options,
-        allow_multiple: allowMultipleChk.checked,
-        is_anonymous: isAnonymousChk.checked
+        allow_multiple: allowMultipleChk.checked, // Sends true/false
+        is_anonymous: isAnonymousChk.checked      // Sends true/false
     };
 
     try {
@@ -1405,11 +1464,14 @@ createPollBtn?.addEventListener('click', async () => {
             body: JSON.stringify(payload)
         });
         const data = await res.json();
+        
         if (data.success) {
             closePoll();
-            prependNewPost(data.post); 
+            // Add the new poll to the feed immediately
+            if (typeof prependNewPost === 'function') {
+                prependNewPost(data.post); 
+            }
         } else {
-            // FIXED: Added missing quote and parentheses
             alert('Failed to create poll: ' + (data.error || 'Unknown error'));
         }
     } catch (err) { console.error(err); alert('Network error.'); }
@@ -1492,126 +1554,242 @@ createTaskBtn?.addEventListener('click', async () => {
 
 <script>
 // ==========================================
-// 4. MAIN FEED RENDERING
+// 4. MAIN FEED RENDERING (With Likes & Comments)
 // ==========================================
 function prependNewPost(post) {
     let postContentHTML = '';
+    
+    // Helper: Un-escape formatting
+    const cleanContent = (post.content || '')
+        .replace(/&lt;(\/?(b|i|u|strong|em|div|br|span|p))([^&]*)?&gt;/gi, '<$1$3>')
+        .replace(/&nbsp;/g, ' ');
 
     // --- A. STANDARD POST ---
     if (post.post_type === 'standard') {
         postContentHTML = `
-            ${post.content ? `<div class="text-sm text-gray-800 mb-3 whitespace-pre-wrap">${post.content}</div>` : ''}
+            ${cleanContent ? `<div class="text-sm text-gray-800 mb-3">${cleanContent}</div>` : ''}
             ${post.image_path ? `<div class="mb-3 rounded-lg overflow-hidden border border-gray-100"><img src="${post.image_path}" alt="Post Image" class="w-full h-auto object-cover max-h-[500px]"></div>` : ''}
         `;
     } 
     // --- B. POLL POST ---
+// --- B. POLL POST (Updated for Smooth Vote) ---
     else if (post.post_type === 'poll') {
         const pd = post.poll_data;
         const totalVotes = pd.total_votes || 0;
         
-        let optionsHTML = '';
-        pd.options.forEach(opt => {
-            const votes = opt.vote_count || 0;
-            const percentage = totalVotes > 0 ? Math.round((votes / totalVotes) * 100) : 0;
-            
-            const barColorBg = votes > 0 ? 'bg-[#f4b41a]' : 'bg-gray-200'; 
-            const textColor = votes > 0 ? 'text-[#222]' : 'text-gray-700';
-            const borderColor = votes > 0 ? 'border-[#f4b41a]' : 'border-gray-300';
-            const inputType = pd.allow_multiple ? 'checkbox' : 'radio';
-
-            optionsHTML += `
-            <div class="relative mb-2">
-              <div class="absolute inset-0 bg-gray-100 rounded-lg overflow-hidden" aria-hidden="true">
-                <div class="${barColorBg} h-full transition-all duration-500 ease-out" style="width: ${percentage}%"></div>
-              </div>
-              <label class="relative flex items-center justify-between px-4 py-3 rounded-lg border ${borderColor} cursor-pointer hover:bg-gray-50/50 transition z-10">
-                <div class="flex items-center gap-3">
-                  <input type="${inputType}" name="poll_${post.id}" class="w-4 h-4 text-[#f4b41a] focus:ring-[#f4b41a] border-gray-300" data-option-id="${opt.id}" disabled>
-                  <span class="text-sm font-medium ${textColor}">${opt.option_text}</span>
-                </div>
-                <span class="text-xs font-semibold ${textColor}">${percentage}%</span>
-              </label>
-            </div>`; 
-        });
+        // We use the helper function now so we can re-use it when updating
+        const optionsHTML = generatePollOptionsHTML(pd, post.id);
 
         postContentHTML = `
-        <div class="bg-gray-50 rounded-xl p-4 border border-gray-200 mb-3">
+        <div class="bg-gray-50 rounded-xl p-4 border border-gray-200 mb-3" id="poll-container-${post.id}">
           <h3 class="text-base font-bold text-[#222] mb-4">${pd.question}</h3>
-          <div class="space-y-2">
-            ${optionsHTML}
+          
+          <div class="space-y-2" id="poll-options-${post.id}">
+             ${optionsHTML}
           </div>
+
           <div class="flex justify-between items-center mt-4 text-xs text-gray-500 font-medium px-1">
-            <span>${totalVotes} votes • ${pd.is_anonymous ? 'Anonymous' : 'Public'}</span>
-            <button class="hidden bg-[#f4b41a] text-[#222] px-3 py-1.5 rounded-md hover:bg-[#e3a918] transition">Vote</button>
+            <span id="poll-stats-${post.id}">${totalVotes} total votes</span>
+            <span>${pd.is_anonymous ? 'Anonymous' : 'Public'}</span>
           </div>
         </div>`;
     }
     // --- C. TASK POST ---
     else if (post.post_type === 'task') {
-        const td = post.task_data;
-        let itemsHTML = '';
-        
-        if (td.items && td.items.length > 0) {
-            td.items.forEach(item => {
-                itemsHTML += `
-                <div class="flex items-center justify-between bg-white rounded-full border px-4 py-1.5 mb-2">
-                  <span class="text-sm font-medium text-gray-700">${item.item_text}</span>
-                  <span class="text-xs text-gray-500">${item.assigned_to ? item.assigned_to : ''}</span>
-                </div>`;
-            });
-        } else {
-            itemsHTML = '<p class="text-sm text-gray-500 italic">No tasks added.</p>';
-        }
-
-        let deadlineHTML = '';
-        if (td.deadline) {
-            const d = new Date(td.deadline);
-            deadlineHTML = `<span class="text-xs text-gray-500 bg-gray-200 px-2 py-1 rounded">Due: ${d.toLocaleDateString()}</span>`;
-        }
-
-        postContentHTML = `
-        <div class="bg-gray-50 rounded-xl p-4 border border-gray-200 mb-3">
-          <div class="flex justify-between items-center mb-4">
-              <h3 class="text-base font-bold text-[#222] text-center">${td.title}</h3>
-              ${deadlineHTML}
-          </div>
-          <div class="space-y-2">
-            ${itemsHTML}
-          </div>
-          <button class="w-full bg-gray-100 hover:bg-gray-200 rounded-full h-7 text-xs text-gray-400 font-medium flex items-center justify-start pl-3 transition mt-3">
-            + Add task
-          </button>
-        </div>`;
+         postContentHTML = `<div class="bg-gray-50 p-3 rounded text-sm text-gray-600">Task: ${post.task_data.title}</div>`;
     }
+
+    // Default stats if not provided by backend yet
+    const likeCount = post.like_count || 0;
+    const commentCount = post.comment_count || 0;
+    const isLiked = post.is_liked ? 'text-[#f4b41a] font-bold' : 'text-gray-500';
 
     // --- FINAL WRAPPER ---
     const finalHTML = `
-    <div class="bg-white p-4 rounded-lg shadow w-full transition-all duration-300 animate-fade-in" data-post-id="${post.id}">
+    <div class="bg-white p-4 rounded-lg shadow w-full transition-all duration-300 animate-fade-in" id="post-${post.id}">
       <div class="flex items-start gap-3 mb-3">
         <img src="${post.user.avatar}" alt="${post.user.name}" class="w-10 h-10 rounded-full object-cover shadow-sm" />
         <div>
-          <h4 class="font-semibold text-[#222] text-sm flex items-center gap-2">
-              ${post.user.name}
-              ${post.post_type === 'poll' ? '<span class="bg-blue-100 text-blue-800 text-[10px] px-2 py-0.5 rounded-full font-bold uppercase">Poll</span>' : ''}
-              ${post.post_type === 'task' ? '<span class="bg-green-100 text-green-800 text-[10px] px-2 py-0.5 rounded-full font-bold uppercase">Task</span>' : ''}
-          </h4>
+          <h4 class="font-semibold text-[#222] text-sm">${post.user.name}</h4>
           <p class="text-xs text-gray-500">${post.created_at}</p>
         </div>
       </div>
       
       ${postContentHTML}
 
-      <div class="flex items-center gap-4 pt-2 border-t border-gray-100 text-gray-500 text-sm font-medium">
-        <button class="flex items-center gap-1.5 hover:text-[#f4b41a] transition">
-           <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg> Like
+      <div class="flex items-center gap-6 pt-2 border-t border-gray-100 text-sm font-medium">
+        
+        <button onclick="toggleLike(${post.id}, this)" class="flex items-center gap-1.5 hover:text-[#f4b41a] transition ${isLiked}">
+           <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="${post.is_liked ? 'currentColor' : 'none'}" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+           </svg> 
+           <span class="like-count">${likeCount > 0 ? likeCount : 'Like'}</span>
         </button>
-        <button class="flex items-center gap-1.5 hover:text-[#f4b41a] transition">
-           <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg> Comment
+
+        <button onclick="toggleComments(${post.id})" class="flex items-center gap-1.5 text-gray-500 hover:text-[#f4b41a] transition">
+           <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+           </svg> 
+           <span class="comment-count-label">${commentCount > 0 ? commentCount : 'Comment'}</span>
         </button>
       </div>
-    </div>
-    `;
-    feedContainer.insertAdjacentHTML('afterbegin', finalHTML);
+
+      <div id="comments-section-${post.id}" class="hidden mt-3 pt-3 border-t border-gray-50">
+         
+         <div id="comments-list-${post.id}" class="space-y-3 mb-3 max-h-60 overflow-y-auto">
+            </div>
+
+         <div class="flex items-start gap-2">
+            <img src="<?php echo htmlspecialchars($currentUserAvatar); ?>" class="w-8 h-8 rounded-full border border-gray-200">
+            <div class="flex-1 relative">
+                <textarea id="comment-input-${post.id}" rows="1" placeholder="Write a comment..." class="w-full bg-gray-50 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-1 focus:ring-[#f4b41a] focus:outline-none resize-none"></textarea>
+                <button onclick="submitComment(${post.id})" class="absolute right-2 bottom-1.5 text-[#f4b41a] hover:text-black text-xs font-bold uppercase p-1">Post</button>
+            </div>
+         </div>
+      </div>
+
+    </div>`;
+    
+    document.getElementById('feedContainer').insertAdjacentHTML('afterbegin', finalHTML);
+}
+
+// ==========================================
+// POLL VOTING LOGIC
+// ==========================================
+async function votePoll(pollId, optionId, postId) {
+    // Optimistic Update (Optional, but let's just reload for accuracy first)
+    try {
+        const res = await fetch('/DINADRAWING/Backend/events/vote_poll.php', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ poll_id: pollId, option_id: optionId })
+        });
+        const data = await res.json();
+        
+        if (data.success) {
+            // Reload the posts to show new percentages
+            // A smoother way is to just reload the page or re-fetch posts
+            // For now, let's just trigger a reload of the specific post if possible, 
+            // or just reload the window to keep it simple and accurate.
+            loadEventPosts(); 
+        } else {
+            console.error(data.error);
+        }
+    } catch(e) { console.error("Vote error", e); }
+}
+
+// ==========================================
+// NEW FUNCTIONS: LIKE & COMMENT LOGIC
+// ==========================================
+
+async function toggleLike(postId, btn) {
+    try {
+        const res = await fetch('/DINADRAWING/Backend/events/toggle_like.php', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ post_id: postId })
+        });
+        const data = await res.json();
+        
+        if (data.success) {
+            const countSpan = btn.querySelector('.like-count');
+            const svg = btn.querySelector('svg');
+            
+            // Update Number
+            countSpan.textContent = data.new_count > 0 ? data.new_count : 'Like';
+            
+            // Update Color/Icon
+            if (data.action === 'liked') {
+                btn.classList.add('text-[#f4b41a]', 'font-bold');
+                btn.classList.remove('text-gray-500');
+                svg.setAttribute('fill', 'currentColor');
+            } else {
+                btn.classList.remove('text-[#f4b41a]', 'font-bold');
+                btn.classList.add('text-gray-500');
+                svg.setAttribute('fill', 'none');
+            }
+        }
+    } catch(e) { console.error("Like error", e); }
+}
+
+// ==========================================
+// UPDATED: CLEAN COMMENT DESIGN + HOVER TOOLTIP
+// ==========================================
+
+async function toggleComments(postId) {
+    const section = document.getElementById(`comments-section-${postId}`);
+    const list = document.getElementById(`comments-list-${postId}`);
+    
+    // Toggle Visibility
+    section.classList.toggle('hidden');
+    
+    // Load comments only if opening and empty
+    if (!section.classList.contains('hidden') && list.children.length === 0) {
+        try {
+            // UPDATED LINE: Added "&t=${new Date().getTime()}" to force fresh data
+            const res = await fetch(`/DINADRAWING/Backend/events/get_comments.php?post_id=${postId}&t=${new Date().getTime()}`);
+            const data = await res.json();
+            
+            if (data.success && data.comments.length > 0) {
+                list.innerHTML = data.comments.map(c => `
+                    <div class="flex gap-3 items-start mb-4 animate-fade-in">
+                        <img src="${c.user_avatar}" class="w-9 h-9 rounded-full object-cover border border-gray-100 shrink-0">
+                        <div class="flex-1">
+                            <div class="flex items-baseline gap-1.5">
+                                <span class="font-semibold text-sm text-[#222]">${c.user_name}</span>
+                                <span class="text-xs text-gray-500 font-medium cursor-help" title="${c.full_date || 'Date unavailable'}">&bull; ${c.created_at}</span>
+                            </div>
+                            <p class="text-sm text-gray-800 mt-0.5 leading-snug">${c.content}</p>
+                        </div>
+                    </div>
+                `).join('');
+            } else {
+                list.innerHTML = '<p class="text-xs text-gray-400 italic px-1">No comments yet. Be the first!</p>';
+            }
+        } catch(e) { console.error(e); }
+    }
+}
+
+async function submitComment(postId) {
+    const input = document.getElementById(`comment-input-${postId}`);
+    const content = input.value.trim();
+    if (!content) return;
+
+    input.disabled = true;
+
+    try {
+        const res = await fetch('/DINADRAWING/Backend/events/add_comment.php', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ post_id: postId, content: content })
+        });
+        const data = await res.json();
+
+        if (data.success) {
+            const c = data.comment;
+            const list = document.getElementById(`comments-list-${postId}`);
+            
+            const emptyMsg = list.querySelector('p.italic');
+            if (emptyMsg) emptyMsg.remove();
+
+            const html = `
+                <div class="flex gap-3 items-start mb-4 animate-fade-in">
+                    <img src="${c.user_avatar}" class="w-9 h-9 rounded-full object-cover border border-gray-100 shrink-0">
+                    <div class="flex-1">
+                        <div class="flex items-baseline gap-1.5">
+                            <span class="font-semibold text-sm text-[#222]">${c.user_name}</span>
+                            <span class="text-xs text-gray-500 font-medium cursor-help" title="${c.full_date}">&bull; ${c.created_at}</span>
+                        </div>
+                        <p class="text-sm text-gray-800 mt-0.5 leading-snug">${c.content}</p>
+                    </div>
+                </div>`;
+            
+            list.insertAdjacentHTML('beforeend', html);
+            input.value = ''; 
+            list.scrollTop = list.scrollHeight;
+        }
+    } catch(e) { alert("Error posting comment"); }
+    finally { input.disabled = false; input.focus(); }
 }
 </script>
 
@@ -1720,6 +1898,69 @@ function prependNewPost(post) {
         });
 
     });
+
+ // 1. HELPER: Generates the bars/HTML for poll options
+function generatePollOptionsHTML(pollData, postId) {
+    const totalVotes = pollData.total_votes || 0;
+    
+    return pollData.options.map(opt => {
+        const votes = opt.vote_count || 0;
+        const percentage = totalVotes > 0 ? Math.round((votes / totalVotes) * 100) : 0;
+        const isVoted = opt.is_voted; 
+        
+        // Dynamic Styles
+        const barColorBg = isVoted ? 'bg-[#f4b41a]' : 'bg-gray-200'; 
+        const textColor = isVoted ? 'text-[#222] font-bold' : 'text-gray-700';
+        const borderColor = isVoted ? 'border-[#f4b41a] ring-1 ring-[#f4b41a]' : 'border-gray-300';
+        const inputType = pollData.allow_multiple ? 'checkbox' : 'radio';
+        const checkState = isVoted ? 'checked' : '';
+
+        return `
+        <div class="relative mb-2 group cursor-pointer" onclick="votePoll(${pollData.id}, ${opt.id}, ${postId})">
+          <div class="absolute inset-0 bg-gray-50 rounded-lg overflow-hidden" aria-hidden="true">
+            <div class="${barColorBg} h-full transition-all duration-500 ease-out opacity-30" style="width: ${percentage}%"></div>
+          </div>
+          
+          <label class="relative flex items-center justify-between px-4 py-3 rounded-lg border ${borderColor} cursor-pointer hover:bg-white/50 transition z-10">
+            <div class="flex items-center gap-3">
+              <input type="${inputType}" name="poll_${pollData.id}" class="w-4 h-4 text-[#f4b41a] focus:ring-[#f4b41a] border-gray-300" ${checkState} readonly>
+              <span class="text-sm ${textColor}">${opt.option_text}</span>
+            </div>
+            <span class="text-xs font-semibold ${textColor}">${percentage}% (${votes})</span>
+          </label>
+        </div>`;
+    }).join('');
+}
+
+// 2. UPDATED: Vote logic without refreshing
+async function votePoll(pollId, optionId, postId) {
+    try {
+        const res = await fetch('/DINADRAWING/Backend/events/vote_poll.php', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ poll_id: pollId, option_id: optionId })
+        });
+        const data = await res.json();
+        
+        if (data.success) {
+            // TARGET SPECIFIC ELEMENTS AND UPDATE ONLY THEM
+            const optionsContainer = document.getElementById(`poll-options-${postId}`);
+            const statsContainer = document.getElementById(`poll-stats-${postId}`);
+            
+            if (optionsContainer && data.poll_data) {
+                // Re-render only the options part
+                optionsContainer.innerHTML = generatePollOptionsHTML(data.poll_data, postId);
+                
+                // Update total votes text
+                if (statsContainer) {
+                    statsContainer.textContent = `${data.poll_data.total_votes} total votes`;
+                }
+            }
+        } else {
+            console.error(data.error);
+        }
+    } catch(e) { console.error("Vote error", e); }
+}
 </script>
 
 <script>
@@ -2321,6 +2562,8 @@ document.getElementById('createEventSubmitBtn')?.addEventListener('click', async
             console.error("Error: Element 'displayInviteCode' not found.");
         }
     }
+
+    
 </script>
 
 </body>
