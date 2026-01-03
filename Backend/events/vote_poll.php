@@ -15,71 +15,65 @@ try {
     $pdo = getDatabaseConnection();
 
     // 1. Get Poll Settings
-    $pollStmt = $pdo->prepare("SELECT id, post_id, allow_multiple FROM polls WHERE id = ?");
+    $pollStmt = $pdo->prepare("SELECT id, post_id, allow_multiple, is_anonymous FROM polls WHERE id = ?");
     $pollStmt->execute([$poll_id]);
     $poll = $pollStmt->fetch(PDO::FETCH_ASSOC);
 
     if (!$poll) { echo json_encode(['success'=>false, 'error'=>'Poll not found']); exit; }
 
-    // --- CRITICAL FIX: STRICT BOOLEAN CHECK ---
-    // This handles "false" (string), 0 (int), 'f' (postgres), etc.
-    $rawVal = $poll['allow_multiple'];
-    $isMultiple = ($rawVal === true || $rawVal === 'true' || $rawVal === 't' || $rawVal == 1);
-    
-    // Explicitly check for "false" string to be safe
-    if ($rawVal === 'false') $isMultiple = false;
+    // ✅ FIX: STRICT CHECKING
+    // Convert DB value to boolean strictly. 1 = true, 0 = false.
+    $isMultiple = ((int)$poll['allow_multiple'] === 1);
+    $isAnon = ((int)$poll['is_anonymous'] === 1);
 
-    // 2. Check if I already voted for THIS option
+    // 2. Check if user clicked the SAME option (To Unvote)
     $checkStmt = $pdo->prepare("SELECT id FROM poll_votes WHERE option_id = ? AND user_id = ?");
     $checkStmt->execute([$option_id, $user_id]);
-    $existingVote = $checkStmt->fetch();
+    $existing = $checkStmt->fetch();
 
-    if ($existingVote) {
-        // CASE: I clicked the same option again -> UNVOTE
-        $pdo->prepare("DELETE FROM poll_votes WHERE id = ?")->execute([$existingVote['id']]);
-        $action = 'removed';
+    if ($existing) {
+        // CASE: Unvote (User clicked the same option again)
+        $pdo->prepare("DELETE FROM poll_votes WHERE id = ?")->execute([$existing['id']]);
     } else {
         // CASE: New Vote
+        
+        // ✅ CRITICAL LOGIC: 
+        // If this is a SINGLE CHOICE poll, we must delete ALL other votes by this user for this poll.
         if (!$isMultiple) {
-            // If Single Choice: Delete ALL my other votes for this poll first
             $delStmt = $pdo->prepare("DELETE FROM poll_votes WHERE poll_id = ? AND user_id = ?");
             $delStmt->execute([$poll_id, $user_id]);
         }
         
-        // Add the new vote
+        // Insert the new vote
         $pdo->prepare("INSERT INTO poll_votes (poll_id, option_id, user_id) VALUES (?, ?, ?)")
             ->execute([$poll_id, $option_id, $user_id]);
-        $action = 'voted';
-
-        // Notify Owner (if not self)
+        
+        // Notify Owner
         $postStmt = $pdo->prepare("SELECT user_id FROM posts WHERE id = ?");
         $postStmt->execute([$poll['post_id']]);
         $ownerId = $postStmt->fetchColumn();
-
         if ($ownerId && $ownerId != $user_id) {
-            $msg = "$user_name voted on your poll.";
-            // Avoid notification spam
             $dupCheck = $pdo->prepare("SELECT id FROM notifications WHERE user_id=? AND actor_id=? AND post_id=? AND type='vote'");
             $dupCheck->execute([$ownerId, $user_id, $poll['post_id']]);
             if (!$dupCheck->fetch()) {
+                $msg = "$user_name voted on your poll.";
                 $pdo->prepare("INSERT INTO notifications (user_id, actor_id, post_id, type, message) VALUES (?, ?, ?, 'vote', ?)")
                     ->execute([$ownerId, $user_id, $poll['post_id'], $msg]);
             }
         }
     }
 
-    // 3. Recalculate Count (For Speed)
+    // 3. Update Vote Counts in DB
     $countStmt = $pdo->prepare("SELECT COUNT(*) FROM poll_votes WHERE option_id = ?");
     $countStmt->execute([$option_id]);
     $newCount = $countStmt->fetchColumn();
     $pdo->prepare("UPDATE poll_options SET vote_count = ? WHERE id = ?")->execute([$newCount, $option_id]);
 
-    // 4. Return Fresh Data (For Smooth UI)
+    // 4. Return Fresh Data (With Profile Pictures)
     $optStmt = $pdo->prepare("SELECT id, option_text, vote_count FROM poll_options WHERE poll_id = ? ORDER BY id ASC");
     $optStmt->execute([$poll_id]);
     $options = $optStmt->fetchAll(PDO::FETCH_ASSOC);
 
-    // Mark which ones I voted for
     $myVotesStmt = $pdo->prepare("SELECT option_id FROM poll_votes WHERE poll_id = ? AND user_id = ?");
     $myVotesStmt->execute([$poll_id, $user_id]);
     $myVotes = $myVotesStmt->fetchAll(PDO::FETCH_COLUMN);
@@ -88,6 +82,29 @@ try {
     foreach ($options as &$opt) {
         $totalVotes += $opt['vote_count'];
         $opt['is_voted'] = in_array($opt['id'], $myVotes);
+
+        // Fetch Avatars (Max 3)
+        $opt['voters'] = [];
+        if (!$isAnon && $opt['vote_count'] > 0) {
+            $vStmt = $pdo->prepare("
+                SELECT u.profile_picture 
+                FROM poll_votes pv 
+                JOIN users u ON pv.user_id = u.id 
+                WHERE pv.option_id = ? 
+                ORDER BY pv.created_at DESC 
+                LIMIT 3
+            ");
+            $vStmt->execute([$opt['id']]);
+            $rawVoters = $vStmt->fetchAll(PDO::FETCH_COLUMN);
+            
+            foreach($rawVoters as $pic) {
+                $vPath = '/DINADRAWING/Assets/Profile Icon/profile.png';
+                if(!empty($pic)) {
+                    $vPath = (strpos($pic, 'Assets') === 0) ? '/DINADRAWING/'.$pic : $pic;
+                }
+                $opt['voters'][] = $vPath;
+            }
+        }
     }
 
     echo json_encode([

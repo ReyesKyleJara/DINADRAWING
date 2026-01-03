@@ -503,10 +503,19 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
             </label>
           </div>
 
-          <div class="flex items-center justify-between mb-4">
+          <div class="flex items-center justify-between mb-2">
             <span>Anonymous voting</span>
             <label class="relative inline-flex items-center cursor-pointer">
               <input type="checkbox" id="pollIsAnonymous" class="sr-only peer" />
+              <div class="w-10 h-5 bg-gray-300 rounded-full peer-checked:bg-[#f4b41a] transition"></div>
+              <span class="absolute left-0.5 top-0.5 w-4 h-4 bg-white rounded-full transition-all peer-checked:translate-x-5"></span>
+            </label>
+          </div>
+
+          <div class="flex items-center justify-between mb-4">
+            <span>Allow members to add options</span>
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input type="checkbox" id="pollAllowUserAdd" class="sr-only peer" />
               <div class="w-10 h-5 bg-gray-300 rounded-full peer-checked:bg-[#f4b41a] transition"></div>
               <span class="absolute left-0.5 top-0.5 w-4 h-4 bg-white rounded-full transition-all peer-checked:translate-x-5"></span>
             </label>
@@ -1390,11 +1399,9 @@ async function submitPost(){
 
 <script>
 // ==========================================
-// 2. POLL MODAL LOGIC
+// 2. POLL MODAL LOGIC (FIXED)
 // ==========================================
-// ==========================================
-// 2. POLL MODAL LOGIC (Fixed for Settings)
-// ==========================================
+
 const pollModal = document.getElementById('pollModal');
 const pollQuestionInput = document.getElementById('pollQuestionInput');
 const pollOptionsContainer = document.getElementById('pollOptionsContainer');
@@ -1404,6 +1411,7 @@ const createPollBtn = document.getElementById('btnCreatePoll');
 // Specific IDs for the toggles
 const allowMultipleChk = document.getElementById('pollAllowMultiple');
 const isAnonymousChk = document.getElementById('pollIsAnonymous');
+const allowUserAddChk = document.getElementById('pollAllowUserAdd');
 
 function openPoll(){ pollModal?.classList.remove('hidden'); }
 
@@ -1422,6 +1430,7 @@ function closePoll(){
     // Reset Toggles
     if(allowMultipleChk) allowMultipleChk.checked = false;
     if(isAnonymousChk) isAnonymousChk.checked = false;
+    if(allowUserAddChk) allowUserAddChk.checked = false;
 }
 
 // Add New Option Input
@@ -1436,6 +1445,7 @@ pollAddOptionBtn?.addEventListener('click', () => {
 
 // Create Poll Action
 createPollBtn?.addEventListener('click', async () => {
+    // 1. Get Values
     const question = pollQuestionInput.value.trim();
     
     // Collect all inputs with class .option-input
@@ -1443,18 +1453,20 @@ createPollBtn?.addEventListener('click', async () => {
                          .map(input => input.value.trim())
                          .filter(val => val !== ''); 
 
+    // 2. Validate
     if (!question) { alert("Please enter a question."); return; }
     if (options.length < 2) { alert("Please add at least 2 options."); return; }
 
     createPollBtn.disabled = true; createPollBtn.textContent = "Creating...";
 
-    // Capture the TOGGLE state correctly using IDs
+    // 3. Construct Payload (Capture toggle states NOW, not before)
     const payload = {
         event_id: <?php echo (int)$id; ?>,
         question: question,
         options: options,
-        allow_multiple: allowMultipleChk.checked, // Sends true/false
-        is_anonymous: isAnonymousChk.checked      // Sends true/false
+        allow_multiple: allowMultipleChk ? allowMultipleChk.checked : false, 
+        is_anonymous: isAnonymousChk ? isAnonymousChk.checked : false,
+        allow_user_add: allowUserAddChk ? allowUserAddChk.checked : false
     };
 
     try {
@@ -1554,7 +1566,7 @@ createTaskBtn?.addEventListener('click', async () => {
 
 <script>
 // ==========================================
-// 4. MAIN FEED RENDERING (With Likes & Comments)
+// 4. MAIN FEED RENDERING (Robust & Crash-Proof)
 // ==========================================
 function prependNewPost(post) {
     let postContentHTML = '';
@@ -1571,40 +1583,47 @@ function prependNewPost(post) {
             ${post.image_path ? `<div class="mb-3 rounded-lg overflow-hidden border border-gray-100"><img src="${post.image_path}" alt="Post Image" class="w-full h-auto object-cover max-h-[500px]"></div>` : ''}
         `;
     } 
-    // --- B. POLL POST ---
-// --- B. POLL POST (Updated for Smooth Vote) ---
+    // --- B. POLL POST (Safety Check Added) ---
     else if (post.post_type === 'poll') {
         const pd = post.poll_data;
-        const totalVotes = pd.total_votes || 0;
         
-        // We use the helper function now so we can re-use it when updating
-        const optionsHTML = generatePollOptionsHTML(pd, post.id);
+        // CRITICAL FIX: Check if poll_data exists before using it
+        if (pd) {
+            const totalVotes = pd.total_votes || 0;
+            // Use the helper function we made earlier
+            const optionsHTML = (typeof generatePollOptionsHTML === 'function') 
+                ? generatePollOptionsHTML(pd, post.id) 
+                : '<p class="text-red-500">Error loading options</p>';
 
-        postContentHTML = `
-        <div class="bg-gray-50 rounded-xl p-4 border border-gray-200 mb-3" id="poll-container-${post.id}">
-          <h3 class="text-base font-bold text-[#222] mb-4">${pd.question}</h3>
-          
-          <div class="space-y-2" id="poll-options-${post.id}">
-             ${optionsHTML}
-          </div>
+            postContentHTML = `
+            <div class="bg-gray-50 rounded-xl p-4 border border-gray-200 mb-3" id="poll-container-${post.id}">
+              <h3 class="text-base font-bold text-[#222] mb-4">${pd.question}</h3>
+              
+              <div class="space-y-2" id="poll-options-${post.id}">
+                 ${optionsHTML}
+              </div>
 
-          <div class="flex justify-between items-center mt-4 text-xs text-gray-500 font-medium px-1">
-            <span id="poll-stats-${post.id}">${totalVotes} total votes</span>
-            <span>${pd.is_anonymous ? 'Anonymous' : 'Public'}</span>
-          </div>
-        </div>`;
+              <div class="flex justify-between items-center mt-4 text-xs text-gray-500 font-medium px-1">
+                <span id="poll-stats-${post.id}">${totalVotes} total votes</span>
+                <span>${pd.is_anonymous ? 'Anonymous' : 'Public'}</span>
+              </div>
+            </div>`;
+        } else {
+            // Fallback for broken polls so the page doesn't crash
+            postContentHTML = `<div class="p-3 bg-red-50 text-red-600 text-xs rounded border border-red-100">Error: Poll data unavailable.</div>`;
+        }
     }
     // --- C. TASK POST ---
     else if (post.post_type === 'task') {
-         postContentHTML = `<div class="bg-gray-50 p-3 rounded text-sm text-gray-600">Task: ${post.task_data.title}</div>`;
+         // Safety check for task data too
+         const title = post.task_data ? post.task_data.title : 'Untitled Task';
+         postContentHTML = `<div class="bg-gray-50 p-3 rounded text-sm text-gray-600">Task: ${title}</div>`;
     }
 
-    // Default stats if not provided by backend yet
     const likeCount = post.like_count || 0;
     const commentCount = post.comment_count || 0;
     const isLiked = post.is_liked ? 'text-[#f4b41a] font-bold' : 'text-gray-500';
 
-    // --- FINAL WRAPPER ---
     const finalHTML = `
     <div class="bg-white p-4 rounded-lg shadow w-full transition-all duration-300 animate-fade-in" id="post-${post.id}">
       <div class="flex items-start gap-3 mb-3">
@@ -1618,7 +1637,6 @@ function prependNewPost(post) {
       ${postContentHTML}
 
       <div class="flex items-center gap-6 pt-2 border-t border-gray-100 text-sm font-medium">
-        
         <button onclick="toggleLike(${post.id}, this)" class="flex items-center gap-1.5 hover:text-[#f4b41a] transition ${isLiked}">
            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="${post.is_liked ? 'currentColor' : 'none'}" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
@@ -1635,10 +1653,7 @@ function prependNewPost(post) {
       </div>
 
       <div id="comments-section-${post.id}" class="hidden mt-3 pt-3 border-t border-gray-50">
-         
-         <div id="comments-list-${post.id}" class="space-y-3 mb-3 max-h-60 overflow-y-auto">
-            </div>
-
+         <div id="comments-list-${post.id}" class="space-y-3 mb-3 max-h-60 overflow-y-auto"></div>
          <div class="flex items-start gap-2">
             <img src="<?php echo htmlspecialchars($currentUserAvatar); ?>" class="w-8 h-8 rounded-full border border-gray-200">
             <div class="flex-1 relative">
@@ -1647,7 +1662,6 @@ function prependNewPost(post) {
             </div>
          </div>
       </div>
-
     </div>`;
     
     document.getElementById('feedContainer').insertAdjacentHTML('afterbegin', finalHTML);
@@ -1899,21 +1913,48 @@ async function submitComment(postId) {
 
     });
 
- // 1. HELPER: Generates the bars/HTML for poll options
+// HELPER: Generates Poll Options + Voter Faces
+// ==========================================
+// 3. POLL UI & LOGIC (Updated & Fixed)
+// ==========================================
+
+// 1. HELPER: Generates Poll Options + Voter Faces (Clean UI)
 function generatePollOptionsHTML(pollData, postId) {
+    if (!pollData || !pollData.options) return '';
     const totalVotes = pollData.total_votes || 0;
     
-    return pollData.options.map(opt => {
+    let html = pollData.options.map(opt => {
         const votes = opt.vote_count || 0;
         const percentage = totalVotes > 0 ? Math.round((votes / totalVotes) * 100) : 0;
         const isVoted = opt.is_voted; 
         
-        // Dynamic Styles
+        // Dynamic Colors
         const barColorBg = isVoted ? 'bg-[#f4b41a]' : 'bg-gray-200'; 
         const textColor = isVoted ? 'text-[#222] font-bold' : 'text-gray-700';
         const borderColor = isVoted ? 'border-[#f4b41a] ring-1 ring-[#f4b41a]' : 'border-gray-300';
+        
+        // ✅ LOGIC FIX: Input Type Visuals
+        // If backend says allow_multiple is false, we visually show radio buttons
         const inputType = pollData.allow_multiple ? 'checkbox' : 'radio';
         const checkState = isVoted ? 'checked' : '';
+
+        // --- FACE PILE LOGIC (The UI Improvement) ---
+        let avatarsHTML = '';
+        if (opt.voters && opt.voters.length > 0) {
+            const extraCount = votes - opt.voters.length;
+            avatarsHTML = `<div class="flex -space-x-1.5 ml-auto">`; // ml-auto pushes it to the right
+            
+            // Show up to 3 faces
+            opt.voters.forEach(pic => {
+                avatarsHTML += `<img src="${pic}" class="w-5 h-5 rounded-full border border-white object-cover" alt="Voter">`;
+            });
+
+            // Show (+N) if more voters exist
+            if (extraCount > 0) {
+                avatarsHTML += `<div class="w-5 h-5 rounded-full border border-white bg-gray-200 flex items-center justify-center text-[9px] font-bold text-gray-600">+${extraCount}</div>`;
+            }
+            avatarsHTML += `</div>`;
+        }
 
         return `
         <div class="relative mb-2 group cursor-pointer" onclick="votePoll(${pollData.id}, ${opt.id}, ${postId})">
@@ -1921,19 +1962,37 @@ function generatePollOptionsHTML(pollData, postId) {
             <div class="${barColorBg} h-full transition-all duration-500 ease-out opacity-30" style="width: ${percentage}%"></div>
           </div>
           
-          <label class="relative flex items-center justify-between px-4 py-3 rounded-lg border ${borderColor} cursor-pointer hover:bg-white/50 transition z-10">
+          <label class="relative flex items-center px-4 py-3 rounded-lg border ${borderColor} cursor-pointer hover:bg-white/50 transition z-10 w-full">
             <div class="flex items-center gap-3">
               <input type="${inputType}" name="poll_${pollData.id}" class="w-4 h-4 text-[#f4b41a] focus:ring-[#f4b41a] border-gray-300" ${checkState} readonly>
               <span class="text-sm ${textColor}">${opt.option_text}</span>
             </div>
-            <span class="text-xs font-semibold ${textColor}">${percentage}% (${votes})</span>
+            
+            ${avatarsHTML}
           </label>
         </div>`;
     }).join('');
+
+    // --- ADD OPTION INPUT (Only if allowed) ---
+    if (pollData.allow_user_add) {
+        html += `
+        <div class="mt-3 flex items-center gap-2">
+            <input type="text" id="new-opt-${pollData.id}" placeholder="Add an option..." class="flex-1 text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:border-[#f4b41a] bg-white">
+            <button onclick="addPollOption(${pollData.id}, ${postId})" class="bg-gray-100 hover:bg-[#f4b41a] text-gray-600 hover:text-black rounded-lg px-3 py-2 transition font-medium text-sm">
+                + Add
+            </button>
+        </div>`;
+    }
+
+    return html;
 }
 
-// 2. UPDATED: Vote logic without refreshing
+// 2. VOTING FUNCTION (Connects to our secured Backend)
 async function votePoll(pollId, optionId, postId) {
+    // Basic frontend lock to prevent double clicking rapidly
+    if (window.isVoting) return; 
+    window.isVoting = true;
+
     try {
         const res = await fetch('/DINADRAWING/Backend/events/vote_poll.php', {
             method: 'POST',
@@ -1943,23 +2002,21 @@ async function votePoll(pollId, optionId, postId) {
         const data = await res.json();
         
         if (data.success) {
-            // TARGET SPECIFIC ELEMENTS AND UPDATE ONLY THEM
+            // Find the container and update JUST that poll
             const optionsContainer = document.getElementById(`poll-options-${postId}`);
             const statsContainer = document.getElementById(`poll-stats-${postId}`);
             
             if (optionsContainer && data.poll_data) {
-                // Re-render only the options part
                 optionsContainer.innerHTML = generatePollOptionsHTML(data.poll_data, postId);
-                
-                // Update total votes text
                 if (statsContainer) {
                     statsContainer.textContent = `${data.poll_data.total_votes} total votes`;
                 }
             }
         } else {
-            console.error(data.error);
+            console.error("Vote failed:", data.error);
         }
-    } catch(e) { console.error("Vote error", e); }
+    } catch(e) { console.error("Vote network error", e); }
+    finally { window.isVoting = false; }
 }
 </script>
 

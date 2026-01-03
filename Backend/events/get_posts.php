@@ -1,5 +1,4 @@
 <?php
-// File: DINADRAWING/Backend/events/get_posts.php
 session_start();
 header('Content-Type: application/json; charset=utf-8');
 
@@ -7,17 +6,13 @@ if (!isset($_SESSION['user_id'])) {
     http_response_code(401); echo json_encode(['success'=>false, 'error'=>'Unauthorized']); exit;
 }
 
-$currentUserId = $_SESSION['user_id']; 
+$currentUserId = $_SESSION['user_id'];
 $eventId = isset($_GET['event_id']) ? (int)$_GET['event_id'] : 0;
 
-if ($eventId <= 0) {
-    echo json_encode(['success'=>false, 'error'=>'Invalid Event ID']); exit;
-}
+if ($eventId <= 0) { echo json_encode(['success'=>false, 'error'=>'Invalid Event ID']); exit; }
 
-// Database Connection
-$dbPath = __DIR__ . "/../config/database.php"; 
-if (file_exists($dbPath)) { require_once $dbPath; $pdo = getDatabaseConnection(); } 
-else { $pdo = new PDO("pgsql:host=127.0.0.1;port=5432;dbname=dinadrawing", "kai", "DND2025"); }
+require_once __DIR__ . "/../config/database.php"; 
+$pdo = getDatabaseConnection();
 
 try {
     // 1. GET POSTS
@@ -41,19 +36,14 @@ try {
 
     $formattedPosts = [];
     foreach ($postsDB as $p) {
-        // 2. AVATAR PATH FIX
-        $dbPic = $p['profile_picture'];
-        $avatarPath = "/DINADRAWING/Assets/Profile Icon/profile.png"; 
-
-        if (!empty($dbPic)) {
-            if (strpos($dbPic, 'data:') === 0 || strpos($dbPic, 'http') === 0) {
-                $avatarPath = $dbPic; 
-            } else {
-                $avatarPath = "/DINADRAWING/" . ltrim($dbPic, '/');
-            }
+        // Fix Avatar Path Helper
+        $avatarPath = '/DINADRAWING/Assets/Profile Icon/profile.png'; 
+        if (!empty($p['profile_picture'])) {
+            $avatarPath = (strpos($p['profile_picture'], 'Assets') === 0) 
+                ? '/DINADRAWING/' . $p['profile_picture'] 
+                : $p['profile_picture'];
         }
 
-        // 3. BUILD POST OBJECT
         $post = [
             'id' => $p['id'],
             'post_type' => $p['post_type'] ?? 'standard',
@@ -63,66 +53,83 @@ try {
             'like_count' => (int)$p['like_count'],
             'comment_count' => (int)$p['comment_count'],
             'is_liked' => ($p['is_liked'] > 0),
-            'user' => [
-                'name' => !empty($p['user_name']) ? $p['user_name'] : 'Unknown User',
-                'avatar' => $avatarPath
-            ]
+            'user' => [ 'name' => $p['user_name'], 'avatar' => $avatarPath ]
         ];
 
-        // 4. POLL DATA (With Vote Checking)
+        // --- POLL DATA (With Voter Images) ---
         if ($post['post_type'] === 'poll') {
-            $pollStmt = $pdo->prepare("SELECT id, question, allow_multiple, is_anonymous FROM polls WHERE post_id = :pid");
-            $pollStmt->execute([':pid' => $p['id']]);
+            $pollStmt = $pdo->prepare("SELECT id, question, allow_multiple, is_anonymous FROM polls WHERE post_id = ?");
+            $pollStmt->execute([$p['id']]);
             $pollInfo = $pollStmt->fetch(PDO::FETCH_ASSOC);
 
             if ($pollInfo) {
-                // Get Options
-                $optStmt = $pdo->prepare("SELECT id, option_text, vote_count FROM poll_options WHERE poll_id = :pollId ORDER BY id ASC");
-                $optStmt->execute([':pollId' => $pollInfo['id']]);
+                $optStmt = $pdo->prepare("SELECT id, option_text, vote_count FROM poll_options WHERE poll_id = ? ORDER BY id ASC");
+                $optStmt->execute([$pollInfo['id']]);
                 $options = $optStmt->fetchAll(PDO::FETCH_ASSOC);
 
-                // Get MY Votes (To highlight yellow)
+                // Check my votes
                 $myVotes = [];
                 try {
                     $mvStmt = $pdo->prepare("SELECT option_id FROM poll_votes WHERE poll_id = ? AND user_id = ?");
                     $mvStmt->execute([$pollInfo['id'], $currentUserId]);
                     $myVotes = $mvStmt->fetchAll(PDO::FETCH_COLUMN);
-                } catch (Exception $e) {
-                    // Ignore error if table missing to prevent crash
-                }
+                } catch(Exception $e){}
 
                 $totalVotes = 0;
+                $isAnon = ($pollInfo['is_anonymous'] == 1);
+
                 foreach ($options as &$opt) {
                     $totalVotes += $opt['vote_count'];
-                    $opt['is_voted'] = in_array($opt['id'], $myVotes); // TRUE if I voted for this
+                    $opt['is_voted'] = in_array($opt['id'], $myVotes);
+                    
+                    // --- FETCH VOTER AVATARS (Limit 3) ---
+                    $opt['voters'] = [];
+                    if (!$isAnon && $opt['vote_count'] > 0) {
+                        $vStmt = $pdo->prepare("
+                            SELECT u.profile_picture 
+                            FROM poll_votes pv 
+                            JOIN users u ON pv.user_id = u.id 
+                            WHERE pv.option_id = ? 
+                            ORDER BY pv.created_at DESC 
+                            LIMIT 3
+                        ");
+                        $vStmt->execute([$opt['id']]);
+                        $rawVoters = $vStmt->fetchAll(PDO::FETCH_COLUMN);
+                        
+                        // Format paths
+                        foreach($rawVoters as $rawPic) {
+                            $vPath = '/DINADRAWING/Assets/Profile Icon/profile.png';
+                            if(!empty($rawPic)) {
+                                $vPath = (strpos($rawPic, 'Assets') === 0) ? '/DINADRAWING/'.$rawPic : $rawPic;
+                            }
+                            $opt['voters'][] = $vPath;
+                        }
+                    }
                 }
 
                 $post['poll_data'] = [
-                    'id' => $pollInfo['id'], // Needed for click event
+                    'id' => $pollInfo['id'],
                     'question' => htmlspecialchars($pollInfo['question']),
-                    'allow_multiple' => $pollInfo['allow_multiple'] === true, 
-                    'is_anonymous' => $pollInfo['is_anonymous'] === true, 
+                    'allow_multiple' => ($pollInfo['allow_multiple'] == 1),
+                    'is_anonymous' => $isAnon,
                     'total_votes' => $totalVotes,
                     'options' => $options
                 ];
             }
         }
 
-        // 5. TASK DATA
+        // --- TASK DATA ---
         if ($post['post_type'] === 'task') {
-            $taskStmt = $pdo->prepare("SELECT id, title, deadline FROM tasks WHERE post_id = :pid");
-            $taskStmt->execute([':pid' => $p['id']]);
+            $taskStmt = $pdo->prepare("SELECT id, title, deadline FROM tasks WHERE post_id = ?");
+            $taskStmt->execute([$p['id']]);
             $taskInfo = $taskStmt->fetch(PDO::FETCH_ASSOC);
-
             if ($taskInfo) {
-                $itemStmt = $pdo->prepare("SELECT id, item_text, assigned_to FROM task_items WHERE task_id = :tid ORDER BY id ASC");
-                $itemStmt->execute([':tid' => $taskInfo['id']]);
-                $taskItems = $itemStmt->fetchAll(PDO::FETCH_ASSOC);
-
+                $itemStmt = $pdo->prepare("SELECT id, item_text, assigned_to FROM task_items WHERE task_id = ?");
+                $itemStmt->execute([$taskInfo['id']]);
                 $post['task_data'] = [
                     'title' => htmlspecialchars($taskInfo['title']),
                     'deadline' => $taskInfo['deadline'],
-                    'items' => $taskItems
+                    'items' => $itemStmt->fetchAll(PDO::FETCH_ASSOC)
                 ];
             }
         }
