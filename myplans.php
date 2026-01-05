@@ -567,11 +567,18 @@ function card_banner_style($ev){
       </div>
 
 <div id="planActionModal" class="hidden fixed z-50">
-  <div id="planActionInner" class="bg-white border border-gray-200 rounded-lg shadow-lg text-sm w-44 py-2">
+  <div id="planActionInner" class="bg-white border border-gray-200 rounded-lg shadow-lg text-sm w-48 py-2">
+    
     <button id="actionArchiveBtn" class="flex items-center gap-2 w-full text-left px-4 py-2 hover:bg-gray-100 transition owner-only">
       <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-600" viewBox="0 0 20 20" fill="currentColor"><path d="M4 3a1 1 0 00-1 1v2a1 1 0 001 1h12a1 1 0 001-1V4a1 1 0 00-1-1H4zm0 8v4a2 2 0 002 2h8a2 2 0 002-2v-4H4z" /></svg>
       <span>Archive Plan</span>
     </button>
+
+    <button id="actionUnarchiveBtn" class="flex items-center gap-2 w-full text-left px-4 py-2 hover:bg-gray-100 transition owner-only hidden">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 19a2 2 0 01-2-2V7a2 2 0 012-2h4l2.293-2.293a1 1 0 011.414 0L14.5 5h2.5a2 2 0 012 2v10a2 2 0 01-2 2H5zm10-11l2 2m-2-2v6"/></svg>
+      <span>Unarchive Plan</span>
+    </button>
+
     <button id="actionDownloadBtn" class="flex items-center gap-2 w-full text-left px-4 py-2 hover:bg-gray-100 transition">
       <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-600" viewBox="0 0 20 20" fill="currentColor"><path d="M9 3a1 1 0 012 0v8.586l1.293-1.293a1 1 0 011.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 011.414-1.414L9 11.586V3z" /><path d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" /></svg>
       <span>Download PDF</span>
@@ -587,6 +594,7 @@ function card_banner_style($ev){
   </div>
 </div>
 
+
 <div id="pastEventModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden z-[60] flex items-center justify-center p-4">
   <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden transform transition-all scale-100">
     <div class="bg-[#f4b41a] p-4 text-center">
@@ -595,6 +603,7 @@ function card_banner_style($ev){
     </div>
     <div class="p-6">
       <h4 id="pastEventTitle" class="text-xl font-bold text-gray-800 text-center mb-6">Untitled Plan</h4>
+      
       <div id="pastStep1">
         <p class="text-gray-600 text-sm text-center mb-6">Did this event happen?</p>
         <div class="flex gap-3">
@@ -602,15 +611,17 @@ function card_banner_style($ev){
           <button onclick="handlePastAnswer('yes')" class="flex-1 py-2.5 bg-[#222] text-white rounded-xl font-medium hover:bg-black transition">Yes</button>
         </div>
       </div>
+
       <div id="pastStep2" class="hidden text-center">
         <div class="mb-4"><span class="text-3xl">🎉</span></div>
         <p class="text-gray-600 text-sm mb-2">Great! Hope it went well.</p>
         <p class="text-gray-500 text-xs mb-6">Would you like to move this to your <b>Archived Plans</b> to keep your dashboard clean?</p>
         <div class="flex gap-3">
-          <button onclick="closePastModal()" class="flex-1 py-2.5 border border-gray-300 text-gray-600 rounded-xl font-medium hover:bg-gray-50">Keep Here</button>
+          <button onclick="keepEventActive()" class="flex-1 py-2.5 border border-gray-300 text-gray-600 rounded-xl font-medium hover:bg-gray-50">Keep Here</button>
           <button onclick="confirmArchivePast()" class="flex-1 py-2.5 bg-[#f4b41a] text-[#222] rounded-xl font-bold hover:bg-[#e0a419]">Archive It</button>
         </div>
       </div>
+
       <div id="pastStep3" class="hidden">
         <p class="text-gray-600 text-sm text-center mb-4">Oh no! What would you like to do?</p>
         <div class="space-y-2">
@@ -622,7 +633,7 @@ function card_banner_style($ev){
                 <span class="text-sm font-medium text-gray-700">Archive it anyway</span>
                 <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" /></svg>
             </button>
-            <button onclick="closePastModal()" class="w-full text-center py-2 text-xs text-gray-400 hover:text-gray-600 mt-2">Just keep it in active plans</button>
+            <button onclick="keepEventActive()" class="w-full text-center py-2 text-xs text-gray-400 hover:text-gray-600 mt-2">Just keep it in active plans</button>
         </div>
         <div id="rescheduleContainer" class="hidden mt-4 bg-gray-50 p-3 rounded-xl border border-gray-200">
             <label class="block text-xs font-bold text-gray-500 mb-1">Pick a new date:</label>
@@ -679,13 +690,6 @@ function card_banner_style($ev){
     
     <h3 id="actionConfirmTitle" class="text-lg font-bold text-gray-900 mb-2">Confirm Action</h3>
     <p id="actionConfirmMessage" class="text-sm text-gray-500 mb-6">Are you sure?</p>
-
-    <div id="actionConfirmInputWrap" class="mb-4 text-left bg-gray-50 p-3 rounded-lg hidden">
-      <label class="flex items-start gap-2 cursor-pointer">
-          <input id="actionConfirmCheckbox" type="checkbox" class="w-4 h-4 mt-0.5" />
-          <span class="text-xs text-gray-600">Permanently delete (cannot be undone)</span>
-      </label>
-    </div>
 
     <div class="flex gap-3 justify-center">
       <button id="actionConfirmCancel" class="flex-1 px-4 py-2 bg-white border border-gray-300 rounded-xl text-gray-700 hover:bg-gray-50 font-medium">Cancel</button>
@@ -966,6 +970,7 @@ function card_banner_style($ev){
   // ==========================================
   
   // Show Action Menu
+  // Show Action Menu (Updated Logic)
   window.showPlanActions = function(e, button) {
     e.stopPropagation();
     document.getElementById('headerMoreMenu')?.classList.add('hidden');
@@ -979,24 +984,42 @@ function card_banner_style($ev){
     const id = card.getAttribute('data-id');
     const isOwner = card.getAttribute('data-owner') === '1';
     
-    // SMART TITLE GRAB (Avoids "CODE: ...")
+    // Check if we are in "Archived Plans" view
+    const urlParams = new URLSearchParams(window.location.search);
+    const isArchivedTab = urlParams.has('archived');
+
+    // SMART TITLE GRAB
     let titleEl = card.querySelector('h3'); 
     if (!titleEl) titleEl = card.querySelector('span.font-semibold');
     const title = titleEl ? titleEl.textContent.trim() : 'Plan';
 
-    // Data for PDF
+    // Data for PDF/Actions
     const locEl = card.querySelector('p.text-sm'); 
     const location = locEl ? locEl.innerText.trim() : 'No location';
     const date = card.getAttribute('data-date') || 'No date';
 
     window.__planActionContext = { id, title, location, date };
 
-    // Toggle Buttons
+    // Toggle Owner/Member Buttons
     const ownerBtns = document.querySelectorAll('.owner-only');
     const memberBtns = document.querySelectorAll('.member-only');
+    
     if (isOwner) {
         ownerBtns.forEach(el => el.classList.remove('hidden'));
         memberBtns.forEach(el => el.classList.add('hidden'));
+
+        // Toggle Archive vs Unarchive Button based on current Tab
+        const archiveBtn = document.getElementById('actionArchiveBtn');
+        const unarchiveBtn = document.getElementById('actionUnarchiveBtn');
+        
+        if (isArchivedTab) {
+            archiveBtn.classList.add('hidden');
+            unarchiveBtn.classList.remove('hidden');
+        } else {
+            archiveBtn.classList.remove('hidden');
+            unarchiveBtn.classList.add('hidden');
+        }
+
     } else {
         ownerBtns.forEach(el => el.classList.add('hidden'));
         memberBtns.forEach(el => el.classList.remove('hidden'));
@@ -1008,19 +1031,33 @@ function card_banner_style($ev){
     modal.classList.remove('hidden');
   };
 
-  // --- DELETE PLAN (Opens Centered Modal) ---
+  // --- ADD LISTENER FOR UNARCHIVE ---
+  document.getElementById('actionUnarchiveBtn')?.addEventListener('click', async () => {
+      const { id, title } = window.__planActionContext;
+      if(!confirm(`Restore "${title}" to active plans?`)) return;
+      try {
+          const res = await fetch('/DINADRAWING/Backend/events/unarchive.php', {
+              method: 'POST', headers: {'Content-Type': 'application/json'},
+              body: JSON.stringify({ id: id })
+          });
+          if((await res.json()).success) location.reload();
+      } catch(e) { alert("Network Error"); }
+  });
+
+
+// --- DELETE PLAN (Opens Centered Modal) ---
   document.getElementById('actionDeleteBtn')?.addEventListener('click', () => {
       document.getElementById('planActionModal').classList.add('hidden');
       
       const modal = document.getElementById('actionConfirmModal');
       const title = document.getElementById('actionConfirmTitle');
       const msg = document.getElementById('actionConfirmMessage');
-      const chk = document.getElementById('actionConfirmInputWrap');
       const okBtn = document.getElementById('actionConfirmOk');
       
       if(title) title.textContent = "Delete Plan";
       msg.textContent = `Move "${window.__planActionContext.title}" to Trash?`;
-      if(chk) chk.classList.remove('hidden'); // Show check for delete
+      
+      // Removed the checkbox logic here
       
       okBtn.textContent = "Delete";
       okBtn.disabled = false;
@@ -1251,25 +1288,48 @@ function card_banner_style($ev){
     } else if(!map) { initMapOnce(); }
   });
 
-  // ==========================================
-  // 6. PAST EVENT CHECKER
+// ==========================================
+  // 6. PAST EVENT CHECKER (Fixed: Remembers your choice)
   // ==========================================
   let currentPastEventId = null;
 
   function checkPastEvents() {
+      // 1. Don't run if we are in Archive tab
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.has('archived')) return; 
+
+      // 2. Get list of events you already said "Keep Active" to
+      const ignoredEvents = JSON.parse(localStorage.getItem('keptActiveEvents') || '[]');
+
       const today = new Date().toISOString().split('T')[0]; 
       const cards = document.querySelectorAll('#galleryView [data-owner="1"]'); 
 
       for (const card of cards) {
+          const id = card.getAttribute('data-id');
           const date = card.getAttribute('data-date');
-          if (date && date < today) {
-              currentPastEventId = card.getAttribute('data-id');
+
+          // 3. Check: Is it past? AND Have we NOT ignored it yet?
+          if (date && date < today && !ignoredEvents.includes(id)) {
+              currentPastEventId = id;
               const title = card.querySelector('h3').innerText;
               triggerPastEventModal(title);
-              break; 
+              break; // Stop at the first one found
           }
       }
   }
+
+  // --- NEW FUNCTION: Remembers "Keep Here" choice ---
+  window.keepEventActive = function() {
+      if (currentPastEventId) {
+          // Save this ID to browser memory
+          const ignored = JSON.parse(localStorage.getItem('keptActiveEvents') || '[]');
+          if (!ignored.includes(currentPastEventId)) {
+              ignored.push(currentPastEventId);
+              localStorage.setItem('keptActiveEvents', JSON.stringify(ignored));
+          }
+      }
+      closePastModal();
+  };
 
   function triggerPastEventModal(title) {
       document.getElementById('pastEventTitle').innerText = title;

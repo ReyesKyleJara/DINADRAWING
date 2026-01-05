@@ -11,10 +11,11 @@ $event_id = $data['event_id'];
 $question = trim($data['question']);
 $options = $data['options']; 
 
-// ✅ FIX: STRICTLY CAST TO INTEGER (0 or 1)
-// This ensures "false", null, or empty values become 0 (Single Choice)
+// ✅ FIX: Force Integer (1 or 0). 
+// This ensures the database gets a clean number, not a confusing string.
 $allow_multiple = (!empty($data['allow_multiple']) && $data['allow_multiple'] !== 'false') ? 1 : 0;
-$is_anonymous   = (!empty($data['is_anonymous']) && $data['is_anonymous'] !== 'false') ? 1 : 0;
+$is_anonymous = (!empty($data['is_anonymous']) && $data['is_anonymous'] !== 'false') ? 1 : 0;
+// Only attempt to read allow_user_add if it exists
 $allow_user_add = (!empty($data['allow_user_add']) && $data['allow_user_add'] !== 'false') ? 1 : 0;
 
 if (empty($question) || count($options) < 2) {
@@ -30,9 +31,11 @@ try {
     $stmt->execute([$event_id, $user_id]);
     $post_id = $stmt->fetchColumn(); 
 
-    // 2. Create Poll
-    $pollStmt = $pdo->prepare("INSERT INTO polls (post_id, question, allow_multiple, is_anonymous, allow_user_add) VALUES (?, ?, ?, ?, ?) RETURNING id");
-    $pollStmt->execute([$post_id, $question, $allow_multiple, $is_anonymous, $allow_user_add]);
+    // 2. Create Poll (Strict 1/0)
+    // NOTE: If you haven't added the 'allow_user_add' column to your DB yet, remove that part from this query.
+    // Assuming you have the standard table structure:
+    $pollStmt = $pdo->prepare("INSERT INTO polls (post_id, question, allow_multiple, is_anonymous) VALUES (?, ?, ?, ?) RETURNING id");
+    $pollStmt->execute([$post_id, $question, $allow_multiple, $is_anonymous]);
     $poll_id = $pollStmt->fetchColumn();
 
     // 3. Create Options
@@ -80,7 +83,6 @@ try {
             'question' => htmlspecialchars($question),
             'allow_multiple' => (bool)$allow_multiple,
             'is_anonymous' => (bool)$is_anonymous,
-            'allow_user_add' => (bool)$allow_user_add,
             'total_votes' => 0,
             'options' => $realOptions
         ]

@@ -1,71 +1,84 @@
 <?php
-// File: DINADRAWING/Backend/events/create_task.php
 session_start();
-header('Content-Type: application/json; charset=utf-8');
+header('Content-Type: application/json');
+require_once __DIR__ . "/../config/database.php";
 
-if (!isset($_SESSION['user_id'])) {
-    http_response_code(401); echo json_encode(['success'=>false, 'error'=>'Unauthorized']); exit;
+if (!isset($_SESSION['user_id'])) { echo json_encode(['success'=>false, 'error'=>'Auth required']); exit; }
+
+$data = json_decode(file_get_contents('php://input'), true);
+$user_id = $_SESSION['user_id'];
+$event_id = $data['event_id'];
+$title = trim($data['title']);
+$items = $data['items']; // Array of {text, assigned}
+
+if (empty($title) || empty($items)) {
+    echo json_encode(['success'=>false, 'error'=>'Task cannot be empty']); exit;
 }
-
-$input = json_decode(file_get_contents('php://input'), true);
-$userId = $_SESSION['user_id'];
-$eventId = isset($input['event_id']) ? (int)$input['event_id'] : 0;
-$title = trim($input['title'] ?? 'Assigned Tasks');
-$deadline = !empty($input['deadline']) ? $input['deadline'] : null;
-$items = $input['items'] ?? [];
-
-if ($eventId <= 0 || empty($items)) {
-    echo json_encode(['success'=>false, 'error'=>'Invalid data']); exit;
-}
-
-$dbPath = __DIR__ . "/../config/database.php"; 
-if (file_exists($dbPath)) { require_once $dbPath; $pdo = getDatabaseConnection(); } 
-else { $pdo = new PDO("pgsql:host=127.0.0.1;port=5432;dbname=dinadrawing", "kai", "DND2025"); }
 
 try {
+    $pdo = getDatabaseConnection();
     $pdo->beginTransaction();
 
     // 1. Create Post
-    $stmt = $pdo->prepare("INSERT INTO posts (event_id, user_id, post_type) VALUES (:eid, :uid, 'task') RETURNING id, created_at");
-    $stmt->execute([':eid'=>$eventId, ':uid'=>$userId]);
-    $newPost = $stmt->fetch(PDO::FETCH_ASSOC);
+    $stmt = $pdo->prepare("INSERT INTO posts (event_id, user_id, post_type, content, created_at) VALUES (?, ?, 'task', '', CURRENT_TIMESTAMP) RETURNING id");
+    $stmt->execute([$event_id, $user_id]);
+    $post_id = $stmt->fetchColumn(); 
 
-    // 2. Create Task Group
-    $stmt = $pdo->prepare("INSERT INTO tasks (post_id, title, deadline) VALUES (:pid, :title, :deadline) RETURNING id");
-    $stmt->execute([':pid'=>$newPost['id'], ':title'=>$title, ':deadline'=>$deadline]);
-    $taskId = $stmt->fetchColumn();
+    // 2. Create Task Header
+    $taskStmt = $pdo->prepare("INSERT INTO tasks (post_id, title) VALUES (?, ?) RETURNING id");
+    $taskStmt->execute([$post_id, $title]);
+    $task_id = $taskStmt->fetchColumn();
 
-    // 3. Create Items
-    $stmt = $pdo->prepare("INSERT INTO task_items (task_id, item_text, assigned_to) VALUES (:tid, :txt, :assign)");
-    $savedItems = [];
+    // 3. Create Task Items
+    $itemStmt = $pdo->prepare("INSERT INTO task_items (task_id, item_text, assigned_to, is_completed) VALUES (?, ?, ?, 0)");
+    
+    $finalItems = [];
     foreach ($items as $item) {
-        if (empty(trim($item['text']))) continue;
-        $stmt->execute([':tid'=>$taskId, ':txt'=>$item['text'], ':assign'=>$item['assigned']]);
-        $savedItems[] = ['id'=>$pdo->lastInsertId(), 'item_text'=>$item['text'], 'assigned_to'=>$item['assigned']];
+        if(!empty(trim($item['text']))) {
+            $assigned = !empty($item['assigned']) ? $item['assigned'] : null;
+            $itemStmt->execute([$task_id, trim($item['text']), $assigned]);
+            
+            // Add to array for frontend response
+            $finalItems[] = [
+                'id' => $pdo->lastInsertId(), // or create separate RETURNING logic if needed
+                'item_text' => trim($item['text']),
+                'assigned_to' => $assigned,
+                'is_completed' => 0
+            ];
+        }
     }
 
     $pdo->commit();
 
-    // Return Data for Rendering
-    echo json_encode([
-        'success' => true,
-        'post' => [
-            'id' => $newPost['id'],
-            'post_type' => 'task',
-            'created_at' => date('M j, Y • g:i A', strtotime($newPost['created_at'])),
-            'user' => [
-                'name' => $_SESSION['username'] ?? 'You',
-                'avatar' => $_SESSION['profile_picture'] ?? 'Assets/Profile Icon/profile.png' // You might need the sophisticated logic here too if you want it perfect immediately
-            ],
-            'task_data' => [
-                'title' => htmlspecialchars($title),
-                'deadline' => $deadline,
-                'items' => $savedItems
-            ]
+    // 4. Return Data
+    $uStmt = $pdo->prepare("SELECT username, profile_picture FROM users WHERE id = ?");
+    $uStmt->execute([$user_id]);
+    $user = $uStmt->fetch(PDO::FETCH_ASSOC);
+    
+    $avatar = $user['profile_picture'];
+    if (!empty($avatar) && strpos($avatar, 'Assets') === 0) $avatar = '/DINADRAWING/' . $avatar;
+    else if (empty($avatar)) $avatar = '/DINADRAWING/Assets/Profile Icon/profile.png';
+
+    $newPost = [
+        'id' => $post_id,
+        'post_type' => 'task',
+        'is_owner' => true,
+        'created_at' => 'Just now',
+        'is_liked' => false,
+        'like_count' => 0,
+        'comment_count' => 0,
+        'user' => [ 'name' => $user['username'], 'avatar' => $avatar ],
+        'task_data' => [
+            'id' => $task_id,
+            'title' => htmlspecialchars($title),
+            'items' => $finalItems
         ]
-    ]);
+    ];
+
+    echo json_encode(['success' => true, 'post' => $newPost]);
+
 } catch (Exception $e) {
-    $pdo->rollBack();
-    echo json_encode(['success'=>false, 'error'=>$e->getMessage()]);
+    if ($pdo->inTransaction()) $pdo->rollBack();
+    echo json_encode(['success' => false, 'error' => $e->getMessage()]);
 }
 ?>

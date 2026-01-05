@@ -18,7 +18,7 @@ try {
     // 1. GET POSTS
     $sql = "
         SELECT 
-            p.id, p.post_type, p.content, p.image_path, p.created_at,
+            p.id, p.user_id, p.post_type, p.content, p.image_path, p.created_at, p.is_pinned, 
             u.username AS user_name, 
             u.profile_picture,
             (SELECT COUNT(*) FROM post_likes WHERE post_id = p.id) as like_count,
@@ -27,7 +27,7 @@ try {
         FROM posts p
         JOIN users u ON p.user_id = u.id
         WHERE p.event_id = :eid
-        ORDER BY p.created_at DESC
+        ORDER BY p.is_pinned DESC, p.created_at DESC 
     ";
     
     $stmt = $pdo->prepare($sql);
@@ -48,6 +48,9 @@ try {
             'id' => $p['id'],
             'post_type' => $p['post_type'] ?? 'standard',
             'content' => htmlspecialchars($p['content'] ?? ''),
+            'is_owner' => ($p['user_id'] == $currentUserId),
+            'is_pinned' => ($p['is_pinned'] == 1), 
+
             'image_path' => $p['image_path'] ? "/DINADRAWING/" . $p['image_path'] : null,
             'created_at' => date('M j, Y • g:i A', strtotime($p['created_at'])),
             'like_count' => (int)$p['like_count'],
@@ -118,15 +121,20 @@ try {
             }
         }
 
+
         // --- TASK DATA ---
         if ($post['post_type'] === 'task') {
             $taskStmt = $pdo->prepare("SELECT id, title, deadline FROM tasks WHERE post_id = ?");
             $taskStmt->execute([$p['id']]);
             $taskInfo = $taskStmt->fetch(PDO::FETCH_ASSOC);
+
             if ($taskInfo) {
-                $itemStmt = $pdo->prepare("SELECT id, item_text, assigned_to FROM task_items WHERE task_id = ?");
+                // ✅ UPDATE: Select is_completed
+                $itemStmt = $pdo->prepare("SELECT id, item_text, assigned_to, is_completed FROM task_items WHERE task_id = ? ORDER BY id ASC");
                 $itemStmt->execute([$taskInfo['id']]);
+                
                 $post['task_data'] = [
+                    'id' => $taskInfo['id'],
                     'title' => htmlspecialchars($taskInfo['title']),
                     'deadline' => $taskInfo['deadline'],
                     'items' => $itemStmt->fetchAll(PDO::FETCH_ASSOC)

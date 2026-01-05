@@ -1565,73 +1565,194 @@ createTaskBtn?.addEventListener('click', async () => {
 </script>
 
 <script>
+// HELPER: Generate Task HTML (Prototype Style)
+function generateTaskHTML(taskData) {
+    if (!taskData || !taskData.items) return '';
+
+    let itemsHTML = taskData.items.map(item => {
+        const isDone = (item.is_completed == 1);
+        
+        // Styles based on state
+        // Prototype has distinctive black borders and pill shapes
+        const containerStyle = "flex items-center bg-white border border-gray-900 rounded-full px-4 py-2 mb-3 transition-all";
+        const textStyle = isDone ? "text-gray-400 line-through flex-1 font-medium" : "text-gray-900 flex-1 font-medium";
+        const assigneeStyle = "bg-gray-200 text-gray-700 text-xs font-bold px-3 py-1 rounded-full mr-3";
+        
+        // Checkbox SVG
+        const checkIcon = isDone 
+            ? `<svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg>`
+            : ``;
+            
+        const checkBg = isDone ? "bg-gray-900 border-gray-900" : "bg-transparent border-gray-900";
+
+        return `
+        <div class="${containerStyle}">
+            <span class="${textStyle}">${item.item_text}</span>
+            
+            ${item.assigned_to ? `<span class="${assigneeStyle}">@${item.assigned_to}</span>` : ''}
+            
+            <div onclick="toggleTaskItem(${item.id})" class="cursor-pointer w-6 h-6 rounded border-2 ${checkBg} flex items-center justify-center transition-colors">
+                ${checkIcon}
+            </div>
+        </div>`;
+    }).join('');
+
+    // Add the "Add option" placeholder row from your design
+    // (Note: To make this functional, we'd need more logic, but this matches the visual)
+    const addOptionHTML = `
+        <div class="flex items-center bg-white border border-gray-400 rounded-full px-4 py-2 mb-3 opacity-60">
+            <span class="text-gray-500 flex-1 font-medium">Add option</span>
+            <span class="bg-gray-200 text-gray-400 text-xs font-bold px-3 py-1 rounded-full mr-3">@mention</span>
+             <div class="w-6 h-6 rounded border-2 border-gray-400 flex items-center justify-center"></div>
+        </div>
+    `;
+
+    return `
+    <div class="bg-gray-100/50 rounded-3xl p-6 border border-gray-200 mb-3 shadow-sm">
+        <h3 class="text-center font-bold text-lg text-[#222] mb-5">${taskData.title}</h3>
+        <div class="space-y-1">
+            ${itemsHTML}
+        </div>
+    </div>`;
+}
+
+async function toggleTaskItem(itemId) {
+    // 1. Optimistic UI Update (Find the elements)
+    const container = document.getElementById(`task-item-${itemId}`);
+    if (!container) return;
+    
+    // Toggle visual state immediately for snappiness
+    const checkbox = container.querySelector('div[onclick]');
+    const text = container.querySelector('p');
+    const isCurrentlyDone = checkbox.classList.contains('bg-[#f4b41a]');
+
+    // Flip Styles
+    if (isCurrentlyDone) {
+        // Mark Undone
+        checkbox.classList.remove('bg-[#f4b41a]', 'border-[#f4b41a]');
+        checkbox.classList.add('border-gray-300');
+        checkbox.innerHTML = ''; // Remove checkmark
+        text.classList.remove('text-gray-400', 'line-through', 'decoration-2');
+        text.classList.add('text-gray-800', 'font-medium');
+    } else {
+        // Mark Done
+        checkbox.classList.add('bg-[#f4b41a]', 'border-[#f4b41a]');
+        checkbox.classList.remove('border-gray-300');
+        checkbox.innerHTML = '<svg class="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg>';
+        text.classList.add('text-gray-400', 'line-through', 'decoration-2');
+        text.classList.remove('text-gray-800', 'font-medium');
+    }
+
+    // 2. Send to Backend
+    try {
+        const res = await fetch('/DINADRAWING/Backend/events/toggle_task.php', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ item_id: itemId })
+        });
+        const data = await res.json();
+        
+        if (!data.success) {
+            // Revert on error
+            console.error("Task toggle failed");
+            // (Optional: You could reload here to sync state)
+        } else {
+            // (Optional: Reload posts to update the progress bar percentage accurately)
+            // loadEventPosts(); 
+        }
+    } catch(e) { console.error(e); }
+}
+</script>
+
+<script>
 // ==========================================
-// 4. MAIN FEED RENDERING (Robust & Crash-Proof)
+// 4. MAIN FEED RENDERING (With Pin & Delete Menu)
 // ==========================================
 function prependNewPost(post) {
     let postContentHTML = '';
     
-    // Helper: Un-escape formatting
+    // Formatting Fix (Keep this logic!)
     const cleanContent = (post.content || '')
-        .replace(/&lt;(\/?(b|i|u|strong|em|div|br|span|p))([^&]*)?&gt;/gi, '<$1$3>')
+        .replace(/&lt;(\/?(b|i|u|strong|em|div|br|span|p))(.*?)&gt;/gi, function(match, tag, attrs) {
+            const cleanAttrs = attrs.replace(/&quot;/g, '"').replace(/&amp;/g, '&');
+            return `<${tag}${cleanAttrs}>`;
+        })
         .replace(/&nbsp;/g, ' ');
 
-    // --- A. STANDARD POST ---
+    // --- CONTENT GENERATION ---
     if (post.post_type === 'standard') {
         postContentHTML = `
-            ${cleanContent ? `<div class="text-sm text-gray-800 mb-3">${cleanContent}</div>` : ''}
+            ${cleanContent ? `<div class="text-sm text-gray-800 mb-3 break-words">${cleanContent}</div>` : ''}
             ${post.image_path ? `<div class="mb-3 rounded-lg overflow-hidden border border-gray-100"><img src="${post.image_path}" alt="Post Image" class="w-full h-auto object-cover max-h-[500px]"></div>` : ''}
         `;
     } 
-    // --- B. POLL POST (Safety Check Added) ---
     else if (post.post_type === 'poll') {
         const pd = post.poll_data;
-        
-        // CRITICAL FIX: Check if poll_data exists before using it
+        const totalVotes = pd ? (pd.total_votes || 0) : 0;
+        const optionsHTML = (typeof generatePollOptionsHTML === 'function' && pd) ? generatePollOptionsHTML(pd, post.id) : '';
         if (pd) {
-            const totalVotes = pd.total_votes || 0;
-            // Use the helper function we made earlier
-            const optionsHTML = (typeof generatePollOptionsHTML === 'function') 
-                ? generatePollOptionsHTML(pd, post.id) 
-                : '<p class="text-red-500">Error loading options</p>';
-
             postContentHTML = `
             <div class="bg-gray-50 rounded-xl p-4 border border-gray-200 mb-3" id="poll-container-${post.id}">
               <h3 class="text-base font-bold text-[#222] mb-4">${pd.question}</h3>
-              
-              <div class="space-y-2" id="poll-options-${post.id}">
-                 ${optionsHTML}
-              </div>
-
+              <div class="space-y-2" id="poll-options-${post.id}">${optionsHTML}</div>
               <div class="flex justify-between items-center mt-4 text-xs text-gray-500 font-medium px-1">
                 <span id="poll-stats-${post.id}">${totalVotes} total votes</span>
                 <span>${pd.is_anonymous ? 'Anonymous' : 'Public'}</span>
               </div>
             </div>`;
-        } else {
-            // Fallback for broken polls so the page doesn't crash
-            postContentHTML = `<div class="p-3 bg-red-50 text-red-600 text-xs rounded border border-red-100">Error: Poll data unavailable.</div>`;
         }
     }
-    // --- C. TASK POST ---
     else if (post.post_type === 'task') {
-         // Safety check for task data too
-         const title = post.task_data ? post.task_data.title : 'Untitled Task';
-         postContentHTML = `<div class="bg-gray-50 p-3 rounded text-sm text-gray-600">Task: ${title}</div>`;
+        const td = post.task_data;
+        if (td && typeof generateTaskHTML === 'function') {
+            postContentHTML = generateTaskHTML(td);
+        } else {
+            postContentHTML = `<div class="bg-gray-50 p-3 rounded text-sm text-gray-600">Task: ${td ? td.title : 'Untitled'}</div>`;
+        }
     }
 
     const likeCount = post.like_count || 0;
     const commentCount = post.comment_count || 0;
     const isLiked = post.is_liked ? 'text-[#f4b41a] font-bold' : 'text-gray-500';
+    
+    // --- PINNED BADGE ---
+    const pinnedBadge = post.is_pinned ? 
+        `<div class="mb-2 flex items-center gap-1 text-[10px] font-bold text-[#f4b41a] uppercase tracking-wider">
+            <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a1 1 0 011 1v1.323l3.954 1.582 1.699-3.184A1 1 0 0118 3v1a1 1 0 01-.447.894L16 5.618V14a2 2 0 01-1.059 1.764l-4 2a2 2 0 01-1.882 0l-4-2A2 2 0 014 14V5.618L2.447 4.894A1 1 0 012 4V3a1 1 0 011.347-.279l1.699 3.184L9 4.323V3a1 1 0 011-1z"/></svg> 
+            Pinned Post
+         </div>` : '';
+    
+    // --- ACTION MENU (Only for Owner) ---
+    let actionMenuHTML = '';
+    if (post.is_owner) {
+        actionMenuHTML = `
+        <div class="relative">
+            <button onclick="togglePostMenu(event, ${post.id})" class="text-gray-400 hover:text-gray-600 p-1 rounded-full hover:bg-gray-100 transition">
+                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z"/></svg>
+            </button>
+            <div id="post-menu-${post.id}" class="hidden absolute right-0 mt-1 w-32 bg-white rounded-lg shadow-xl border border-gray-100 z-20 overflow-hidden">
+                <button onclick="togglePin(${post.id})" class="w-full text-left px-4 py-2 text-xs font-medium text-gray-700 hover:bg-gray-50 flex items-center gap-2">
+                    ${post.is_pinned ? 'Unpin Post' : 'Pin Post'}
+                </button>
+                <button onclick="deletePost(${post.id})" class="w-full text-left px-4 py-2 text-xs font-medium text-red-600 hover:bg-red-50 flex items-center gap-2 border-t border-gray-50">
+                    Delete Post
+                </button>
+            </div>
+        </div>`;
+    }
 
     const finalHTML = `
-    <div class="bg-white p-4 rounded-lg shadow w-full transition-all duration-300 animate-fade-in" id="post-${post.id}">
-      <div class="flex items-start gap-3 mb-3">
-        <img src="${post.user.avatar}" alt="${post.user.name}" class="w-10 h-10 rounded-full object-cover shadow-sm" />
-        <div>
-          <h4 class="font-semibold text-[#222] text-sm">${post.user.name}</h4>
-          <p class="text-xs text-gray-500">${post.created_at}</p>
+    <div class="bg-white p-4 rounded-lg shadow w-full transition-all duration-300 animate-fade-in mb-4" id="post-${post.id}">
+      ${pinnedBadge}
+      <div class="flex items-start justify-between mb-3">
+        <div class="flex items-start gap-3">
+            <img src="${post.user.avatar}" alt="${post.user.name}" class="w-10 h-10 rounded-full object-cover shadow-sm" />
+            <div>
+              <h4 class="font-semibold text-[#222] text-sm">${post.user.name}</h4>
+              <p class="text-xs text-gray-500">${post.created_at}</p>
+            </div>
         </div>
+        ${actionMenuHTML}
       </div>
       
       ${postContentHTML}
@@ -1666,6 +1787,7 @@ function prependNewPost(post) {
     
     document.getElementById('feedContainer').insertAdjacentHTML('afterbegin', finalHTML);
 }
+
 
 // ==========================================
 // POLL VOTING LOGIC
@@ -1805,6 +1927,56 @@ async function submitComment(postId) {
     } catch(e) { alert("Error posting comment"); }
     finally { input.disabled = false; input.focus(); }
 }
+
+// Toggle the Dropdown Menu
+function togglePostMenu(e, postId) {
+    e.stopPropagation();
+    // Close all other menus first
+    document.querySelectorAll('[id^="post-menu-"]').forEach(el => el.classList.add('hidden'));
+    
+    // Toggle this one
+    const menu = document.getElementById(`post-menu-${postId}`);
+    if (menu) menu.classList.toggle('hidden');
+}
+
+// Close menus when clicking anywhere else
+document.addEventListener('click', () => {
+    document.querySelectorAll('[id^="post-menu-"]').forEach(el => el.classList.add('hidden'));
+});
+
+// Logic: DELETE POST
+async function deletePost(postId) {
+    if(!confirm("Are you sure you want to delete this post?")) return;
+    try {
+        const res = await fetch('/DINADRAWING/Backend/events/delete_post.php', {
+            method: 'POST', headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ post_id: postId })
+        });
+        const data = await res.json();
+        if (data.success) {
+            document.getElementById(`post-${postId}`).remove();
+        } else {
+            alert("Error: " + data.error);
+        }
+    } catch (e) { console.error(e); }
+}
+
+// Logic: PIN POST
+async function togglePin(postId) {
+    try {
+        const res = await fetch('/DINADRAWING/Backend/events/pin_post.php', {
+            method: 'POST', headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ post_id: postId })
+        });
+        const data = await res.json();
+        if (data.success) {
+            // Reload feed to see changes (easiest way to resort)
+            loadEventPosts(); 
+        } else {
+            alert("Error: " + data.error);
+        }
+    } catch (e) { console.error(e); }
+}
 </script>
 
 <script>
@@ -1918,7 +2090,9 @@ async function submitComment(postId) {
 // 3. POLL UI & LOGIC (Updated & Fixed)
 // ==========================================
 
-// 1. HELPER: Generates Poll Options + Voter Faces (Clean UI)
+// ==========================================
+// POLL UI GENERATOR (Venice Style + Face Piles)
+// ==========================================
 function generatePollOptionsHTML(pollData, postId) {
     if (!pollData || !pollData.options) return '';
     const totalVotes = pollData.total_votes || 0;
@@ -1928,58 +2102,69 @@ function generatePollOptionsHTML(pollData, postId) {
         const percentage = totalVotes > 0 ? Math.round((votes / totalVotes) * 100) : 0;
         const isVoted = opt.is_voted; 
         
-        // Dynamic Colors
-        const barColorBg = isVoted ? 'bg-[#f4b41a]' : 'bg-gray-200'; 
-        const textColor = isVoted ? 'text-[#222] font-bold' : 'text-gray-700';
-        const borderColor = isVoted ? 'border-[#f4b41a] ring-1 ring-[#f4b41a]' : 'border-gray-300';
+        // --- STYLES ---
+        // Container: Pill shape, border, relative for the progress bar
+        const containerClass = "relative w-full h-12 rounded-full border border-gray-900 overflow-hidden mb-3 cursor-pointer group transition-all";
         
-        // ✅ LOGIC FIX: Input Type Visuals
-        // If backend says allow_multiple is false, we visually show radio buttons
-        const inputType = pollData.allow_multiple ? 'checkbox' : 'radio';
-        const checkState = isVoted ? 'checked' : '';
+        // Progress Bar: The yellow fill behind the text
+        // If voted, we make it slightly darker/richer to indicate selection
+        const barColor = isVoted ? 'bg-[#f4b41a]' : 'bg-[#f4b41a]/80';
+        const barOpacity = isVoted ? 'opacity-100' : 'opacity-0 group-hover:opacity-20'; 
+        // Note: The prototype shows bars always visible if they have votes. 
+        // Let's make the bar visible based on percentage width.
+        
+        // Checkmark Icon (Only shows if YOU voted)
+        const checkIcon = isVoted 
+            ? `<div class="mr-3 text-gray-900"><svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M5 13l4 4L19 7"/></svg></div>`
+            : `<div class="mr-3 w-5 h-5 rounded-full border border-gray-400 group-hover:border-gray-900 transition"></div>`;
 
-        // --- FACE PILE LOGIC (The UI Improvement) ---
+        // --- FACE PILE LOGIC ---
         let avatarsHTML = '';
         if (opt.voters && opt.voters.length > 0) {
             const extraCount = votes - opt.voters.length;
-            avatarsHTML = `<div class="flex -space-x-1.5 ml-auto">`; // ml-auto pushes it to the right
+            avatarsHTML = `<div class="flex -space-x-2 ml-3 items-center z-10 relative">`; 
             
             // Show up to 3 faces
             opt.voters.forEach(pic => {
-                avatarsHTML += `<img src="${pic}" class="w-5 h-5 rounded-full border border-white object-cover" alt="Voter">`;
+                avatarsHTML += `<img src="${pic}" class="w-6 h-6 rounded-full border border-white object-cover shadow-sm" alt="Voter">`;
             });
 
-            // Show (+N) if more voters exist
+            // Show (+N) bubble if more voters exist
             if (extraCount > 0) {
-                avatarsHTML += `<div class="w-5 h-5 rounded-full border border-white bg-gray-200 flex items-center justify-center text-[9px] font-bold text-gray-600">+${extraCount}</div>`;
+                avatarsHTML += `<div class="w-6 h-6 rounded-full border border-white bg-gray-900 text-white flex items-center justify-center text-[9px] font-bold">+${extraCount}</div>`;
             }
             avatarsHTML += `</div>`;
         }
 
         return `
-        <div class="relative mb-2 group cursor-pointer" onclick="votePoll(${pollData.id}, ${opt.id}, ${postId})">
-          <div class="absolute inset-0 bg-gray-50 rounded-lg overflow-hidden" aria-hidden="true">
-            <div class="${barColorBg} h-full transition-all duration-500 ease-out opacity-30" style="width: ${percentage}%"></div>
-          </div>
+        <div class="${containerClass}" onclick="votePoll(${pollData.id}, ${opt.id}, ${postId})">
           
-          <label class="relative flex items-center px-4 py-3 rounded-lg border ${borderColor} cursor-pointer hover:bg-white/50 transition z-10 w-full">
-            <div class="flex items-center gap-3">
-              <input type="${inputType}" name="poll_${pollData.id}" class="w-4 h-4 text-[#f4b41a] focus:ring-[#f4b41a] border-gray-300" ${checkState} readonly>
-              <span class="text-sm ${textColor}">${opt.option_text}</span>
-            </div>
-            
+          <div class="absolute top-0 left-0 h-full ${barColor} transition-all duration-500 ease-out z-0" 
+               style="width: ${votes > 0 ? percentage : 0}%; opacity: ${votes > 0 ? 1 : 0};">
+          </div>
+
+          <div class="relative w-full h-full flex items-center px-4 z-10">
+            ${checkIcon}
+
+            <span class="text-sm font-semibold text-gray-900 truncate flex-1">${opt.option_text}</span>
+
+            ${votes > 0 ? `<span class="text-xs font-bold text-gray-900 ml-2">${percentage}%</span>` : ''}
+
             ${avatarsHTML}
-          </label>
+          </div>
         </div>`;
     }).join('');
 
-    // --- ADD OPTION INPUT (Only if allowed) ---
+    // --- ADD OPTION INPUT (Prototype Style) ---
     if (pollData.allow_user_add) {
         html += `
-        <div class="mt-3 flex items-center gap-2">
-            <input type="text" id="new-opt-${pollData.id}" placeholder="Add an option..." class="flex-1 text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:border-[#f4b41a] bg-white">
-            <button onclick="addPollOption(${pollData.id}, ${postId})" class="bg-gray-100 hover:bg-[#f4b41a] text-gray-600 hover:text-black rounded-lg px-3 py-2 transition font-medium text-sm">
-                + Add
+        <div class="relative w-full h-11 flex items-center">
+            <input type="text" id="new-opt-${pollData.id}" placeholder="+ Add option" 
+                   class="w-full h-full rounded-full border border-gray-400 px-5 text-sm focus:outline-none focus:border-gray-900 focus:ring-1 focus:ring-gray-900 transition bg-transparent placeholder-gray-500">
+            
+            <button onclick="addPollOption(${pollData.id}, ${postId})" 
+                    class="absolute right-1 top-1 bottom-1 bg-gray-200 hover:bg-gray-900 hover:text-white text-gray-600 rounded-full px-4 text-xs font-bold transition">
+                Add
             </button>
         </div>`;
     }
