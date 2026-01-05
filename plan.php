@@ -114,18 +114,26 @@ function banner_style($type,$color,$from,$to,$image){
 }
 $banner_inline = banner_style($banner_type,$banner_color,$banner_from,$banner_to,$banner_image);
 
-// Current User Avatar
+// Current User Avatar & Name
 $currentUserAvatar = 'Assets/Profile Icon/profile.png';
+$currentUserName = 'User'; // Default fallback
+
 if ($user_id) {
-    $uStmt = $conn->prepare("SELECT profile_picture FROM users WHERE id = :uid");
+    // FIX: Added 'name' to the SELECT list
+    $uStmt = $conn->prepare("SELECT name, profile_picture FROM users WHERE id = :uid");
     $uStmt->execute([':uid' => $user_id]);
     $userRow = $uStmt->fetch();
-    if ($userRow && !empty($userRow['profile_picture'])) {
-        $dbPic = $userRow['profile_picture'];
-        if (strpos($dbPic, 'data:') === 0 || strpos($dbPic, 'http') === 0) {
-            $currentUserAvatar = $dbPic;
-        } else {
-            $currentUserAvatar = str_replace('DINADRAWING/', '', ltrim($dbPic, '/'));
+    
+    if ($userRow) {
+        $currentUserName = htmlspecialchars($userRow['name']); // Save the name for JS
+        
+        if (!empty($userRow['profile_picture'])) {
+            $dbPic = $userRow['profile_picture'];
+            if (strpos($dbPic, 'data:') === 0 || strpos($dbPic, 'http') === 0) {
+                $currentUserAvatar = $dbPic;
+            } else {
+                $currentUserAvatar = str_replace('DINADRAWING/', '', ltrim($dbPic, '/'));
+            }
         }
     }
 }
@@ -384,96 +392,58 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
 
       <!-- FEED SECTION -->
       <div id="feed-section" class="tab-section active">
-      <!-- POST BOX -->
-      <div id="postBox" class="bg-white p-4 rounded-lg shadow w-full transition-all duration-300">
-  <div class="flex items-start gap-3">
-<img src="<?php echo htmlspecialchars($currentUserAvatar); ?>" alt="User" class="w-10 h-10 rounded-full object-cover" />
-    <div class="flex-1">
-      <div class="border border-gray-300 rounded-lg focus-within:border-[#f4b41a] transition-all duration-300 overflow-hidden">
-        
-        <div
-          id="postInput"
-          contenteditable="true"
-          data-placeholder="Announce something to group"
-          class="w-full px-3 py-2 text-sm resize-none min-h-[60px] focus:outline-none max-h-[300px] overflow-y-auto"
-        ></div>
+  
+  <div id="postBox" class="bg-white p-4 rounded-lg shadow w-full transition-all duration-300 mb-6">
+    <div class="flex items-start gap-3">
+      <img src="<?php echo htmlspecialchars($currentUserAvatar); ?>" alt="User" class="w-10 h-10 rounded-full object-cover" />
+      
+      <div class="flex-1">
+        <div class="border border-gray-300 rounded-lg focus-within:border-[#f4b41a] transition-all duration-300 overflow-hidden">
+          <div id="postInput" contenteditable="true" data-placeholder="Announce something to group" class="w-full px-3 py-2 text-sm resize-none min-h-[60px] focus:outline-none max-h-[300px] overflow-y-auto"></div>
 
-        <div id="postImagePreviewContainer" class="hidden p-2 relative">
-            <img id="postImagePreview" src="" alt="Preview" class="max-h-48 rounded-lg border border-gray-200">
-            <button onclick="removePostImage()" class="absolute top-3 right-3 bg-gray-800/70 hover:bg-gray-900 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs">✕</button>
+          <div id="postImagePreviewContainer" class="hidden p-2 relative">
+              <img id="postImagePreview" src="" alt="Preview" class="max-h-48 rounded-lg border border-gray-200">
+              <button onclick="removePostImage()" class="absolute top-3 right-3 bg-gray-800/70 hover:bg-gray-900 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs">✕</button>
+          </div>
+          <input type="file" id="postImageInput" accept="image/*" class="hidden">
+
+          <div id="toolbar" class="flex items-center gap-1 p-2 border-t border-gray-200 text-gray-600 bg-gray-50">
+            <button id="btnBold" type="button" onmousedown="keepFocus(event)" onclick="formatText('bold')" class="w-7 h-7 rounded hover:bg-gray-200 hover:text-[#f4b41a] font-bold transition flex items-center justify-center">B</button>
+            <button id="btnItalic" type="button" onmousedown="keepFocus(event)" onclick="formatText('italic')" class="w-7 h-7 rounded hover:bg-gray-200 hover:text-[#f4b41a] italic transition flex items-center justify-center">I</button>
+            <button id="btnUnderline" type="button" onmousedown="keepFocus(event)" onclick="formatText('underline')" class="w-7 h-7 rounded hover:bg-gray-200 hover:text-[#f4b41a] underline transition flex items-center justify-center">U</button>
+          </div>
         </div>
 
-        <input type="file" id="postImageInput" accept="image/*" class="hidden">
+        <div id="postActions" class="mt-3 flex justify-between items-center transition-all">
+          
+          <div class="flex gap-2">
+            <button onmousedown="keepFocus(event)" onclick="triggerPostImageUpload()" class="bg-gray-100 hover:bg-[#f4b41a]/30 text-gray-600 hover:text-[#f4b41a] rounded-full w-8 h-8 flex items-center justify-center transition" title="Add Image">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+            </button>
 
-<div id="toolbar" class="hidden flex items-center gap-1 p-2 border-t border-gray-200 text-gray-600 bg-gray-50">
-  <button id="btnBold" type="button" onmousedown="keepFocus(event)" onclick="formatText('bold')" class="w-7 h-7 rounded hover:bg-gray-200 hover:text-[#f4b41a] font-bold transition flex items-center justify-center">B</button>
-  <button id="btnItalic" type="button" onmousedown="keepFocus(event)" onclick="formatText('italic')" class="w-7 h-7 rounded hover:bg-gray-200 hover:text-[#f4b41a] italic transition flex items-center justify-center">I</button>
-  <button id="btnUnderline" type="button" onmousedown="keepFocus(event)" onclick="formatText('underline')" class="w-7 h-7 rounded hover:bg-gray-200 hover:text-[#f4b41a] underline transition flex items-center justify-center">U</button>
-</div>
-      </div>
+            <button onmousedown="keepFocus(event)" onclick="openPoll()" class="bg-gray-100 hover:bg-[#f4b41a]/30 text-gray-600 hover:text-[#f4b41a] rounded-full w-8 h-8 flex items-center justify-center transition" title="Create Poll">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
+            </button>
 
-      <div id="postActions" class="hidden mt-3 flex justify-between items-center">
-<div class="flex gap-2">
-  <button onmousedown="keepFocus(event)" onclick="triggerPostImageUpload()" class="bg-gray-100 hover:bg-[#f4b41a]/30 text-gray-600 hover:text-[#f4b41a] rounded-full w-8 h-8 flex items-center justify-center transition" title="Add Image">
-    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-    </svg>
-  </button>
+            <button onmousedown="keepFocus(event)" onclick="openTask()" class="bg-gray-100 hover:bg-[#f4b41a]/30 text-gray-600 hover:text-[#f4b41a] rounded-full w-8 h-8 flex items-center justify-center transition" title="Assign Task">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" /></svg>
+            </button>
+          </div>
 
-  <button onmousedown="keepFocus(event)" onclick="openPoll()" class="bg-gray-100 hover:bg-[#f4b41a]/30 text-gray-600 hover:text-[#f4b41a] rounded-full w-8 h-8 flex items-center justify-center transition" title="Create Poll">
-    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-    </svg>
-  </button>
+          <div id="submitButtons" class="flex gap-2 hidden transition-all">
+            <button type="button" class="px-4 py-2 bg-gray-200 rounded-lg text-sm hover:bg-gray-300 transition" onclick="cancelPost()">Cancel</button>
+            <button id="submitPostBtn" type="button" class="px-4 py-2 bg-[#f4b41a] text-[#222] rounded-lg text-sm font-medium hover:bg-[#e3a918] transition" onclick="submitPost()">Post</button>
+          </div>
 
-  <button onmousedown="keepFocus(event)" onclick="openTask()" class="bg-gray-100 hover:bg-[#f4b41a]/30 text-gray-600 hover:text-[#f4b41a] rounded-full w-8 h-8 flex items-center justify-center transition" title="Assign Task">
-    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
-    </svg>
-  </button>
-</div>
-
-        <div class="flex gap-2">
-          <button type="button" class="px-4 py-2 bg-gray-200 rounded-lg text-sm hover:bg-gray-300 transition" onclick="cancelPost()">Cancel</button>
-          <button id="submitPostBtn" type="button" class="px-4 py-2 bg-[#f4b41a] text-[#222] rounded-lg text-sm font-medium hover:bg-[#e3a918] transition" onclick="submitPost()">Post</button>
         </div>
       </div>
     </div>
   </div>
+  <div id="feedContainer" class="mt-6 space-y-4"></div>
+
 </div>
 
-<div id="feedContainer" class="mt-3 space-y-3"></div>
-
-              <!-- BOLD, ITALIC, & UNDERLINE -->
-              <div id="toolbar" class="hidden flex items-center gap-2 p-2 border-t border-gray-200 text-gray-600 bg-gray-50">
-                <button type="button" onmousedown="keepFocus(event)" onclick="formatText('bold')" class="hover:text-[#f4b41a] font-semibold">B</button>
-                <button type="button" onmousedown="keepFocus(event)" onclick="formatText('italic')" class="hover:text-[#f4b41a] italic">I</button>
-                <button type="button" onmousedown="keepFocus(event)" onclick="formatText('underline')" class="hover:text-[#f4b41a] underline">U</button>
-              </div>
-            </div>
-
-            <!-- BUTTON ICONS -->
-            <div id="postActions" class="hidden mt-3 flex justify-between items-center">
-              <div class="flex gap-2">
-                <!-- CREATE POLL -->
-                <button onmousedown="keepFocus(event)" class="bg-gray-100 hover:bg-[#f4b41a]/30 rounded-full w-8 h-8 flex items-center justify-center overflow-hidden border" title="Create Poll" onclick="openPoll()">
-                  <img src="Assets/polls.jpg" alt="Poll" class="w-full h-full object-cover" />
-                </button>
-
-                <!-- ASSIGN TASK -->
-                <button onmousedown="keepFocus(event)" class="bg-gray-100 hover:bg-[#f4b41a]/30 rounded-full w-8 h-8 flex items-center justify-center overflow-hidden border" title="Assign Task" onclick="openTask()">
-                  <img src="Assets/task.jpg" alt="Task" class="w-full h-full object-cover" />
-                </button>
-              </div>
-
-              <div class="flex gap-2">
-                <button type="button" class="px-4 py-2 bg-gray-200 rounded-lg text-sm hover:bg-gray-300 transition" onclick="cancelPost()">Cancel</button>
-                <button type="button" class="px-4 py-2 bg-[#f4b41a] text-[#222] rounded-lg text-sm font-medium hover:bg-[#e3a918] transition" onclick="submitPost()">Post</button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+             
 
       <!-- CREATE POLL MODAL -->
       <div id="pollModal" class="fixed inset-0 bg-black/40 flex items-center justify-center hidden z-50">
@@ -533,42 +503,38 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
 
           <div class="space-y-2" id="taskSection">
             <input type="text" placeholder="Enter the task title..." class="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#3b82f6] focus:outline-none" />
-            <div id="taskOptionsContainer" class="space-y-2">
-              <input type="text" placeholder="Add task 1" class="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#3b82f6] focus:outline-none" />
-            </div>
+            <div id="taskOptionsContainer" class="space-y-2"></div>
             <button id="taskAddOptionBtn" class="text-sm text-[#3b82f6] font-medium hover:underline">+ Add more task</button>
           </div>
 
           <div class="border-t pt-3 text-sm">
             <p class="font-semibold mb-2">Assigned Task Settings</p>
-            <div class="flex items-center justify-between mb-2">
-              <span>Allow members to mention co-members</span>
-              <label class="relative inline-flex items-center cursor-pointer">
-                <input type="checkbox" class="sr-only peer" checked />
-                <div class="w-10 h-5 bg-gray-300 rounded-full peer-checked:bg-[#f4b41a] transition"></div>
-                <span class="absolute left-0.5 top-0.5 w-4 h-4 bg-white rounded-full transition-all peer-checked:translate-x-5"></span>
-              </label>
-            </div>
+          
 
             <div class="flex items-center justify-between mb-4">
-              <span>Allow members to add tasks</span>
-              <label class="relative inline-flex items-center cursor-pointer">
-                <input type="checkbox" class="sr-only peer" />
-                <div class="w-10 h-5 bg-gray-300 rounded-full peer-checked:bg-[#f4b41a] transition"></div>
-                <span class="absolute left-0.5 top-0.5 w-4 h-4 bg-white rounded-full transition-all peer-checked:translate-x-5"></span>
-              </label>
-            </div>
+  <span>Allow members to add tasks</span>
+  <label class="relative inline-flex items-center cursor-pointer">
+    <input type="checkbox" id="allowTaskUserAdd" class="sr-only peer" />
+    <div class="w-10 h-5 bg-gray-300 rounded-full peer-checked:bg-[#f4b41a] transition"></div>
+    <span class="absolute left-0.5 top-0.5 w-4 h-4 bg-white rounded-full transition-all peer-checked:translate-x-5"></span>
+  </label>
+</div>
 
-            <label class="block mb-1 font-medium">Ends on</label>
-            <select class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#f4b41a] mb-4">
-              <option>No deadline</option>
-              <option>Tomorrow</option>
-              <option>Next week</option>
-              <option>Custom date...</option>
-            </select>
+          <label class="block mb-1 font-medium">Ends on</label>
+<div class="space-y-2 mb-4">
+    <select id="taskDeadlineSelect" onchange="toggleCustomDate()" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#f4b41a]">
+      <option value="">No deadline</option>
+      <option value="tomorrow">Tomorrow (24hrs)</option>
+      <option value="next_week">Next week (7 days)</option>
+      <option value="custom">Custom date...</option>
+    </select>
+    
+    <input type="datetime-local" id="taskCustomDate" class="hidden w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#f4b41a]">
+</div>
 
-            <button class="w-full bg-[#f4b41a] text-[#222] font-medium py-2 rounded-lg hover:bg-[#e3a918] transition">Save</button>
-          </div>
+<button id="btnSaveTask" class="w-full bg-[#f4b41a] text-[#222] font-bold py-2.5 rounded-lg hover:bg-[#e3a918] transition shadow-sm text-sm">
+        Create Task List
+      </button>
         </div>
       </div>
       </div>
@@ -1002,9 +968,57 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
     </div>
   </div>
 
+
+  <div id="confirmModal" class="fixed inset-0 bg-black/40 flex items-center justify-center hidden z-[100]">
+  <div class="bg-white rounded-xl shadow-lg w-80 p-6 relative text-center">
+    <div class="mx-auto w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center mb-4">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-[#f4b41a]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+      </svg>
+    </div>
+    
+    <h3 class="text-lg font-bold text-[#222] mb-2">Are you sure?</h3>
+    <p class="text-gray-600 mb-6 text-sm" id="confirmMessage">Do you want to proceed?</p>
+    
+    <div class="flex justify-center gap-3">
+      <button onclick="closeConfirm()" class="px-4 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium text-sm transition">Cancel</button>
+      <button id="confirmYesBtn" class="px-4 py-2 rounded-lg bg-[#f4b41a] hover:bg-[#e3a918] text-[#222] font-bold text-sm transition">Yes, I'm sure</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// CONFIRMATION LOGIC
+let pendingAction = null;
+
+function showConfirm(msg, actionCallback) {
+    document.getElementById('confirmMessage').textContent = msg;
+    document.getElementById('confirmModal').classList.remove('hidden');
+    document.getElementById('confirmModal').classList.add('flex');
+    pendingAction = actionCallback;
+}
+
+function closeConfirm() {
+    document.getElementById('confirmModal').classList.add('hidden');
+    document.getElementById('confirmModal').classList.remove('flex');
+    pendingAction = null;
+}
+
+// When "Yes" is clicked, run the saved action
+document.getElementById('confirmYesBtn')?.addEventListener('click', () => {
+    if (pendingAction) pendingAction();
+    closeConfirm();
+});
+</script>
+
+  
   <!-- SCRIPTS -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.js"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.css" />
+<script> 
+    const EVENT_MEMBERS = <?php echo json_encode($members ?? []); ?>; 
+    // ADD THIS NEW LINE:
+const CURRENT_USER_NAME = "<?php echo $currentUserName; ?>";</script>
 
 <script>
     // VARS
@@ -1289,17 +1303,26 @@ const btnBold = document.getElementById('btnBold');
 const btnItalic = document.getElementById('btnItalic');
 const btnUnderline = document.getElementById('btnUnderline');
 
+// We now target the SPECIFIC button group
+const submitButtons = document.getElementById('submitButtons'); 
+
 function expandPostBox() {
   postInput?.classList.add('min-h-[120px]');
   toolbar?.classList.remove('hidden');
-  postActions?.classList.remove('hidden');
+  
+  // Show Cancel/Post buttons
+  submitButtons?.classList.remove('hidden');
 }
     
 function collapsePostBox() {
+  // Only collapse if empty
   if (postInput?.innerText.trim() === '' && postImageInput.files.length === 0) {
       postInput?.classList.remove('min-h-[120px]');
       toolbar?.classList.add('hidden');
-      postActions?.classList.add('hidden');
+      
+      // Hide Cancel/Post buttons ONLY
+      // The rest of #postActions remains visible!
+      submitButtons?.classList.add('hidden');
   }
 }
 
@@ -1491,176 +1514,330 @@ createPollBtn?.addEventListener('click', async () => {
 });
 </script>
 
+
 <script>
 // ==========================================
-// 3. TASK MODAL LOGIC
+// 1. TASK MODAL SYSTEM (Open, Close, Rows, Suggestions)
 // ==========================================
+
+// --- ELEMENTS ---
 const taskModal = document.getElementById('taskModal');
-const taskTitleInput = taskModal?.querySelector('input[placeholder="Enter the task title..."]');
 const taskOptionsContainer = document.getElementById('taskOptionsContainer');
 const taskAddOptionBtn = document.getElementById('taskAddOptionBtn');
-const createTaskBtn = taskModal?.querySelector('button.bg-\\[\\#f4b41a\\]');
+const btnSaveTask = document.getElementById('btnSaveTask');
+const taskTitleInput = taskModal?.querySelector('input[type="text"]');
 
-function openTask(){ taskModal?.classList.remove('hidden'); }
-function closeTask(){ 
+// Suggestion Box
+const suggestionBox = document.createElement('div');
+suggestionBox.className = "absolute bg-white border border-gray-200 shadow-lg rounded-lg max-h-40 overflow-y-auto z-[60] hidden w-48";
+document.body.appendChild(suggestionBox);
+let activeAssignInput = null;
+
+// OPEN MODAL
+function openTask() { 
+    taskModal?.classList.remove('hidden'); 
+    taskModal?.classList.add('flex');
+    if(taskOptionsContainer && taskOptionsContainer.children.length === 0) addTaskRow();
+}
+
+// CLOSE MODAL
+function closeTask() { 
     taskModal?.classList.add('hidden'); 
+    taskModal?.classList.remove('flex');
+    suggestionBox.classList.add('hidden'); 
     if(taskTitleInput) taskTitleInput.value = '';
     if(taskOptionsContainer) taskOptionsContainer.innerHTML = '';
-    addTaskRow(1); // Add default row
+    
+    // Reset Settings
+    const ds = document.getElementById('taskDeadlineSelect');
+    if(ds) { ds.value = ""; toggleCustomDate(); }
+    const aa = document.getElementById('allowTaskUserAdd');
+    if(aa) aa.checked = false;
 }
 
-function addTaskRow(count) {
+// ADD ROW
+function addTaskRow() {
     const div = document.createElement('div');
-    div.className = 'flex gap-2';
+    div.className = 'flex gap-2 relative mb-2 items-center'; 
     div.innerHTML = `
-        <input type="text" placeholder="Task ${count}" class="flex-1 border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#3b82f6] outline-none task-name">
-        <input type="text" placeholder="@Assignee" class="w-1/3 border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#3b82f6] outline-none task-assign">
+        <input type="text" placeholder="Task description" class="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#f4b41a] focus:border-[#f4b41a] outline-none task-name">
+        <input type="text" placeholder="@Assignee" class="w-1/3 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#f4b41a] focus:border-[#f4b41a] outline-none task-assign" autocomplete="off">
+        <button onclick="this.parentElement.remove()" class="text-gray-400 hover:text-red-500 transition px-1">✕</button>
     `;
-    taskOptionsContainer.appendChild(div);
+    if(taskOptionsContainer) taskOptionsContainer.appendChild(div);
+
+    const assignInput = div.querySelector('.task-assign');
+    assignInput.addEventListener('focus', (e) => showSuggestions(e.target));
+    assignInput.addEventListener('input', (e) => showSuggestions(e.target));
+    assignInput.addEventListener('blur', () => setTimeout(() => suggestionBox.classList.add('hidden'), 200));
 }
 
-let taskCount = 1;
-if(taskOptionsContainer && taskOptionsContainer.children.length === 0) addTaskRow(taskCount);
+taskAddOptionBtn?.addEventListener('click', (e) => { e.preventDefault(); addTaskRow(); });
 
-taskAddOptionBtn?.addEventListener('click', ()=>{ 
-    taskCount++;
-    addTaskRow(taskCount); 
-});
+// SUGGESTIONS
+function showSuggestions(inputElement) {
+    activeAssignInput = inputElement;
+    const val = inputElement.value.toLowerCase().replace('@', '');
+    const members = (typeof EVENT_MEMBERS !== 'undefined' ? EVENT_MEMBERS : []);
+    
+    const matches = members.filter(m => (m.name || m.username).toLowerCase().includes(val));
+    if (matches.length === 0) { suggestionBox.classList.add('hidden'); return; }
 
-createTaskBtn?.addEventListener('click', async () => {
-    const title = taskTitleInput.value.trim() || 'Assigned Tasks';
-    const items = [];
-    taskOptionsContainer.querySelectorAll('div.flex').forEach(row => {
-        const txt = row.querySelector('.task-name').value.trim();
-        const assign = row.querySelector('.task-assign').value.trim();
-        if(txt) items.push({ text: txt, assigned: assign });
-    });
+    suggestionBox.innerHTML = matches.map(m => `
+        <div class="px-3 py-2 hover:bg-yellow-50 cursor-pointer flex items-center gap-2 text-sm transition" 
+             onclick="selectMember('${m.name || m.username}')">
+            <img src="${m.profile_picture || 'Assets/Profile Icon/profile.png'}" class="w-6 h-6 rounded-full object-cover border border-gray-200">
+            <span class="text-gray-700 font-medium">${m.name || m.username}</span>
+        </div>
+    `).join('');
 
-    if (items.length === 0) { alert("Please add at least one task."); return; }
+    const rect = inputElement.getBoundingClientRect();
+    suggestionBox.style.top = (rect.bottom + window.scrollY + 2) + 'px';
+    suggestionBox.style.left = (rect.left + window.scrollX) + 'px';
+    suggestionBox.style.width = rect.width + 'px';
+    suggestionBox.classList.remove('hidden');
+}
 
-    createTaskBtn.disabled = true; createTaskBtn.textContent = "Saving...";
+window.selectMember = function(name) {
+    if(activeAssignInput) { activeAssignInput.value = name; suggestionBox.classList.add('hidden'); }
+};
 
-    const payload = {
-        event_id: <?php echo (int)$id; ?>,
-        title: title,
-        items: items
-    };
+// DEADLINE HELPERS
+function toggleCustomDate() {
+    const s = document.getElementById('taskDeadlineSelect');
+    const c = document.getElementById('taskCustomDate');
+    if (s && s.value === 'custom') { c?.classList.remove('hidden'); c?.focus(); } else { c?.classList.add('hidden'); }
+}
 
-    try {
-        const res = await fetch('/DINADRAWING/Backend/events/create_task.php', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify(payload)
+function getCalculatedDeadline() {
+    const s = document.getElementById('taskDeadlineSelect');
+    if(!s || !s.value) return null;
+    const d = new Date();
+    if (s.value === 'tomorrow') d.setDate(d.getDate() + 1);
+    else if (s.value === 'next_week') d.setDate(d.getDate() + 7);
+    else if (s.value === 'custom') {
+        const v = document.getElementById('taskCustomDate')?.value;
+        return v ? v.replace('T', ' ') + ':00' : null;
+    }
+    const offset = d.getTimezoneOffset() * 60000;
+    return new Date(d.getTime() - offset).toISOString().slice(0, 19).replace('T', ' ');
+}
+
+
+// ==========================================
+// 2. SAVE TASK LOGIC (Backend Connection)
+// ==========================================
+if(btnSaveTask) {
+    btnSaveTask.addEventListener('click', async () => {
+        const title = taskTitleInput?.value.trim() || 'Assigned Tasks';
+        const allowUserAdd = document.getElementById('allowTaskUserAdd')?.checked || false;
+        
+        const items = [];
+        taskOptionsContainer.querySelectorAll('div.flex').forEach(row => {
+            const txt = row.querySelector('.task-name').value.trim();
+            const assign = row.querySelector('.task-assign').value.trim().replace('@', '');
+            if(txt) items.push({ text: txt, assigned: assign });
         });
-        const data = await res.json();
-        if (data.success) {
-            closeTask();
-            prependNewPost(data.post);
-        } else {
-            alert('Failed: ' + (data.error || 'Error'));
-        }
-    } catch (e) { console.error(e); }
-    finally { createTaskBtn.disabled = false; createTaskBtn.textContent = "Save"; }
-});
-</script>
 
-<script>
-// HELPER: Generate Task HTML (Prototype Style)
+        if (items.length === 0) { alert("Please add at least one task item."); return; }
+
+        const originalText = btnSaveTask.textContent;
+        btnSaveTask.disabled = true; btnSaveTask.textContent = "Creating...";
+
+        try {
+            const res = await fetch('/DINADRAWING/Backend/events/create_task.php', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    event_id: <?php echo (int)$id; ?>,
+                    title: title,
+                    items: items,
+                    allow_user_add: allowUserAdd,
+                    deadline: getCalculatedDeadline()
+                })
+            });
+            const data = await res.json();
+            
+            if (data.success) {
+                closeTask();
+                if(typeof prependNewPost === 'function') prependNewPost(data.post);
+                if(typeof showToast === 'function') showToast("Task list created!");
+            } else {
+                alert('Failed: ' + (data.error || 'Unknown error'));
+            }
+        } catch (e) { console.error(e); alert("Network error."); } 
+        finally { btnSaveTask.disabled = false; btnSaveTask.textContent = originalText; }
+    });
+}
+
+
+// ==========================================
+// 3. GENERATE FEED HTML (The Missing Part!)
+// ==========================================
 function generateTaskHTML(taskData) {
     if (!taskData || !taskData.items) return '';
 
+    // 1. GENERATE LIST ITEMS (Listahan ng Tasks)
     let itemsHTML = taskData.items.map(item => {
-        const isDone = (item.is_completed == 1);
+        const isDone = (item.is_completed == 1 || item.is_completed === 't' || item.is_completed === true);
+        const assignee = item.assigned_to ? item.assigned_to.trim() : '';
         
-        // Styles based on state
-        // Prototype has distinctive black borders and pill shapes
-        const containerStyle = "flex items-center bg-white border border-gray-900 rounded-full px-4 py-2 mb-3 transition-all";
-        const textStyle = isDone ? "text-gray-400 line-through flex-1 font-medium" : "text-gray-900 flex-1 font-medium";
-        const assigneeStyle = "bg-gray-200 text-gray-700 text-xs font-bold px-3 py-1 rounded-full mr-3";
-        
-        // Checkbox SVG
-        const checkIcon = isDone 
-            ? `<svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg>`
-            : ``;
-            
-        const checkBg = isDone ? "bg-gray-900 border-gray-900" : "bg-transparent border-gray-900";
+        const textStyle = isDone ? "text-gray-400 line-through" : "text-gray-800";
+        const checkBg = isDone ? "bg-[#f4b41a] border-[#f4b41a]" : "bg-white border-gray-300 hover:border-[#f4b41a]";
+        const checkIcon = isDone ? `<svg class="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg>` : ``;
+
+        // Volunteer Badge Logic
+        let badge = '';
+        const badgeClass = "ml-3 px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wide border flex items-center justify-center min-w-[80px] transition";
+
+        if (assignee === '') {
+            badge = `<button onclick="claimTask(${item.id}, this)" class="${badgeClass} border-dashed border-gray-400 text-gray-500 hover:border-[#f4b41a] hover:text-[#f4b41a] hover:bg-yellow-50">+ Volunteer</button>`;
+        } else if (typeof CURRENT_USER_NAME !== 'undefined' && assignee === CURRENT_USER_NAME) {
+            badge = `<button onclick="unclaimTask(${item.id}, this)" class="${badgeClass} border-transparent bg-yellow-100 text-yellow-800 hover:bg-red-100 hover:text-red-600">@${assignee}</button>`;
+        } else {
+            badge = `<span class="${badgeClass} border-transparent bg-gray-100 text-gray-600 cursor-default">@${assignee}</span>`;
+        }
 
         return `
-        <div class="${containerStyle}">
-            <span class="${textStyle}">${item.item_text}</span>
-            
-            ${item.assigned_to ? `<span class="${assigneeStyle}">@${item.assigned_to}</span>` : ''}
-            
-            <div onclick="toggleTaskItem(${item.id})" class="cursor-pointer w-6 h-6 rounded border-2 ${checkBg} flex items-center justify-center transition-colors">
-                ${checkIcon}
+        <div id="task-item-${item.id}" class="flex items-center justify-between bg-white border border-gray-200 p-3 rounded-xl mb-2 transition hover:shadow-sm group">
+            <div class="flex items-center gap-3 flex-1 overflow-hidden">
+                <div onclick="toggleTaskItem(${item.id})" class="cursor-pointer w-6 h-6 rounded-full border-2 ${checkBg} flex items-center justify-center shadow-sm transition">${checkIcon}</div>
+                <span class="${textStyle} font-medium flex-1 truncate transition">${item.item_text}</span>
+            </div>
+            <div class="flex items-center">
+                ${badge}
+                <button onclick="deleteTaskItem(${item.id})" class="ml-2 text-gray-300 hover:text-red-500 p-1 rounded hover:bg-red-50 opacity-0 group-hover:opacity-100 transition" title="Delete">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                </button>
             </div>
         </div>`;
     }).join('');
 
-    // Add the "Add option" placeholder row from your design
-    // (Note: To make this functional, we'd need more logic, but this matches the visual)
-    const addOptionHTML = `
-        <div class="flex items-center bg-white border border-gray-400 rounded-full px-4 py-2 mb-3 opacity-60">
-            <span class="text-gray-500 flex-1 font-medium">Add option</span>
-            <span class="bg-gray-200 text-gray-400 text-xs font-bold px-3 py-1 rounded-full mr-3">@mention</span>
-             <div class="w-6 h-6 rounded border-2 border-gray-400 flex items-center justify-center"></div>
-        </div>
-    `;
+    // 2. DEADLINE TAG LOGIC (Ito yung idadagdag nating HTML String)
+    let deadlineHTML = '';
+    if (taskData.deadline) {
+        const d = new Date(taskData.deadline);
+        const isPast = new Date() > d;
+        
+        // Colors: Red kung lagpas na, Orange kung hindi pa
+        const tagColor = isPast 
+            ? "bg-red-100 text-red-700 border-red-200" 
+            : "bg-orange-100 text-orange-800 border-orange-200";
 
+        const icon = isPast ? '⚠️' : '🕒';
+        const dateText = d.toLocaleDateString([], {month:'short', day:'numeric', hour:'2-digit', minute:'2-digit'});
+
+        // Ito yung mismong HTML ng Tag
+        deadlineHTML = `
+        <span class="${tagColor} border px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1 shadow-sm whitespace-nowrap">
+            ${icon} ${dateText}
+        </span>`;
+    }
+
+    // ADD INPUT Logic (Dito nag-aadd ng bagong task item)
+    let addTaskHTML = '';
+    if (taskData.allow_user_add == 1 || taskData.allow_user_add === true || taskData.allow_user_add === 't') {
+        addTaskHTML = `
+        <div class="mt-3 relative flex items-center animate-fade-in">
+            <input type="text" id="new-task-input-${taskData.id}" placeholder="+ Add a new task..." 
+                   class="w-full bg-white border border-gray-300 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#f4b41a] pr-20 shadow-sm"
+                   onkeydown="if(event.key === 'Enter') addNewTaskItem(${taskData.id})">
+            <button onclick="addNewTaskItem(${taskData.id})" class="absolute right-1.5 z-10 bg-[#f4b41a] hover:bg-[#e3a918] text-[#222] text-xs font-bold px-3 py-1.5 rounded transition">ADD</button>
+        </div>`;
+    }
+
+    // 3. FINAL RETURN HTML
+    // (Dito natin ilalagay yung 'deadlineHTML' sa tabi ng Title gamit ang 'justify-between')
     return `
-    <div class="bg-gray-100/50 rounded-3xl p-6 border border-gray-200 mb-3 shadow-sm">
-        <h3 class="text-center font-bold text-lg text-[#222] mb-5">${taskData.title}</h3>
-        <div class="space-y-1">
-            ${itemsHTML}
+    <div class="bg-gray-50 rounded-2xl p-5 border border-gray-200 mb-3 shadow-sm" id="task-container-${taskData.id}">
+        
+        <div class="flex justify-between items-start mb-4">
+            
+            <h3 class="font-bold text-lg text-[#222] flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-[#f4b41a]" viewBox="0 0 24 24" fill="currentColor"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" /></svg>
+                ${taskData.title}
+            </h3>
+
+            ${deadlineHTML}
         </div>
+
+        <div class="space-y-1" id="task-list-${taskData.id}">${itemsHTML}</div>
+        ${addTaskHTML}
     </div>`;
 }
 
-async function toggleTaskItem(itemId) {
-    // 1. Optimistic UI Update (Find the elements)
-    const container = document.getElementById(`task-item-${itemId}`);
-    if (!container) return;
-    
-    // Toggle visual state immediately for snappiness
-    const checkbox = container.querySelector('div[onclick]');
-    const text = container.querySelector('p');
-    const isCurrentlyDone = checkbox.classList.contains('bg-[#f4b41a]');
 
-    // Flip Styles
-    if (isCurrentlyDone) {
-        // Mark Undone
-        checkbox.classList.remove('bg-[#f4b41a]', 'border-[#f4b41a]');
-        checkbox.classList.add('border-gray-300');
-        checkbox.innerHTML = ''; // Remove checkmark
-        text.classList.remove('text-gray-400', 'line-through', 'decoration-2');
-        text.classList.add('text-gray-800', 'font-medium');
-    } else {
-        // Mark Done
-        checkbox.classList.add('bg-[#f4b41a]', 'border-[#f4b41a]');
-        checkbox.classList.remove('border-gray-300');
-        checkbox.innerHTML = '<svg class="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg>';
-        text.classList.add('text-gray-400', 'line-through', 'decoration-2');
-        text.classList.remove('text-gray-800', 'font-medium');
-    }
-
-    // 2. Send to Backend
+// ==========================================
+// 4. GLOBAL ACTIONS (Volunteer, Delete, Toggle)
+// ==========================================
+window.claimTask = async function(itemId, btn) {
+    if(event) { event.preventDefault(); event.stopPropagation(); }
+    const original = btn.innerHTML; btn.innerHTML = "Saving..."; btn.disabled = true;
     try {
-        const res = await fetch('/DINADRAWING/Backend/events/toggle_task.php', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({ item_id: itemId })
-        });
+        const res = await fetch('/DINADRAWING/Backend/events/claim_task.php', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({item_id:itemId}) });
         const data = await res.json();
-        
-        if (!data.success) {
-            // Revert on error
-            console.error("Task toggle failed");
-            // (Optional: You could reload here to sync state)
-        } else {
-            // (Optional: Reload posts to update the progress bar percentage accurately)
-            // loadEventPosts(); 
+        if(data.success) { if(typeof showToast==='function') showToast("You volunteered!"); if(typeof loadEventPosts==='function') loadEventPosts(); }
+        else { alert(data.error); btn.innerHTML = original; btn.disabled = false; }
+    } catch(e){ console.error(e); btn.innerHTML = original; btn.disabled = false; }
+};
+
+window.unclaimTask = function(itemId, btn) {
+    if(event) { event.preventDefault(); event.stopPropagation(); }
+    const run = async () => {
+        try {
+            const res = await fetch('/DINADRAWING/Backend/events/unclaim_task.php', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({item_id:itemId}) });
+            if((await res.json()).success) { if(typeof showToast==='function') showToast("Unvolunteered."); if(typeof loadEventPosts==='function') loadEventPosts(); }
+        } catch(e){ console.error(e); }
+    };
+    if(typeof showConfirm === 'function') showConfirm("Unclaim task?", run); else if(confirm("Unclaim task?")) run();
+};
+
+window.deleteTaskItem = function(itemId) {
+    const run = async () => {
+        try {
+            const res = await fetch('/DINADRAWING/Backend/events/delete_task_item.php', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({item_id:itemId}) });
+            if((await res.json()).success) { document.getElementById(`task-item-${itemId}`)?.remove(); }
+        } catch(e){ console.error(e); }
+    };
+    if(typeof showConfirm === 'function') showConfirm("Delete task?", run); else if(confirm("Delete task?")) run();
+};
+
+window.addNewTaskItem = async function(taskId) {
+    const input = document.getElementById(`new-task-input-${taskId}`);
+    if(!input) return;
+    const text = input.value.trim();
+    if(!text) { input.classList.add('bg-red-50'); setTimeout(()=>input.classList.remove('bg-red-50'), 500); return; }
+
+    input.disabled = true; const orig = input.placeholder; input.placeholder = "Adding...";
+    try {
+        const res = await fetch('/DINADRAWING/Backend/events/add_task_item.php', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({task_id:taskId, text:text}) });
+        const data = await res.json();
+        if(data.success) { if(typeof loadEventPosts==='function') loadEventPosts(); if(typeof showToast==='function') showToast("Task added!"); }
+        else { alert(data.error); input.disabled = false; input.placeholder = orig; }
+    } catch(e){ console.error(e); input.disabled = false; input.placeholder = orig; }
+};
+
+async function toggleTaskItem(itemId) {
+    try {
+        await fetch('/DINADRAWING/Backend/events/toggle_task.php', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({item_id:itemId}) });
+        // Optimistic UI Swap
+        const container = document.getElementById(`task-item-${itemId}`);
+        if(container) {
+            const check = container.querySelector('div[onclick]');
+            const txt = container.querySelector('span.font-medium');
+            const isDone = check.classList.contains('bg-[#f4b41a]');
+            
+            if(isDone) {
+                check.className = "cursor-pointer w-6 h-6 rounded-full border-2 bg-white border-gray-300 hover:border-[#f4b41a] flex items-center justify-center shadow-sm transition";
+                check.innerHTML = '';
+                txt.className = "text-gray-800 font-medium flex-1 truncate transition";
+            } else {
+                check.className = "cursor-pointer w-6 h-6 rounded-full border-2 bg-[#f4b41a] border-[#f4b41a] flex items-center justify-center shadow-sm transition";
+                check.innerHTML = '<svg class="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg>';
+                txt.className = "text-gray-400 line-through font-medium flex-1 truncate transition";
+            }
         }
-    } catch(e) { console.error(e); }
+    } catch(e){ console.error(e); }
 }
 </script>
 
@@ -2482,9 +2659,35 @@ async function votePoll(pollId, optionId, postId) {
         updateDivisionTotal();
       }
 
+// FIXED: Add Member with Auto-Recalculation
       document.getElementById("addMemberBtn")?.addEventListener('click', () => {
         memberCounter++;
-        addMemberRow({ name: `Member ${memberCounter}`, avatar: "Assets/Profile Icon/profile.png" }, "0.00", "custom");
+        
+        // 1. Check current mode
+        const isEqualMode = document.querySelector('input[name="division"][value="equal"]').checked;
+        const totalBudget = parseFloat((document.getElementById("totalCost").textContent || '0').replace(/[₱,]/g,'')) || 0;
+
+        // 2. Add the row based on mode
+        if (isEqualMode) {
+            // Add row as "equal" (Read Only)
+            addMemberRow({ name: `Member ${memberCounter}`, avatar: "Assets/Profile Icon/profile.png" }, "0.00", "equal");
+            
+            // RECALCULATE SPLIT FOR EVERYONE
+            const allAmountInputs = document.querySelectorAll('.member-amount');
+            const count = allAmountInputs.length;
+            if (count > 0) {
+                const newSplit = (totalBudget / count).toFixed(2);
+                allAmountInputs.forEach(input => {
+                    input.value = newSplit;
+                });
+            }
+        } else {
+            // Custom Mode: Just add the row normally (Editable)
+            addMemberRow({ name: `Member ${memberCounter}`, avatar: "Assets/Profile Icon/profile.png" }, "0.00", "custom");
+        }
+
+        // 3. Update the bottom total summary
+        updateDivisionTotal();
       });
 
       // 5. NAVIGATION
@@ -2505,7 +2708,7 @@ async function votePoll(pollId, optionId, postId) {
       
       document.getElementById("backToStep2")?.addEventListener('click', ()=>{ currentStep = 1; showStep(currentStep); });
 
-      // 6. SAVE FUNCTION
+      // 6. SAVE FUNCTION (FIXED: Shows Budget Immediately)
       document.getElementById("saveBudgetPlan")?.addEventListener('click', async () => {
         const expenses = [];
         document.querySelectorAll('#expenseTableBody tr').forEach(row=>{
@@ -2535,11 +2738,21 @@ async function votePoll(pollId, optionId, postId) {
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify(payload)
             });
-            budgetData = payload; // Update the MAIN data variable
-            renderBudget();       // Refresh the view
+            
+            // --- THE FIX STARTS HERE ---
+            budgetData = payload; 
+            
+            // 1. Force the view to switch immediately
+            document.getElementById('noBudgetView').classList.add('hidden');
+            document.getElementById('budgetView').classList.remove('hidden');
+
+            // 2. Render the data
+            renderBudget();       
             closeModal();
-            alert("Budget saved successfully!");
+            // --- THE FIX ENDS HERE ---
+
         } catch(e) {
+            console.error(e);
             alert("Network error saving budget.");
         }
       });

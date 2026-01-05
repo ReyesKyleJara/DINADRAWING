@@ -10,6 +10,8 @@ $user_id = $_SESSION['user_id'];
 $event_id = $data['event_id'];
 $title = trim($data['title']);
 $items = $data['items']; // Array of {text, assigned}
+$allowUserAdd = $data['allow_user_add'] ?? false;
+$deadline = $data['deadline'] ?? null; // 
 
 if (empty($title) || empty($items)) {
     echo json_encode(['success'=>false, 'error'=>'Task cannot be empty']); exit;
@@ -19,10 +21,10 @@ try {
     $pdo = getDatabaseConnection();
     $pdo->beginTransaction();
 
-    // 1. Create Post
-    $stmt = $pdo->prepare("INSERT INTO posts (event_id, user_id, post_type, content, created_at) VALUES (?, ?, 'task', '', CURRENT_TIMESTAMP) RETURNING id");
-    $stmt->execute([$event_id, $user_id]);
-    $post_id = $stmt->fetchColumn(); 
+   // 1. Create Post (UPDATED)
+    $stmt = $pdo->prepare("INSERT INTO posts (event_id, user_id, post_type, content, allow_user_add, created_at) VALUES (?, ?, 'task', '', ?, CURRENT_TIMESTAMP) RETURNING id");
+    $stmt->execute([$event_id, $user_id, $allowUserAdd ? 'true' : 'false']);
+    $post_id = $stmt->fetchColumn();
 
     // 2. Create Task Header
     $taskStmt = $pdo->prepare("INSERT INTO tasks (post_id, title) VALUES (?, ?) RETURNING id");
@@ -71,6 +73,7 @@ try {
         'task_data' => [
             'id' => $task_id,
             'title' => htmlspecialchars($title),
+            'allow_user_add' => $allowUserAdd,
             'items' => $finalItems
         ]
     ];

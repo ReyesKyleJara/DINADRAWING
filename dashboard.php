@@ -36,6 +36,7 @@ try {
     $today = date('Y-m-d');
 
     // QUERY: Get Active Plans (Not Archived, Not Deleted)
+    // Ordered by Date ASC so "nearest" comes first
     $sql = "
       SELECT DISTINCT
         e.id, e.date, e.time, e.name, e.description, e.location, e.banner_color
@@ -52,7 +53,7 @@ try {
     $allEvents = $stmt->fetchAll();
 
     foreach ($allEvents as $ev) {
-        // Prepare Data for Calendar
+        // 1. Calendar Data (We pass everything to calendar so it can render dots correctly)
         $calendarEventsJS[] = [
             'id' => $ev['id'],
             'title' => htmlspecialchars($ev['name']),
@@ -61,18 +62,26 @@ try {
             'desc' => htmlspecialchars($ev['description'] ?? '')
         ];
 
-        // Sort into Lists (Past vs Upcoming)
-        if (!empty($ev['date']) && $ev['date'] < $today) {
-            array_unshift($pastEvents, $ev); // Recent
-        } else {
-            $upcomingEvents[] = $ev; // Upcoming
+        // 2. List Logic
+        if (!empty($ev['date'])) {
+            // Only process if it HAS a date
+            if ($ev['date'] < $today) {
+                // Past Plan
+                array_unshift($pastEvents, $ev); 
+            } else {
+                // Upcoming Plan (Today or Future)
+                $upcomingEvents[] = $ev;
+            }
         }
+        // Note: Plans with NO date are effectively ignored for the Lists
     }
     
-    $pastEvents = array_slice($pastEvents, 0, 5); // Limit recent to 5
+    // LIMITS
+    $pastEvents = array_slice($pastEvents, 0, 5);      // Keep 5 recent
+    $upcomingEvents = array_slice($upcomingEvents, 0, 3); // ✅ LIMIT TO 3 NEAREST
 
 } catch (Exception $e) {
-    // Silent fail
+    error_log("Dashboard Error: " . $e->getMessage());
 }
 
 // Helpers
@@ -224,17 +233,40 @@ function formatRecentDate($d) { return $d ? date('M d, Y', strtotime($d)) : 'No 
     }
 
     /* Hamburger Menu */
-    .hamburger { display: flex; flex-direction: column; gap: 4px; cursor: pointer; padding: 8px; border-radius: 8px; transition: background 0.2s; }
-    .hamburger:hover { background: rgba(244, 180, 26, 0.1); }
-    .hamburger span { width: 24px; height: 3px; background: #222; border-radius: 2px; transition: all 0.3s; }
-    body.dark-mode .hamburger span { background: #e0e0e0; }
-
+   /* Gemini-style Hamburger Menu */
+    .hamburger { 
+        display: flex; 
+        align-items: center; 
+        justify-content: center; 
+        width: 48px; 
+        height: 48px; 
+        border-radius: 50%; /* Makes the hover effect a perfect circle */
+        cursor: pointer; 
+        transition: background-color 0.2s ease;
+        border: none;
+        background: transparent;
+        color: #444746; /* Standard Google Icon Grey */
+        padding: 0;
+    }
+    
+    /* Circular hover effect */
+    .hamburger:hover { 
+        background-color: rgba(0, 0, 0, 0.08); 
+    }
+    
+    /* Dark mode adjustments */
+    body.dark-mode .hamburger { color: #e3e3e3; }
+    body.dark-mode .hamburger:hover { background-color: rgba(255, 255, 255, 0.1); }
+    
     /* Sidebar overlay */
     .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.5); z-index: 45; }
     .sidebar-overlay.active { display: block; }
 
     /* Sidebar toggle */
     #sidebar { transition: transform 0.3s ease; z-index: 50; transform: translateX(-100%); }
+    #sidebar:not(.active) #hamburgerBtn {
+        transform: rotate(180deg);
+    }
     #sidebar.active { transform: translateX(0); }
     @media (min-width: 769px) {
       #sidebar { transform: translateX(0); }
@@ -294,7 +326,9 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
 <div class="page-header flex justify-between items-center border-b-2 border-gray-200 pb-4 mb-6 fixed top-0 left-0 w-full bg-[#fffaf2] z-40 px-12 py-10">
   <div class="flex items-center gap-4">
     <button id="hamburgerBtn" class="hamburger">
-      <span></span><span></span><span></span>
+      <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24" fill="currentColor">
+        <path d="M120-240v-80h720v80H120Zm0-200v-80h720v80H120Zm0-200v-80h720v80H120Z"/>
+      </svg>
     </button>
 
     <div class="flex flex-col">

@@ -1,24 +1,31 @@
 <?php
+// Backend/events/get_posts.php
 session_start();
 header('Content-Type: application/json; charset=utf-8');
 
 if (!isset($_SESSION['user_id'])) {
-    http_response_code(401); echo json_encode(['success'=>false, 'error'=>'Unauthorized']); exit;
+    http_response_code(401); 
+    echo json_encode(['success'=>false, 'error'=>'Unauthorized']); 
+    exit;
 }
 
 $currentUserId = $_SESSION['user_id'];
 $eventId = isset($_GET['event_id']) ? (int)$_GET['event_id'] : 0;
 
-if ($eventId <= 0) { echo json_encode(['success'=>false, 'error'=>'Invalid Event ID']); exit; }
+if ($eventId <= 0) { 
+    echo json_encode(['success'=>false, 'error'=>'Invalid Event ID']); 
+    exit; 
+}
 
 require_once __DIR__ . "/../config/database.php"; 
 $pdo = getDatabaseConnection();
 
 try {
-    // 1. GET POSTS
+    // 1. GET POSTS (Updated to select allow_user_add)
     $sql = "
         SELECT 
             p.id, p.user_id, p.post_type, p.content, p.image_path, p.created_at, p.is_pinned, 
+            p.allow_user_add,  -- <--- WE ARE FETCHING IT HERE
             u.username AS user_name, 
             u.profile_picture,
             (SELECT COUNT(*) FROM post_likes WHERE post_id = p.id) as like_count,
@@ -50,7 +57,6 @@ try {
             'content' => htmlspecialchars($p['content'] ?? ''),
             'is_owner' => ($p['user_id'] == $currentUserId),
             'is_pinned' => ($p['is_pinned'] == 1), 
-
             'image_path' => $p['image_path'] ? "/DINADRAWING/" . $p['image_path'] : null,
             'created_at' => date('M j, Y • g:i A', strtotime($p['created_at'])),
             'like_count' => (int)$p['like_count'],
@@ -59,7 +65,7 @@ try {
             'user' => [ 'name' => $p['user_name'], 'avatar' => $avatarPath ]
         ];
 
-        // --- POLL DATA (With Voter Images) ---
+        // --- POLL DATA ---
         if ($post['post_type'] === 'poll') {
             $pollStmt = $pdo->prepare("SELECT id, question, allow_multiple, is_anonymous FROM polls WHERE post_id = ?");
             $pollStmt->execute([$p['id']]);
@@ -85,7 +91,7 @@ try {
                     $totalVotes += $opt['vote_count'];
                     $opt['is_voted'] = in_array($opt['id'], $myVotes);
                     
-                    // --- FETCH VOTER AVATARS (Limit 3) ---
+                    // Voter Faces
                     $opt['voters'] = [];
                     if (!$isAnon && $opt['vote_count'] > 0) {
                         $vStmt = $pdo->prepare("
@@ -98,8 +104,6 @@ try {
                         ");
                         $vStmt->execute([$opt['id']]);
                         $rawVoters = $vStmt->fetchAll(PDO::FETCH_COLUMN);
-                        
-                        // Format paths
                         foreach($rawVoters as $rawPic) {
                             $vPath = '/DINADRAWING/Assets/Profile Icon/profile.png';
                             if(!empty($rawPic)) {
@@ -121,22 +125,24 @@ try {
             }
         }
 
-
-        // --- TASK DATA ---
+        // --- TASK DATA (FIXED) ---
         if ($post['post_type'] === 'task') {
             $taskStmt = $pdo->prepare("SELECT id, title, deadline FROM tasks WHERE post_id = ?");
             $taskStmt->execute([$p['id']]);
             $taskInfo = $taskStmt->fetch(PDO::FETCH_ASSOC);
 
             if ($taskInfo) {
-                // ✅ UPDATE: Select is_completed
                 $itemStmt = $pdo->prepare("SELECT id, item_text, assigned_to, is_completed FROM task_items WHERE task_id = ? ORDER BY id ASC");
                 $itemStmt->execute([$taskInfo['id']]);
                 
+                // Determine if adding is allowed (Handle PostgreSQL boolean types safely)
+                $isAllowed = ($p['allow_user_add'] === true || $p['allow_user_add'] === 't' || $p['allow_user_add'] == 1);
+
                 $post['task_data'] = [
                     'id' => $taskInfo['id'],
                     'title' => htmlspecialchars($taskInfo['title']),
                     'deadline' => $taskInfo['deadline'],
+                    'allow_user_add' => $isAllowed, // <--- PASSING THE FIX HERE
                     'items' => $itemStmt->fetchAll(PDO::FETCH_ASSOC)
                 ];
             }
@@ -148,6 +154,7 @@ try {
     echo json_encode(['success' => true, 'posts' => $formattedPosts]);
 
 } catch (Exception $e) {
-    http_response_code(500); echo json_encode(['success'=>false, 'error'=>$e->getMessage()]);
+    http_response_code(500); 
+    echo json_encode(['success'=>false, 'error'=>$e->getMessage()]);
 }
 ?>

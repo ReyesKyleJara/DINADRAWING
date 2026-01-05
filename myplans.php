@@ -199,10 +199,10 @@ function card_banner_style($ev){
 
   <div class="flex items-center gap-3">
     <button id="openCreateEvent" class="border border-[#222] bg-white px-4 py-2 rounded-2xl font-medium hover:bg-[#222] hover:text-white transition">
-      <span class="hidden md:inline">+ Create Event</span><span class="md:hidden">Create</span>
+      <span class="hidden md:inline">+ Create Plan</span><span class="md:hidden">Create</span>
     </button>
     <button id="openJoinEvent" class="border border-[#222] bg-white px-4 py-2 rounded-2xl font-medium hover:bg-[#222] hover:text-white transition">
-      <span class="hidden md:inline">Join Event</span><span class="md:hidden">Join</span>
+      <span class="hidden md:inline">Join Plan</span><span class="md:hidden">Join</span>
     </button>
 
     <div class="flex items-center gap-4 relative">
@@ -456,10 +456,10 @@ function card_banner_style($ev){
 <div id="createEventModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center hidden z-50 p-4">
   <div class="bg-white rounded-2xl shadow-xl relative w-full max-w-md max-h-[90vh] overflow-y-auto p-6">
     <button id="closeCreateEvent" class="absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-xl">&times;</button>
-    <h2 class="text-2xl font-bold mb-1">Create Event</h2>
-    <p class="text-sm text-gray-500 mb-4">Fill in the details to start planning your event.</p>
-    <label class="block text-sm font-medium mb-1">Event Name <span class="text-gray-400 text-xs">(required)</span> </label>
-    <input type="text" id="eventName" class="w-full border border-gray-300 rounded-lg px-3 py-2 mb-4" placeholder="Enter event name">
+    <h2 class="text-2xl font-bold mb-1">Create Plan</h2>
+    <p class="text-sm text-gray-500 mb-4">Fill in the details to start planning your plan.</p>
+    <label class="block text-sm font-medium mb-1">Plan Name <span class="text-gray-400 text-xs">(required)</span> </label>
+    <input type="text" id="eventName" class="w-full border border-gray-300 rounded-lg px-3 py-2 mb-4" placeholder="Enter plan name">
     <label class="block text-sm font-medium mb-1">Description </label>
     <textarea id="eventDescription" maxlength="200" class="w-full border border-gray-300 rounded-lg px-3 py-2 mb-1 resize-none h-20" placeholder="Write a short description..."></textarea>
     <div class="text-right text-xs text-gray-500 mb-4"><span id="charCount">0</span>/200</div>
@@ -470,7 +470,7 @@ function card_banner_style($ev){
     <label class="block text-sm font-medium mb-1">Location</label>
     <input id="eventLocation" type="text" class="w-full border border-gray-300 rounded-lg px-3 py-2 mb-2" placeholder="Search for a location">
     <div id="map" class="w-full h-60 rounded-lg border border-gray-300 mb-4"></div>
-    <p class="text-gray-500 text-xs mb-4 text-justify">Only Event Name is required. You can leave Description, Date, Time, and Location blank and create a poll for your attendees to vote on these details.</p>
+    <p class="text-gray-500 text-xs mb-4 text-justify">Only Plan Name is required. You can leave Description, Date, Time, and Location blank and create a poll for your attendees to vote on these details.</p>
     <div class="flex justify-end gap-3 mb-2">
       <button id="cancelCreateEvent" class="px-4 py-2 rounded-lg border border-gray-300 hover:bg-gray-100 transition">Cancel</button>
       <button id="saveCreateEvent" class="bg-[#f4b41a] px-4 py-2 rounded-lg font-medium hover:bg-[#e0a419] transition">Save & Continue</button>
@@ -481,9 +481,9 @@ function card_banner_style($ev){
 <div id="joinEventModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center hidden z-50">
   <div class="bg-white rounded-2xl p-6 w-[500px] shadow-xl relative">
     <button id="closeJoinEvent" class="absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-xl">&times;</button>
-    <h2 class="text-2xl font-bold mb-1">Join Event</h2>
-    <p class="text-sm text-gray-500 mb-4">Enter the event code or link to join.</p>
-    <label class="block text-sm font-medium mb-1">Event Code / Link</label>
+    <h2 class="text-2xl font-bold mb-1">Join Plan</h2>
+    <p class="text-sm text-gray-500 mb-4">Enter the plan code or link to join.</p>
+    <label class="block text-sm font-medium mb-1">Plan Code / Link</label>
     <input type="text" class="w-full border border-gray-300 rounded-lg px-3 py-2 mb-6" placeholder="Paste code or link here">
     <div class="flex justify-end gap-3">
       <button id="cancelJoinEvent" class="px-4 py-2 rounded-lg border border-gray-300 hover:bg-gray-100 transition">Cancel</button>
