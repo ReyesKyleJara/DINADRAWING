@@ -165,6 +165,37 @@ function card_banner_style($ev){
       .page-header.sidebar-open { left: 16rem; width: calc(100% - 16rem); }
       .page-header:not(.sidebar-open) { left: 0; width: 100%; }
     }
+
+/* Container for the submenu */
+.has-submenu { position: relative; }
+
+/* The flyout menu that pops out to the right */
+.action-submenu {
+  display: none;
+  position: absolute;
+  left: 100%; /* Positions it to the right of the main menu */
+  top: 0;
+  width: 170px;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  box-shadow: 6px 0 15px rgba(0,0,0,0.1);
+  z-index: 100;
+}
+
+/* Show the submenu when hovering over the 'Invite People' item */
+.has-submenu:hover .action-submenu {
+  display: block;
+}
+
+@keyframes bounceIn {
+  0% { transform: translateY(20px); opacity: 0; }
+  60% { transform: translateY(-5px); opacity: 1; }
+  100% { transform: translateY(0); }
+}
+.animate-bounce-in {
+  animation: bounceIn 0.4s ease-out;
+}
   </style>
 </head>
 <body class="flex bg-[#fffaf2]">
@@ -301,95 +332,91 @@ function card_banner_style($ev){
 
     <div id="galleryView">
       <section class="mb-12">
-        <h3 class="font-bold text-gray-700 mb-4 flex items-center gap-2 text-lg">
-          <span class="w-1.5 h-6 bg-[#f4b41a] rounded-full"></span>
-          Plans by Me
-        </h3>
-        <div class="flex flex-wrap gap-6">
-          <?php if (!empty($myPlans)): ?>
-            <?php foreach ($myPlans as $ev): ?>
-              <div class="relative w-64 bg-white border border-gray-300 rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow group flex flex-col h-full" 
-                   data-id="<?php echo $ev['id']; ?>" 
-                   data-owner="1"
-                   data-date="<?php echo $ev['date']; ?>"> <div class="font-bold p-4 text-lg flex justify-between items-start h-24" style="<?php echo card_banner_style($ev); ?>">
-                  <div class="relative z-10 flex flex-col gap-1">
-                     <?php if(!empty($ev['invite_code'])): ?>
-                      <div class="inline-flex items-center gap-1 bg-black/40 backdrop-blur-md text-white text-[10px] px-2 py-0.5 rounded-full cursor-pointer hover:bg-black/60 transition w-fit"
-                           onclick="copyToClipboard('<?php echo h($ev['invite_code']); ?>', this)" title="Click to copy code">
-                          <span class="uppercase tracking-wider font-bold"><?php echo h($ev['invite_code']); ?></span>
-                      </div>
-                     <?php endif; ?>
-                  </div>
-                  <div class="relative z-10">
-                    <button onclick="showPlanActions(event,this)" class="text-white hover:text-gray-200 px-1.5 py-0.5 rounded hover:bg-black/20 transition text-xl leading-none">⋮</button>
-                  </div>
-                </div>
-                <div class="p-4 flex-1">
-                    <h3 class="font-bold text-[#222] text-lg leading-tight mb-1 line-clamp-2"><?php echo h($ev['name'] ?? 'Untitled'); ?></h3>
-                    <p class="text-sm text-gray-500 flex items-center gap-1 mt-1">
-                      <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-                      <?php echo h($ev['loc'] ?? 'No location'); ?>
-                    </p>
-                </div>
-                <div class="px-4 pb-4 flex items-center justify-between mt-auto border-t border-gray-50 pt-3">
-                  <div class="text-center leading-none">
-                    <div class="text-[10px] text-gray-400 uppercase font-bold tracking-wider"><?php echo formatMonth($ev['dt']); ?></div>
-                    <div class="text-lg font-bold text-[#222]"><?php echo formatDay($ev['dt']); ?></div>
-                  </div>
-                  <button class="bg-[#222] text-white text-xs font-medium px-4 py-2 rounded-lg hover:bg-[#444] transition"
-                          onclick="window.location.href='plan.php?id=<?php echo (int)$ev['id']; ?>'">Open</button>
-                </div>
+    <h3 class="font-bold text-gray-700 mb-4 flex items-center gap-2 text-lg">
+      <span class="w-1.5 h-6 bg-[#f4b41a] rounded-full"></span>
+      Plans by Me
+    </h3>
+    <div class="flex flex-wrap gap-6">
+      <?php if (!empty($myPlans)): ?>
+        <?php foreach ($myPlans as $ev): ?>
+          <div class="relative w-64 bg-white border border-gray-300 rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow group flex flex-col h-full" 
+               data-id="<?php echo $ev['id']; ?>" 
+               data-owner="1"
+               data-date="<?php echo $ev['date']; ?>"
+               data-code="<?php echo h($ev['invite_code']); ?>"> <div class="p-4 text-lg flex justify-end items-start h-24" style="<?php echo card_banner_style($ev); ?>">
+              <div class="relative z-10">
+                <button onclick="showPlanActions(event,this)" class="text-white hover:text-gray-200 px-1.5 py-0.5 rounded hover:bg-black/20 transition text-xl leading-none">⋮</button>
               </div>
-            <?php endforeach; ?>
-          <?php else: ?>
-            <div class="w-full text-center py-8 bg-gray-50 rounded-xl border border-dashed border-gray-300">
-              <p class="text-gray-500 text-sm mb-2">You haven't created any plans yet.</p>
-              <button onclick="document.getElementById('createEventModal').classList.remove('hidden')" class="text-[#f4b41a] font-bold text-sm hover:underline">+ Create New Plan</button>
             </div>
-          <?php endif; ?>
+
+            <div class="p-4 flex-1">
+                <h3 class="font-bold text-[#222] text-lg leading-tight mb-1 line-clamp-2"><?php echo h($ev['name'] ?? 'Untitled'); ?></h3>
+                <p class="text-sm text-gray-500 flex items-center gap-1 mt-1">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                  <?php echo h($ev['loc'] ?? 'No location'); ?>
+                </p>
+            </div>
+
+            <div class="px-4 pb-4 flex items-center justify-between mt-auto border-t border-gray-50 pt-3">
+              <div class="text-center leading-none">
+                <div class="text-[10px] text-gray-400 uppercase font-bold tracking-wider"><?php echo formatMonth($ev['dt']); ?></div>
+                <div class="text-lg font-bold text-[#222]"><?php echo formatDay($ev['dt']); ?></div>
+              </div>
+              <button class="bg-[#222] text-white text-xs font-medium px-4 py-2 rounded-lg hover:bg-[#444] transition"
+                      onclick="window.location.href='plan.php?id=<?php echo (int)$ev['id']; ?>'">Open</button>
+            </div>
+          </div>
+        <?php endforeach; ?>
+      <?php else: ?>
+        <div class="w-full text-center py-8 bg-gray-50 rounded-xl border border-dashed border-gray-300">
+          <p class="text-gray-500 text-sm mb-2">You haven't created any plans yet.</p>
+          <button onclick="document.getElementById('createEventModal').classList.remove('hidden')" class="text-[#f4b41a] font-bold text-sm hover:underline">+ Create New Plan</button>
         </div>
-      </section>
+      <?php endif; ?>
+    </div>
+</section>
 
       <section>
-        <h3 class="font-bold text-gray-700 mb-4 flex items-center gap-2 text-lg">
-          <span class="w-1.5 h-6 bg-blue-500 rounded-full"></span>
-          Plans with Me
-        </h3>
-        <div class="flex flex-wrap gap-6">
-          <?php if (!empty($joinedPlans)): ?>
-            <?php foreach ($joinedPlans as $ev): ?>
-              <div class="relative w-64 bg-white border border-gray-300 rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow group flex flex-col h-full" 
-                   data-id="<?php echo $ev['id']; ?>" data-owner="0"> 
-                <div class="font-bold p-4 text-lg flex justify-between items-start h-24" style="<?php echo card_banner_style($ev); ?>">
-                  <div class="relative z-10"></div>
-                  <div class="relative z-10">
-                    <button onclick="showPlanActions(event,this)" class="text-white hover:text-gray-200 px-1.5 py-0.5 rounded hover:bg-black/20 transition text-xl leading-none">⋮</button>
-                  </div>
-                </div>
-                <div class="p-4 flex-1">
-                    <h3 class="font-bold text-[#222] text-lg leading-tight mb-1 line-clamp-2"><?php echo h($ev['name'] ?? 'Untitled'); ?></h3>
-                    <p class="text-sm text-gray-500 flex items-center gap-1 mt-1">
-                      <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-                      <?php echo h($ev['loc'] ?? 'No location'); ?>
-                    </p>
-                </div>
-                <div class="px-4 pb-4 flex items-center justify-between mt-auto border-t border-gray-50 pt-3">
-                  <div class="text-center leading-none">
-                    <div class="text-[10px] text-gray-400 uppercase font-bold tracking-wider"><?php echo formatMonth($ev['dt']); ?></div>
-                    <div class="text-lg font-bold text-[#222]"><?php echo formatDay($ev['dt']); ?></div>
-                  </div>
-                  <button class="bg-gray-100 text-gray-700 border border-gray-200 text-xs font-medium px-4 py-2 rounded-lg hover:bg-gray-200 transition"
-                          onclick="window.location.href='plan.php?id=<?php echo (int)$ev['id']; ?>'">View</button>
-                </div>
+    <h3 class="font-bold text-gray-700 mb-4 flex items-center gap-2 text-lg">
+      <span class="w-1.5 h-6 bg-blue-500 rounded-full"></span>
+      Plans with Me
+    </h3>
+    <div class="flex flex-wrap gap-6">
+      <?php if (!empty($joinedPlans)): ?>
+        <?php foreach ($joinedPlans as $ev): ?>
+          <div class="relative w-64 bg-white border border-gray-300 rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow group flex flex-col h-full" 
+               data-id="<?php echo $ev['id']; ?>" 
+               data-owner="0"
+               data-code="<?php echo h($ev['invite_code']); ?>"
+               data-date="<?php echo $ev['date']; ?>"> <div class="p-4 text-lg flex justify-end items-start h-24" style="<?php echo card_banner_style($ev); ?>">
+              <div class="relative z-10">
+                <button onclick="showPlanActions(event,this)" class="text-white hover:text-gray-200 px-1.5 py-0.5 rounded hover:bg-black/20 transition text-xl leading-none">⋮</button>
               </div>
-            <?php endforeach; ?>
-          <?php else: ?>
-            <div class="w-full text-center py-6">
-              <p class="text-gray-400 text-sm italic">You haven't joined any plans yet.</p>
             </div>
-          <?php endif; ?>
+            <div class="p-4 flex-1">
+                <h3 class="font-bold text-[#222] text-lg leading-tight mb-1 line-clamp-2"><?php echo h($ev['name'] ?? 'Untitled'); ?></h3>
+                <p class="text-sm text-gray-500 flex items-center gap-1 mt-1">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                  <?php echo h($ev['loc'] ?? 'No location'); ?>
+                </p>
+            </div>
+            <div class="px-4 pb-4 flex items-center justify-between mt-auto border-t border-gray-50 pt-3">
+              <div class="text-center leading-none">
+                <div class="text-[10px] text-gray-400 uppercase font-bold tracking-wider"><?php echo formatMonth($ev['dt']); ?></div>
+                <div class="text-lg font-bold text-[#222]"><?php echo formatDay($ev['dt']); ?></div>
+              </div>
+              <button class="bg-gray-100 text-gray-700 border border-gray-200 text-xs font-medium px-4 py-2 rounded-lg hover:bg-gray-200 transition"
+                      onclick="window.location.href='plan.php?id=<?php echo (int)$ev['id']; ?>'">View</button>
+            </div>
+          </div>
+        <?php endforeach; ?>
+      <?php else: ?>
+        <div class="w-full text-center py-6">
+          <p class="text-gray-400 text-sm italic">You haven't joined any plans yet.</p>
         </div>
-      </section>
+      <?php endif; ?>
+    </div>
+</section>
     </div>
 
     <div id="listView" class="hidden">
@@ -426,7 +453,7 @@ function card_banner_style($ev){
         <table class="w-full">
           <tbody class="divide-y divide-gray-100">
           <?php if (!empty($joinedPlans)): foreach ($joinedPlans as $ev): ?>
-            <tr class="hover:bg-gray-50 transition" data-id="<?php echo $ev['id']; ?>" data-owner="0" data-date="<?php echo $ev['date']; ?>">
+            <tr class="hover:bg-gray-50 transition" data-id="<?php echo $ev['id']; ?>" data-owner="0" data-date="<?php echo $ev['date']; ?>" data-code="<?php echo h($ev['invite_code']); ?>">
               <td class="px-6 py-4">
                 <div class="flex items-center gap-3">
                   <div class="w-10 h-10 bg-blue-100 text-blue-600 rounded-lg flex items-center justify-center font-bold text-xs shadow-sm">
@@ -569,6 +596,27 @@ function card_banner_style($ev){
 <div id="planActionModal" class="hidden fixed z-50">
   <div id="planActionInner" class="bg-white border border-gray-200 rounded-lg shadow-lg text-sm w-48 py-2">
     
+    <div class="has-submenu"> 
+  <button class="flex items-center justify-between w-full px-4 py-2 hover:bg-gray-100 transition">
+    <div class="flex items-center gap-2">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" /></svg>
+      <span>Invite People</span>
+    </div>
+    <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
+  </button>
+
+      <div class="action-submenu py-2">
+        <button onclick="copyInviteCode()" class="flex items-center gap-2 w-full text-left px-4 py-2 hover:bg-gray-50">
+          <span>Copy Code</span>
+        </button>
+        <button onclick="copyInviteLink()" class="flex items-center gap-2 w-full text-left px-4 py-2 hover:bg-gray-50">
+          <span>Copy Link</span>
+        </button>
+      </div>
+    </div>
+
+    <hr class="my-1 border-gray-100 owner-only">
+            
     <button id="actionArchiveBtn" class="flex items-center gap-2 w-full text-left px-4 py-2 hover:bg-gray-100 transition owner-only">
       <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-600" viewBox="0 0 20 20" fill="currentColor"><path d="M4 3a1 1 0 00-1 1v2a1 1 0 001 1h12a1 1 0 001-1V4a1 1 0 00-1-1H4zm0 8v4a2 2 0 002 2h8a2 2 0 002-2v-4H4z" /></svg>
       <span>Archive Plan</span>
@@ -697,6 +745,16 @@ function card_banner_style($ev){
     </div>
   </div>
 </div>
+
+<div id="toastContainer" class="fixed bottom-5 right-5 z-[100] hidden">
+  <div class="bg-[#222] text-white px-6 py-3 rounded-xl shadow-2xl flex items-center gap-3 animate-bounce-in">
+    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+    </svg>
+    <span id="toastMessage" class="font-medium text-sm">Code copied!</span>
+  </div>
+</div>
+
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
@@ -970,8 +1028,7 @@ function card_banner_style($ev){
   // ==========================================
   
   // Show Action Menu
-  // Show Action Menu (Updated Logic)
-  window.showPlanActions = function(e, button) {
+window.showPlanActions = function(e, button) {
     e.stopPropagation();
     document.getElementById('headerMoreMenu')?.classList.add('hidden');
     
@@ -981,37 +1038,32 @@ function card_banner_style($ev){
     const card = button.closest('[data-id]');
     if (!card) return;
 
+    // --- KEEP ALL YOUR DATA GRABBING ---
     const id = card.getAttribute('data-id');
     const isOwner = card.getAttribute('data-owner') === '1';
+    const inviteCode = card.getAttribute('data-code') || ''; // IMPORTANT
     
-    // Check if we are in "Archived Plans" view
     const urlParams = new URLSearchParams(window.location.search);
     const isArchivedTab = urlParams.has('archived');
 
-    // SMART TITLE GRAB
-    let titleEl = card.querySelector('h3'); 
-    if (!titleEl) titleEl = card.querySelector('span.font-semibold');
+    let titleEl = card.querySelector('h3') || card.querySelector('span.font-semibold');
     const title = titleEl ? titleEl.textContent.trim() : 'Plan';
-
-    // Data for PDF/Actions
     const locEl = card.querySelector('p.text-sm'); 
     const location = locEl ? locEl.innerText.trim() : 'No location';
     const date = card.getAttribute('data-date') || 'No date';
 
-    window.__planActionContext = { id, title, location, date };
+    // Store everything in context
+    window.__planActionContext = { id, title, location, date, inviteCode };
 
-    // Toggle Owner/Member Buttons
+    // --- KEEP YOUR BUTTON TOGGLING ---
     const ownerBtns = document.querySelectorAll('.owner-only');
     const memberBtns = document.querySelectorAll('.member-only');
     
     if (isOwner) {
         ownerBtns.forEach(el => el.classList.remove('hidden'));
         memberBtns.forEach(el => el.classList.add('hidden'));
-
-        // Toggle Archive vs Unarchive Button based on current Tab
         const archiveBtn = document.getElementById('actionArchiveBtn');
         const unarchiveBtn = document.getElementById('actionUnarchiveBtn');
-        
         if (isArchivedTab) {
             archiveBtn.classList.add('hidden');
             unarchiveBtn.classList.remove('hidden');
@@ -1019,18 +1071,53 @@ function card_banner_style($ev){
             archiveBtn.classList.remove('hidden');
             unarchiveBtn.classList.add('hidden');
         }
-
     } else {
         ownerBtns.forEach(el => el.classList.add('hidden'));
         memberBtns.forEach(el => el.classList.remove('hidden'));
     }
 
+    // --- POSITIONING (Updated for pop-right) ---
     const rect = button.getBoundingClientRect();
     modal.style.top = (rect.bottom + 5) + 'px';
-    modal.style.left = (rect.left - 130) + 'px'; 
+    // Shift the menu further left (e.g., -200) so the pop-right doesn't hit the screen edge
+    modal.style.left = (rect.left - 200) + 'px'; 
     modal.classList.remove('hidden');
-  };
+};
 
+// Helper function to show the toast
+window.showToast = function(message) {
+    const container = document.getElementById('toastContainer');
+    const msgSpan = document.getElementById('toastMessage');
+    
+    msgSpan.textContent = message;
+    container.classList.remove('hidden');
+
+    // Auto-hide after 3 seconds
+    setTimeout(() => {
+        container.classList.add('hidden');
+    }, 3000);
+};
+
+window.copyInviteCode = function() {
+    const code = window.__planActionContext.inviteCode;
+    if(!code) return;
+    
+    navigator.clipboard.writeText(code).then(() => {
+        showToast("Code copied to clipboard!");
+        document.getElementById('planActionModal').classList.add('hidden');
+    });
+};
+
+window.copyInviteLink = function() {
+    const code = window.__planActionContext.inviteCode;
+    if(!code) return;
+    
+    const link = window.location.origin + "/DINADRAWING/join.php?code=" + code;
+    navigator.clipboard.writeText(link).then(() => {
+        showToast("Invite link copied!");
+        document.getElementById('planActionModal').classList.add('hidden');
+    });
+};
   // --- ADD LISTENER FOR UNARCHIVE ---
   document.getElementById('actionUnarchiveBtn')?.addEventListener('click', async () => {
       const { id, title } = window.__planActionContext;

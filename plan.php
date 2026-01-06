@@ -314,6 +314,8 @@ input[type="number"] {
   -moz-appearance: textfield;
 }
 
+
+
   </style>
 </head>
 
@@ -356,8 +358,8 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
         <!-- PLAN BANNER -->
         <div
           id="planBanner"
-          class="group relative rounded-2xl px-8 font-bold text-3xl mb-3 shadow w-full overflow-hidden transition-colors duration-300 bg-cover bg-center py-20 lg:py-24 min-h-[12rem]"
-          style="<?php echo $banner_inline; ?>"
+  class="group relative rounded-2xl px-8 font-bold text-3xl mb-3 shadow w-full overflow-hidden transition-colors duration-300 bg-cover bg-center py-20 lg:py-24 min-h-[12rem]"
+  style="<?php echo $banner_inline; ?>"
         >
           <a href="myplans.php"
              class="absolute top-5 left-8 inline-flex items-center justify-center w-8 h-8 rounded-lg hover:bg-white/30 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#f4b41a]"
@@ -369,13 +371,37 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
               <path d="M15 18l-6-6 6-6"/>
             </svg>
           </a>
-          <span id="bannerText" class="absolute bottom-5 left-8"><?php echo $event_name; ?></span>
+
+          <div class="absolute bottom-5 left-8 text-white drop-shadow-md select-none">
+    
+    <h1 id="bannerText" class="text-3xl font-bold leading-none mb-0.5">
+        <?php echo $event_name; ?>
+    </h1>
+
+    <p class="text-sm font-medium opacity-90">
+        <?php 
+            $dateDisplay = !empty($event['date']) 
+                ? date("M j, Y", strtotime($event['date'])) 
+                : "Date TBD";
+            
+            echo $dateDisplay;
+
+            if (!empty($event_place)) {
+                echo " • " . $event_place;
+            }
+        ?>
+    </p>
+</div>
+
           <button
-            id="editBannerBtn"
-            class="absolute top-5 right-5 z-10 bg-white/90 text-[#222] px-3 py-1.5 rounded-lg text-sm font-semibold opacity-0 group-hover:opacity-100 transition pointer-events-auto"
-          >
-            Edit Banner
-          </button>
+    id="editBannerBtn"
+    class="absolute top-4 right-4 z-10 w-10 h-10 flex items-center justify-center rounded-full bg-black/10 hover:bg-black/20 text-white/80 hover:text-white backdrop-blur-sm transition-all duration-300 opacity-0 group-hover:opacity-100 pointer-events-auto border border-white/10"
+    aria-label="Edit Banner"
+  >
+    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path>
+    </svg>
+  </button>
           <div id="bannerMenu" class="absolute top-14 right-5 bg-white shadow-lg rounded-lg w-44 p-2 space-y-1 hidden z-50">
             <button id="uploadImageBtn" class="w-full text-left px-3 py-2 rounded hover:bg-gray-100 text-sm font-medium">Upload Image</button>
           </div>
@@ -384,10 +410,13 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
 
         <!-- PLAN TABS -->
         <div class="flex bg-white rounded-lg shadow p-0.5 mb-3 w-full">
-          <button onclick="switchTab('feed')" id="tab-feed" class="flex-1 bg-[#f4b41a] text-[#222] font-semibold py-2 text-center rounded-lg">Feed</button>
-          <button onclick="switchTab('budget')" id="tab-budget" class="flex-1 text-gray-600 font-medium py-2 text-center hover:text-[#222] hover:bg-gray-100 rounded-lg">Budget</button>
-          <button onclick="switchTab('settings')" id="tab-settings" class="flex-1 text-gray-600 font-medium py-2 text-center hover:text-[#222] hover:bg-gray-100 rounded-lg">Settings</button>
-        </div>
+  <button onclick="switchTab('feed')" id="tab-feed" class="flex-1 bg-[#f4b41a] text-[#222] font-semibold py-2 text-center rounded-lg">Feed</button>
+  <button onclick="switchTab('budget')" id="tab-budget" class="flex-1 text-gray-600 font-medium py-2 text-center hover:text-[#222] hover:bg-gray-100 rounded-lg">Budget</button>
+  
+  <?php if ($is_creator || (isset($membership['role']) && $membership['role'] === 'admin')): ?>
+    <button onclick="switchTab('settings')" id="tab-settings" class="flex-1 text-gray-600 font-medium py-2 text-center hover:text-[#222] hover:bg-gray-100 rounded-lg">Settings</button>
+  <?php endif; ?>
+</div>
       </div>
 
       <!-- FEED SECTION -->
@@ -645,6 +674,7 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
       <!-- END BUDGET SECTION -->
 
       <!-- SETTINGS SECTION -->
+       <?php if ($is_creator || (isset($membership['role']) && $membership['role'] === 'owner')): ?>
       <div id="settings-section" class="tab-section">
         <!-- SETTINGS PANEL -->
         <section id="settingsPanel" class="bg-white p-6 rounded-2xl shadow">
@@ -721,6 +751,7 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
           </div>
         </section>
       </div>
+      <?php endif; ?>
       <!-- END SETTINGS SECTION -->
 
     </div>
@@ -782,6 +813,23 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
         </button>
       </div>
 
+      <div class="bg-white p-4 rounded-lg shadow mb-4">
+    <h3 class="font-bold text-[#222] mb-2 text-base">Plan Description</h3>
+    <div class="text-sm text-gray-600 leading-relaxed">
+        <?php if (!empty($event_desc)): ?>
+            <p><?php echo nl2br($event_desc); ?></p>
+        <?php else: ?>
+            <?php if ($is_creator): ?>
+                <span class="text-gray-400 cursor-pointer hover:text-gray-600" onclick="switchTab('settings')">
+                    Add your plan description...
+                </span>
+            <?php else: ?>
+                <span class="text-sm text-gray-400">Add your plan description...</span>
+            <?php endif; ?>
+        <?php endif; ?>
+    </div>
+</div>
+
       <div class="bg-white p-4 rounded-lg shadow">
         <h3 class="font-semibold mb-2 flex items-center gap-2">
           <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-black" fill="currentColor" viewBox="0 0 24 24">
@@ -789,7 +837,7 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
           </svg>
           Pinned
         </h3>
-        <p class="text-sm text-gray-500">No pinned items yet.</p>
+        <p class="text-sm text-gray-400">No pinned items yet.</p>
       </div>
     </aside>
   </main>
@@ -1677,18 +1725,17 @@ if(btnSaveTask) {
 function generateTaskHTML(taskData) {
     if (!taskData || !taskData.items) return '';
 
-    // 1. GENERATE LIST ITEMS (Listahan ng Tasks)
+    // 1. GENERATE LIST ITEMS (Using uniform gap, no individual margins)
     let itemsHTML = taskData.items.map(item => {
         const isDone = (item.is_completed == 1 || item.is_completed === 't' || item.is_completed === true);
         const assignee = item.assigned_to ? item.assigned_to.trim() : '';
         
         const textStyle = isDone ? "text-gray-400 line-through" : "text-gray-800";
         const checkBg = isDone ? "bg-[#f4b41a] border-[#f4b41a]" : "bg-white border-gray-300 hover:border-[#f4b41a]";
-        const checkIcon = isDone ? `<svg class="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg>` : ``;
+        const checkIcon = isDone ? `<svg class="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg>` : ``;
 
-        // Volunteer Badge Logic
         let badge = '';
-        const badgeClass = "ml-3 px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wide border flex items-center justify-center min-w-[80px] transition";
+        const badgeClass = "ml-2 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide border flex items-center justify-center min-w-[75px] transition";
 
         if (assignee === '') {
             badge = `<button onclick="claimTask(${item.id}, this)" class="${badgeClass} border-dashed border-gray-400 text-gray-500 hover:border-[#f4b41a] hover:text-[#f4b41a] hover:bg-yellow-50">+ Volunteer</button>`;
@@ -1699,70 +1746,63 @@ function generateTaskHTML(taskData) {
         }
 
         return `
-        <div id="task-item-${item.id}" class="flex items-center justify-between bg-white border border-gray-200 p-3 rounded-xl mb-2 transition hover:shadow-sm group">
-            <div class="flex items-center gap-3 flex-1 overflow-hidden">
-                <div onclick="toggleTaskItem(${item.id})" class="cursor-pointer w-6 h-6 rounded-full border-2 ${checkBg} flex items-center justify-center shadow-sm transition">${checkIcon}</div>
-                <span class="${textStyle} font-medium flex-1 truncate transition">${item.item_text}</span>
+        <div id="task-item-${item.id}" class="flex items-center justify-between bg-white border border-gray-200 p-2.5 rounded-lg transition hover:shadow-sm group">
+            <div class="flex items-center gap-2.5 flex-1 overflow-hidden">
+                <div onclick="toggleTaskItem(${item.id})" class="cursor-pointer w-5 h-5 rounded-full border-2 ${checkBg} flex items-center justify-center shadow-sm transition">${checkIcon}</div>
+                <span class="${textStyle} font-medium text-sm flex-1 truncate transition">${item.item_text}</span>
             </div>
             <div class="flex items-center">
                 ${badge}
-                <button onclick="deleteTaskItem(${item.id})" class="ml-2 text-gray-300 hover:text-red-500 p-1 rounded hover:bg-red-50 opacity-0 group-hover:opacity-100 transition" title="Delete">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                <button onclick="deleteTaskItem(${item.id})" class="ml-1.5 text-gray-300 hover:text-red-500 p-1 rounded opacity-0 group-hover:opacity-100 transition" title="Delete">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                 </button>
             </div>
         </div>`;
     }).join('');
 
-    // 2. DEADLINE TAG LOGIC (Ito yung idadagdag nating HTML String)
+    // 2. DEADLINE TAG
     let deadlineHTML = '';
     if (taskData.deadline) {
         const d = new Date(taskData.deadline);
         const isPast = new Date() > d;
-        
-        // Colors: Red kung lagpas na, Orange kung hindi pa
-        const tagColor = isPast 
-            ? "bg-red-100 text-red-700 border-red-200" 
-            : "bg-orange-100 text-orange-800 border-orange-200";
-
-        const icon = isPast ? '⚠️' : '🕒';
+        const tagColor = isPast ? "bg-red-100 text-red-700 border-red-200" : "bg-orange-100 text-orange-800 border-orange-200";
         const dateText = d.toLocaleDateString([], {month:'short', day:'numeric', hour:'2-digit', minute:'2-digit'});
 
-        // Ito yung mismong HTML ng Tag
         deadlineHTML = `
-        <span class="${tagColor} border px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1 shadow-sm whitespace-nowrap">
-            ${icon} ${dateText}
+        <span class="${tagColor} border px-2 py-0.5 rounded-full text-[10px] font-bold flex items-center gap-1 whitespace-nowrap">
+            ${isPast ? '⚠️' : '🕒'} ${dateText}
         </span>`;
     }
 
-    // ADD INPUT Logic (Dito nag-aadd ng bagong task item)
+    // 3. ADD NEW TASK OPTION (Sized to match task rows and placed in the gap grid)
     let addTaskHTML = '';
     if (taskData.allow_user_add == 1 || taskData.allow_user_add === true || taskData.allow_user_add === 't') {
         addTaskHTML = `
-        <div class="mt-3 relative flex items-center animate-fade-in">
+        <div class="relative flex items-center bg-white border border-gray-200 p-1 rounded-lg transition hover:shadow-sm">
             <input type="text" id="new-task-input-${taskData.id}" placeholder="+ Add a new task..." 
-                   class="w-full bg-white border border-gray-300 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#f4b41a] pr-20 shadow-sm"
+                   class="w-full bg-transparent px-3 py-1.5 text-sm focus:outline-none placeholder-gray-400 pr-16"
                    onkeydown="if(event.key === 'Enter') addNewTaskItem(${taskData.id})">
-            <button onclick="addNewTaskItem(${taskData.id})" class="absolute right-1.5 z-10 bg-[#f4b41a] hover:bg-[#e3a918] text-[#222] text-xs font-bold px-3 py-1.5 rounded transition">ADD</button>
+            <button onclick="addNewTaskItem(${taskData.id})" class="absolute right-1 z-10 bg-[#f4b41a] hover:bg-[#e3a918] text-[#222] text-[10px] font-bold px-3 py-1.5 rounded-md transition">ADD</button>
         </div>`;
     }
 
-    // 3. FINAL RETURN HTML
-    // (Dito natin ilalagay yung 'deadlineHTML' sa tabi ng Title gamit ang 'justify-between')
+    // 4. FINAL RETURN (Using flex-col and gap-2 for perfect even spacing)
     return `
-    <div class="bg-gray-50 rounded-2xl p-5 border border-gray-200 mb-3 shadow-sm" id="task-container-${taskData.id}">
-        
-        <div class="flex justify-between items-start mb-4">
-            
-            <h3 class="font-bold text-lg text-[#222] flex items-center gap-2">
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-[#f4b41a]" viewBox="0 0 24 24" fill="currentColor"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" /></svg>
+    <div class="bg-gray-50 rounded-xl p-3 border border-gray-200 mb-2" id="task-container-${taskData.id}">
+        <div class="relative flex items-center justify-center mb-4 min-h-[24px]">
+            <h3 class="font-bold text-base text-[#222] text-center">
                 ${taskData.title}
             </h3>
-
-            ${deadlineHTML}
+            
+            <div class="absolute right-0">
+                ${deadlineHTML}
+            </div>
         </div>
 
-        <div class="space-y-1" id="task-list-${taskData.id}">${itemsHTML}</div>
-        ${addTaskHTML}
+        <div class="flex flex-col gap-2" id="task-list-${taskData.id}">
+            ${itemsHTML}
+            ${addTaskHTML}
+        </div>
     </div>`;
 }
 
@@ -1864,21 +1904,31 @@ function prependNewPost(post) {
         `;
     } 
     else if (post.post_type === 'poll') {
-        const pd = post.poll_data;
-        const totalVotes = pd ? (pd.total_votes || 0) : 0;
-        const optionsHTML = (typeof generatePollOptionsHTML === 'function' && pd) ? generatePollOptionsHTML(pd, post.id) : '';
-        if (pd) {
-            postContentHTML = `
-            <div class="bg-gray-50 rounded-xl p-4 border border-gray-200 mb-3" id="poll-container-${post.id}">
-              <h3 class="text-base font-bold text-[#222] mb-4">${pd.question}</h3>
-              <div class="space-y-2" id="poll-options-${post.id}">${optionsHTML}</div>
-              <div class="flex justify-between items-center mt-4 text-xs text-gray-500 font-medium px-1">
+    const pd = post.poll_data;
+    const totalVotes = pd ? (pd.total_votes || 0) : 0;
+    const optionsHTML = (typeof generatePollOptionsHTML === 'function' && pd) ? generatePollOptionsHTML(pd, post.id) : '';
+    if (pd) {
+        postContentHTML = `
+        <div class="bg-gray-50 rounded-xl p-3 border border-gray-200 mb-2" id="poll-container-${post.id}">
+            <div class="relative flex items-center justify-center mb-4 min-h-[24px]">
+                <h3 class="text-base font-bold text-[#222] text-center">
+                    ${pd.question}
+                </h3>
+            </div>
+          
+            <div class="space-y-2" id="poll-options-${post.id}">
+                ${optionsHTML}
+            </div>
+
+            <div class="flex justify-between items-center mt-4 text-xs text-gray-500 font-medium px-1">
                 <span id="poll-stats-${post.id}">${totalVotes} total votes</span>
-                <span>${pd.is_anonymous ? 'Anonymous' : 'Public'}</span>
-              </div>
-            </div>`;
-        }
+                <span class="bg-gray-100 border border-gray-200 px-2 py-0.5 rounded-full text-[10px] uppercase tracking-wide">
+                    ${pd.is_anonymous ? 'Anonymous' : 'Public'}
+                </span>
+            </div>
+        </div>`;
     }
+}
     else if (post.post_type === 'task') {
         const td = post.task_data;
         if (td && typeof generateTaskHTML === 'function') {
@@ -2270,78 +2320,67 @@ async function togglePin(postId) {
 // ==========================================
 // POLL UI GENERATOR (Venice Style + Face Piles)
 // ==========================================
-function generatePollOptionsHTML(pollData, postId) {
-    if (!pollData || !pollData.options) return '';
-    const totalVotes = pollData.total_votes || 0;
+function generatePollOptionsHTML(pd, postId) {
+    if (!pd || !pd.options) return '';
+    const totalVotes = pd.total_votes || 0;
     
-    let html = pollData.options.map(opt => {
+    let html = pd.options.map(opt => {
         const votes = opt.vote_count || 0;
         const percentage = totalVotes > 0 ? Math.round((votes / totalVotes) * 100) : 0;
         const isVoted = opt.is_voted; 
         
-        // --- STYLES ---
-        // Container: Pill shape, border, relative for the progress bar
-        const containerClass = "relative w-full h-12 rounded-full border border-gray-900 overflow-hidden mb-3 cursor-pointer group transition-all";
+        // Pinabalik sa 'rounded-full' para maging bilog/pill shape gaya ng dati
+        const containerClass = "relative w-full h-11 rounded-full border border-gray-200 bg-white overflow-hidden mb-2 cursor-pointer group transition-all";
+        const barColor = isVoted ? 'bg-[#f4b41a]' : 'bg-[#f4b41a]/60';
         
-        // Progress Bar: The yellow fill behind the text
-        // If voted, we make it slightly darker/richer to indicate selection
-        const barColor = isVoted ? 'bg-[#f4b41a]' : 'bg-[#f4b41a]/80';
-        const barOpacity = isVoted ? 'opacity-100' : 'opacity-0 group-hover:opacity-20'; 
-        // Note: The prototype shows bars always visible if they have votes. 
-        // Let's make the bar visible based on percentage width.
-        
-        // Checkmark Icon (Only shows if YOU voted)
         const checkIcon = isVoted 
-            ? `<div class="mr-3 text-gray-900"><svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M5 13l4 4L19 7"/></svg></div>`
-            : `<div class="mr-3 w-5 h-5 rounded-full border border-gray-400 group-hover:border-gray-900 transition"></div>`;
+            ? `<div class="mr-3 text-gray-900 z-10"><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg></div>`
+            : `<div class="mr-3 w-4 h-4 rounded-full border border-gray-300 group-hover:border-[#f4b41a] transition z-10"></div>`;
 
-        // --- FACE PILE LOGIC ---
+        // --- VOTERS PROFILE IMAGE LOGIC (Limited to 3) ---
         let avatarsHTML = '';
         if (opt.voters && opt.voters.length > 0) {
-            const extraCount = votes - opt.voters.length;
-            avatarsHTML = `<div class="flex -space-x-2 ml-3 items-center z-10 relative">`; 
-            
-            // Show up to 3 faces
-            opt.voters.forEach(pic => {
-                avatarsHTML += `<img src="${pic}" class="w-6 h-6 rounded-full border border-white object-cover shadow-sm" alt="Voter">`;
-            });
+            const maxDisplay = 3;
+            const displayVoters = opt.voters.slice(0, maxDisplay);
+            const extraCount = votes - displayVoters.length;
 
-            // Show (+N) bubble if more voters exist
+            avatarsHTML = `<div class="flex -space-x-2 ml-3 items-center z-10 relative">`; 
+            displayVoters.forEach(pic => {
+                avatarsHTML += `<img src="${pic}" class="w-6 h-6 rounded-full border-2 border-white object-cover shadow-sm" alt="Voter">`;
+            });
+            
             if (extraCount > 0) {
-                avatarsHTML += `<div class="w-6 h-6 rounded-full border border-white bg-gray-900 text-white flex items-center justify-center text-[9px] font-bold">+${extraCount}</div>`;
+                avatarsHTML += `
+                <div class="w-6 h-6 rounded-full border-2 border-white bg-gray-800 text-white flex items-center justify-center text-[8px] font-bold z-20">
+                    +${extraCount}
+                </div>`;
             }
             avatarsHTML += `</div>`;
         }
 
         return `
-        <div class="${containerClass}" onclick="votePoll(${pollData.id}, ${opt.id}, ${postId})">
-          
+        <div class="${containerClass}" onclick="votePoll(${pd.id}, ${opt.id}, ${postId})">
           <div class="absolute top-0 left-0 h-full ${barColor} transition-all duration-500 ease-out z-0" 
                style="width: ${votes > 0 ? percentage : 0}%; opacity: ${votes > 0 ? 1 : 0};">
           </div>
-
           <div class="relative w-full h-full flex items-center px-4 z-10">
             ${checkIcon}
-
-            <span class="text-sm font-semibold text-gray-900 truncate flex-1">${opt.option_text}</span>
-
-            ${votes > 0 ? `<span class="text-xs font-bold text-gray-900 ml-2">${percentage}%</span>` : ''}
-
+            <span class="text-sm font-medium text-gray-800 truncate flex-1">${opt.option_text}</span>
+            ${votes > 0 ? `<span class="text-xs font-bold text-gray-700 ml-2">${percentage}%</span>` : ''}
             ${avatarsHTML}
           </div>
         </div>`;
     }).join('');
 
-    // --- ADD OPTION INPUT (Prototype Style) ---
-    if (pollData.allow_user_add) {
+    // Add Option input - Ginawa ring 'rounded-full' para terno
+    if (pd.allow_user_add) {
         html += `
-        <div class="relative w-full h-11 flex items-center">
-            <input type="text" id="new-opt-${pollData.id}" placeholder="+ Add option" 
-                   class="w-full h-full rounded-full border border-gray-400 px-5 text-sm focus:outline-none focus:border-gray-900 focus:ring-1 focus:ring-gray-900 transition bg-transparent placeholder-gray-500">
-            
-            <button onclick="addPollOption(${pollData.id}, ${postId})" 
-                    class="absolute right-1 top-1 bottom-1 bg-gray-200 hover:bg-gray-900 hover:text-white text-gray-600 rounded-full px-4 text-xs font-bold transition">
-                Add
+        <div class="relative w-full h-10 flex items-center mt-2">
+            <input type="text" id="new-opt-${pd.id}" placeholder="+ Add option" 
+                   class="w-full h-full rounded-full border border-gray-200 bg-white px-5 text-sm focus:outline-none focus:border-[#f4b41a] transition placeholder-gray-400">
+            <button onclick="addPollOption(${pd.id}, ${postId})" 
+                    class="absolute right-1 top-1 bottom-1 bg-gray-100 hover:bg-[#f4b41a] text-gray-600 hover:text-black rounded-full px-4 text-[10px] font-bold transition">
+                ADD
             </button>
         </div>`;
     }

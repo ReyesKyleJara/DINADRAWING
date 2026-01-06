@@ -30,6 +30,7 @@ if (file_exists($dbPath)) {
     require_once $dbPath;
     $conn = getDatabaseConnection();
 } else {
+    // Fallback connection
     $conn = new PDO("pgsql:host=127.0.0.1;port=5432;dbname=dinadrawing", "kai", "DND2025", [
         PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
         PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC
@@ -41,13 +42,17 @@ try {
     $input = file_get_contents("php://input");
     $data = json_decode($input);
 
+    if (!$data) {
+        throw new Exception("Invalid JSON data received.");
+    }
+
     $name = trim($data->name ?? '');
     $descriptionRaw = trim($data->description ?? '');
     $dateRaw = trim($data->date ?? '');
     $timeRaw = trim($data->time ?? '');
     $locationRaw = trim($data->location ?? ''); 
 
-    // --- FIX FOR POSTGRESQL (Convert empty strings to NULL) ---
+    // Convert empty strings to NULL for PostgreSQL compatibility
     $description = ($descriptionRaw === '') ? null : $descriptionRaw;
     $date = ($dateRaw === '') ? null : $dateRaw;
     $time = ($timeRaw === '') ? null : $timeRaw;
@@ -59,33 +64,41 @@ try {
         exit;
     }
 
-    // --- 1. GENERATE RANDOM 6-CHAR CODE ---
+    // GENERATE RANDOM 6-CHAR CODE
     $inviteCode = strtoupper(substr(md5(uniqid(rand(), true)), 0, 6));
 
-    // --- 2. INSERT QUERY ---
+    // --- START TRANSACTION ---
+    // This ensures both the event and the member entry are created together
+    $conn->beginTransaction();
+
+    // 5. INSERT QUERY
     $sql = "INSERT INTO events (owner_id, name, description, date, time, location, invite_code)
             VALUES (:owner_id, :name, :description, :date, :time, :location, :code)
             RETURNING id";
 
     $stmt = $conn->prepare($sql);
     
-    $stmt->bindValue(':owner_id', $owner_id);
-    $stmt->bindValue(':name', $name);
+    // Explicit Type Binding
+    $stmt->bindValue(':owner_id', $owner_id, PDO::PARAM_INT);
+    $stmt->bindValue(':name', $name, PDO::PARAM_STR);
     
-    // Using explicitly prepared NULL variables
-    $stmt->bindValue(':description', $description);
-    $stmt->bindValue(':date', $date);
-    $stmt->bindValue(':time', $time);
-    $stmt->bindValue(':location', $location);
-    $stmt->bindValue(':code', $inviteCode);
+    // Explicitly handle NULLs for Postgres types (DATE, TIME, TEXT)
+    $stmt->bindValue(':description', $description, $description === null ? PDO::PARAM_NULL : PDO::PARAM_STR);
+    $stmt->bindValue(':date', $date, $date === null ? PDO::PARAM_NULL : PDO::PARAM_STR);
+    $stmt->bindValue(':time', $time, $time === null ? PDO::PARAM_NULL : PDO::PARAM_STR);
+    $stmt->bindValue(':location', $location, $location === null ? PDO::PARAM_NULL : PDO::PARAM_STR);
+    $stmt->bindValue(':code', $inviteCode, PDO::PARAM_STR);
 
     if ($stmt->execute()) {
         $newId = $stmt->fetchColumn();
         
-        // --- 3. AUTO-JOIN OWNER ---
+        // 6. AUTO-JOIN OWNER AS ADMIN
         $joinSql = "INSERT INTO event_members (event_id, user_id, role) VALUES (:eid, :uid, 'admin')";
         $joinStmt = $conn->prepare($joinSql);
         $joinStmt->execute([':eid' => $newId, ':uid' => $owner_id]);
+
+        // COMMIT CHANGES
+        $conn->commit();
 
         http_response_code(201);
         echo json_encode([
@@ -99,7 +112,12 @@ try {
     }
 
 } catch (Exception $e) {
+    // ROLLBACK IF ANYTHING FAILED
+    if ($conn->inTransaction()) {
+        $conn->rollBack();
+    }
+    
     http_response_code(500);
     echo json_encode(["success" => false, "message" => "Error: " . $e->getMessage()]);
 }
-?>
+?>  
