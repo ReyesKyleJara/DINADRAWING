@@ -314,36 +314,6 @@ input[type="number"] {
   -moz-appearance: textfield;
 }
 
-/* FORCE FORMATTING TO SHOW (Fixes Tailwind Reset) */
-#postInput b, #postInput strong, 
-.break-words b, .break-words strong {
-  font-weight: 700 !important;
-}
-
-#postInput i, #postInput em, 
-.break-words i, .break-words em {
-  font-style: italic !important;
-}
-
-#postInput u, .break-words u {
-  text-decoration: underline !important;
-}
-
-
-    /* ... your existing styles ... */
-
-    /* ADD THIS BLOCK TO FIX THE MISSING BOLD/ITALIC */
-    .break-words b, .break-words strong {
-        font-weight: 700 !important;
-    }
-    
-    .break-words i, .break-words em {
-        font-style: italic !important;
-    }
-    
-    .break-words u {
-        text-decoration: underline !important;
-    }
 
 
   </style>
@@ -408,25 +378,19 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
         <?php echo $event_name; ?>
     </h1>
 
-    <p id="bannerSubtext" class="text-sm font-medium opacity-90">
-    <?php 
-        $displayParts = [];
+    <p class="text-sm font-medium opacity-90">
+        <?php 
+            $dateDisplay = !empty($event['date']) 
+                ? date("M j, Y", strtotime($event['date'])) 
+                : "Date TBD";
+            
+            echo $dateDisplay;
 
-        // 1. Only add date if it is set
-        if (!empty($event['date'])) {
-            $displayParts[] = date("M j, Y", strtotime($event['date']));
-        }
-
-        // 2. Only add location if it is set
-        if (!empty($event_place)) {
-            $displayParts[] = $event_place;
-        }
-
-        // 3. Join them with the separator automatically
-        // If one is missing, no separator is shown. If both missing, it stays blank.
-        echo implode(" • ", $displayParts);
-    ?>
-</p>
+            if (!empty($event_place)) {
+                echo " • " . $event_place;
+            }
+        ?>
+    </p>
 </div>
 
           <button
@@ -458,7 +422,7 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
       <!-- FEED SECTION -->
       <div id="feed-section" class="tab-section active">
   
-  <div id="postBox" class="bg-white p-4 rounded-lg shadow w-full transition-all duration-300 mb-3">
+  <div id="postBox" class="bg-white p-4 rounded-lg shadow w-full transition-all duration-300 mb-6">
     <div class="flex items-start gap-3">
       <img src="<?php echo htmlspecialchars($currentUserAvatar); ?>" alt="User" class="w-10 h-10 rounded-full object-cover" />
       
@@ -472,7 +436,7 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
           </div>
           <input type="file" id="postImageInput" accept="image/*" class="hidden">
 
-          <div id="toolbar" class="hidden flex items-center gap-1 p-2 border-t border-gray-200 text-gray-600 bg-gray-50">
+          <div id="toolbar" class="flex items-center gap-1 p-2 border-t border-gray-200 text-gray-600 bg-gray-50">
             <button id="btnBold" type="button" onmousedown="keepFocus(event)" onclick="formatText('bold')" class="w-7 h-7 rounded hover:bg-gray-200 hover:text-[#f4b41a] font-bold transition flex items-center justify-center">B</button>
             <button id="btnItalic" type="button" onmousedown="keepFocus(event)" onclick="formatText('italic')" class="w-7 h-7 rounded hover:bg-gray-200 hover:text-[#f4b41a] italic transition flex items-center justify-center">I</button>
             <button id="btnUnderline" type="button" onmousedown="keepFocus(event)" onclick="formatText('underline')" class="w-7 h-7 rounded hover:bg-gray-200 hover:text-[#f4b41a] underline transition flex items-center justify-center">U</button>
@@ -504,9 +468,10 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
       </div>
     </div>
   </div>
-  <div id="feedContainer" class="mt-3 space-y-3"></div>
+  <div id="feedContainer" class="mt-6 space-y-4"></div>
 
 </div>
+
              
 
       <!-- CREATE POLL MODAL -->
@@ -554,18 +519,6 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
               <span class="absolute left-0.5 top-0.5 w-4 h-4 bg-white rounded-full transition-all peer-checked:translate-x-5"></span>
             </label>
           </div>
-
-          <label class="block mb-1 font-medium text-sm">Ends on</label>
-<div class="space-y-2 mb-5">
-    <select id="pollDeadlineSelect" onchange="togglePollCustomDate()" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#f4b41a]">
-      <option value="">No deadline</option>
-      <option value="tomorrow">Tomorrow (24hrs)</option>
-      <option value="next_week">Next week (7 days)</option>
-      <option value="custom">Custom date...</option>
-    </select>
-    
-    <input type="datetime-local" id="pollCustomDate" class="hidden w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#f4b41a]">
-</div>
 
           <button id="btnCreatePoll" class="w-full bg-[#f4b41a] text-[#222] font-medium py-2 rounded-lg hover:bg-[#e3a918] transition">Create Poll</button>
         </div>
@@ -616,7 +569,6 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
       </div>
       <!-- END FEED SECTION -->
 
-      
       <!-- BUDGET SECTION -->
       <div id="budget-section" class="tab-section">
         <!-- NO BUDGET VIEW -->
@@ -728,80 +680,77 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
         <section id="settingsPanel" class="bg-white p-6 rounded-2xl shadow">
 
           <!-- EVENT DETAILS -->
-          <h3 class="text-xl font-semibold mb-4 text-[#222]">Event Details</h3>
-<div class="space-y-4">
-  <div>
-    <label class="block text-sm font-medium text-gray-700 mb-1">Event name</label>
-    <input id="eventName" type="text" value="<?php echo $event_name; ?>" class="w-full border border-gray-300 rounded-lg p-2.5 text-sm focus:outline-none focus:border-[#f4b41a] focus:ring-1 focus:ring-[#f4b41a] transition">
-  </div>
+          <h3 class="text-xl font-semibold mb-4">Event Details</h3>
+          <div class="space-y-4">
+            <div>
+              <label class="block text-sm font-medium">Event name</label>
+              <input id="eventName" type="text" value="<?php echo $event_name; ?>" class="w-full border rounded-lg p-2 focus:ring focus:ring-blue-200">
+            </div>
 
-  <div>
-    <label class="block text-sm font-medium text-gray-700 mb-1">Event description</label>
-    <textarea id="eventDesc" rows="3" placeholder="Type your event description..." maxlength="270" class="w-full border border-gray-300 rounded-lg p-2.5 text-sm focus:outline-none focus:border-[#f4b41a] focus:ring-1 focus:ring-[#f4b41a] transition resize-none"><?php echo $event_desc; ?></textarea>
-  </div>
+            <!-- EVENT DESCRIPTION -->
+            <div>
+              <label class="block text-sm font-medium">Event description</label>
+              <textarea id="eventDesc" rows="3" placeholder="Type your event description..." maxlength="270" class="w-full border rounded-lg p-2 focus:ring focus:ring-blue-200"><?php echo $event_desc; ?></textarea>
+            </div>
 
-  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Event date & time</label>
-        <input id="eventDate" type="datetime-local" value="<?php echo $event_date_val; ?>" class="w-full border border-gray-300 rounded-lg p-2.5 text-sm focus:outline-none focus:border-[#f4b41a] focus:ring-1 focus:ring-[#f4b41a] transition">
+            <!-- EVENT DATE & TIME -->
+            <div>
+              <label class="block text-sm font-medium">Event date & time</label>
+              <input id="eventDate" type="datetime-local" value="<?php echo $event_date_val; ?>" class="w-full border rounded-lg p-2 focus:ring focus:ring-blue-200">
+            </div>
+
+            <!-- EVENT PLACE -->
+            <div>
+              <label class="block text-sm font-medium">Event place</label>
+              <input id="eventPlace" type="text" placeholder="Saan ba kasi?" value="<?php echo $event_place; ?>" class="w-full border rounded-lg p-2 focus:ring focus:ring-blue-200">
+            </div>
+          </div>
+
+          <hr class="my-6">
+
+          <!-- EVENT VISIBILITY & PRIVACY -->
+          <h3 class="text-xl font-semibold mb-3">Event Visibility & Privacy</h3>
+          <div class="space-y-4">
+            <label class="flex items-center space-x-2">
+              <input id="allowInvites" type="checkbox" class="w-5 h-5 text-blue-600 rounded focus:ring-blue-400">
+              <span>Allow members to invite others</span>
+            </label>
+
+            <div>
+              <label class="block text-sm font-medium mb-1">Event visibility</label>
+              <select id="visibility" class="w-full border rounded-lg p-2 focus:ring focus:ring-blue-200">
+                <option value="public">Public (anyone can view)</option>
+                <option value="private">Private (members only)</option>
+                <option value="invite-only">Invite-only (only invited can access)</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium mb-1">Who can edit event details?</label>
+              <select id="editPermission" class="w-full border rounded-lg p-2 focus:ring focus:ring-blue-200">
+                <option value="owner">Only event creator</option>
+                <option value="admins">Admins only</option>
+                <option value="members">All members</option>
+              </select>
+            </div>
+          </div>
+          <button id="saveSettingsBtn" class="mt-6 bg-[#F4B63F] px-6 py-2 rounded-lg font-semibold hover:bg-yellow-400">
+            Save Changes
+          </button>
+          <div class="mt-8 border border-red-200 bg-red-50 rounded-xl p-4">
+            <h4 class="font-semibold text-red-700 mb-3">Danger zone</h4>
+            <div class="flex flex-col sm:flex-row gap-3">
+              <button id="leaveEventBtn" class="px-4 py-2 rounded-lg border border-red-300 text-red-700 hover:bg-red-100 transition">
+                Leave Event
+              </button>
+              <button id="deleteEventBtn" class="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 transition sm:ml-auto">
+                Delete Event
+              </button>
+            </div>
+            <p class="text-xs text-red-600 mt-2">Deleting removes all data. This action cannot be undone.</p>
+          </div>
+        </section>
       </div>
-
-      <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">Event place</label>
-        <input id="eventPlace" type="text" placeholder="Saan ba kasi?" value="<?php echo $event_place; ?>" class="w-full border border-gray-300 rounded-lg p-2.5 text-sm focus:outline-none focus:border-[#f4b41a] focus:ring-1 focus:ring-[#f4b41a] transition">
-      </div>
-  </div>
-</div>
-
-<hr class="my-8 border-gray-100">
-
-<h3 class="text-xl font-semibold mb-4 text-[#222]">Event Visibility & Privacy</h3>
-<div class="space-y-4">
-  <label class="flex items-center space-x-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition cursor-pointer">
-    <input id="allowInvites" type="checkbox" class="w-5 h-5 text-[#f4b41a] rounded focus:ring-[#f4b41a]"
-           <?php echo $allow_invites ? 'checked' : ''; ?>>
-    <span class="text-sm font-medium text-gray-700">Allow members to invite others</span>
-</label>
-
-  <div>
-    <label class="block text-sm font-medium text-gray-700 mb-1">Event visibility</label>
-    <select id="visibility" class="w-full border border-gray-300 rounded-lg p-2.5 text-sm focus:outline-none focus:border-[#f4b41a] focus:ring-1 focus:ring-[#f4b41a] transition bg-white">
-      <option value="public">Public (anyone can view)</option>
-      <option value="private">Private (members only)</option>
-      <option value="invite-only">Invite-only (only invited can access)</option>
-    </select>
-  </div>
-
-  <div>
-    <label class="block text-sm font-medium text-gray-700 mb-1">Who can edit event details?</label>
-    <select id="editPermission" class="w-full border border-gray-300 rounded-lg p-2.5 text-sm focus:outline-none focus:border-[#f4b41a] focus:ring-1 focus:ring-[#f4b41a] transition bg-white">
-      <option value="owner">Only event creator</option>
-      <option value="admins">Admins only</option>
-      <option value="members">All members</option>
-    </select>
-  </div>
-</div>
-
-<div class="flex justify-end mt-6">
-    <button id="saveSettingsBtn" class="bg-[#f4b41a] text-[#222] px-6 py-2.5 rounded-lg font-bold shadow-sm hover:bg-[#e3a918] transition text-sm">
-      Save Changes
-    </button>
-</div>
-
-
-      <div class="mt-10 pt-6 border-t border-gray-100">
-  <div class="border border-red-200 bg-red-50 rounded-xl p-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-    <div>
-      <h4 class="font-bold text-red-700 text-base">Delete Plan</h4>
-      <p class="text-xs text-red-600/80 mt-1 max-w-sm">
-        Permanently remove this plan and all its data. This action cannot be undone.
-      </p>
-    </div>
-    <button id="deleteEventBtn" class="whitespace-nowrap px-5 py-2.5 rounded-lg bg-white border border-red-200 text-red-600 font-semibold text-sm hover:bg-red-600 hover:text-white hover:border-red-600 transition shadow-sm">
-      Delete Plan
-    </button>
-  </div>
-</div>
       <?php endif; ?>
       <!-- END SETTINGS SECTION -->
 
@@ -858,35 +807,15 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
           <?php endif; ?>
         </div>
 
-        <?php 
-           // --- STRICT PERMISSION CHECK ---
-           // Kunin ang value galing DB.
-           $db_allow = $event['allow_invites'] ?? true; 
-           
-           // Default is ENABLED (True)
-           $is_invites_enabled = true;
-           
-           // Check if explicitly DISABLED (0, '0', false, 'f')
-           if ($db_allow === 0 || $db_allow === '0' || $db_allow === false || $db_allow === 'f') {
-               $is_invites_enabled = false;
-           }
-           
-           // Owner and Admins can always invite. Members can only invite if enabled.
-           $userRole = $membership['role'] ?? 'member';
-           $can_show_invite = ($is_creator || $userRole === 'admin' || $is_invites_enabled);
-        ?>
-
-        <?php if ($can_show_invite): ?>
-            <button onclick="document.getElementById('inviteModal').classList.remove('hidden'); document.getElementById('inviteModal').classList.add('flex');" 
-                    class="w-full bg-[#f4b41a] text-[#222] py-2 rounded-lg font-medium hover:bg-[#e3a918] transition">
-              Invite People
-            </button>
-        <?php endif; ?>
+        <button onclick="document.getElementById('inviteModal').classList.remove('hidden'); document.getElementById('inviteModal').classList.add('flex');" 
+                class="w-full bg-[#f4b41a] text-[#222] py-2 rounded-lg font-medium hover:bg-[#e3a918] transition">
+          Invite People
+        </button>
       </div>
 
       <div class="bg-white p-4 rounded-lg shadow mb-4">
     <h3 class="font-bold text-[#222] mb-2 text-base">Plan Description</h3>
-    <div id="planDescriptionContainer" class="text-sm text-gray-600 leading-relaxed">
+    <div class="text-sm text-gray-600 leading-relaxed">
         <?php if (!empty($event_desc)): ?>
             <p><?php echo nl2br($event_desc); ?></p>
         <?php else: ?>
@@ -1135,7 +1064,7 @@ document.getElementById('confirmYesBtn')?.addEventListener('click', () => {
 <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.js"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.css" />
 <script> 
-const EVENT_MEMBERS = <?php echo json_encode($members ?? []); ?>;
+    const EVENT_MEMBERS = <?php echo json_encode($members ?? []); ?>; 
     // ADD THIS NEW LINE:
 const CURRENT_USER_NAME = "<?php echo $currentUserName; ?>";</script>
 
@@ -1453,19 +1382,10 @@ document.addEventListener('click', (e) => {
 
 function keepFocus(e){ e.preventDefault(); }
 
-function formatText(cmd) {
-  // 1. Force browser to use simple tags (<b>, <i>) instead of <span style="...">
-  // This makes it compatible with your feed's regex cleaner
-  document.execCommand('styleWithCSS', false, false);
-
-  // 2. Apply the formatting
+function formatText(cmd){
+  postInput?.focus(); 
   document.execCommand(cmd === 'underline' ? 'underline' : cmd, false, null);
-
-  // 3. Keep focus in the box so you can keep typing
-  postInput.focus();
-  
-  // 4. Update the button colors
-  checkToolbarState();
+  checkToolbarState(); // Check highlighting immediately after clicking
 }
 
 // --- HIGHLIGHTING LOGIC ---
@@ -1552,9 +1472,6 @@ async function submitPost(){
 // ==========================================
 // 2. POLL MODAL LOGIC (FIXED)
 // ==========================================
-// ==========================================
-// 2. POLL MODAL LOGIC (Updated with Deadline)
-// ==========================================
 
 const pollModal = document.getElementById('pollModal');
 const pollQuestionInput = document.getElementById('pollQuestionInput');
@@ -1562,14 +1479,10 @@ const pollOptionsContainer = document.getElementById('pollOptionsContainer');
 const pollAddOptionBtn = document.getElementById('pollAddOptionBtn');
 const createPollBtn = document.getElementById('btnCreatePoll'); 
 
-// Toggles
+// Specific IDs for the toggles
 const allowMultipleChk = document.getElementById('pollAllowMultiple');
 const isAnonymousChk = document.getElementById('pollIsAnonymous');
 const allowUserAddChk = document.getElementById('pollAllowUserAdd');
-
-// Deadline Elements
-const pollDeadlineSelect = document.getElementById('pollDeadlineSelect');
-const pollCustomDate = document.getElementById('pollCustomDate');
 
 function openPoll(){ pollModal?.classList.remove('hidden'); }
 
@@ -1589,38 +1502,6 @@ function closePoll(){
     if(allowMultipleChk) allowMultipleChk.checked = false;
     if(isAnonymousChk) isAnonymousChk.checked = false;
     if(allowUserAddChk) allowUserAddChk.checked = false;
-
-    // Reset Deadline
-    if(pollDeadlineSelect) { pollDeadlineSelect.value = ""; togglePollCustomDate(); }
-    if(pollCustomDate) pollCustomDate.value = "";
-}
-
-// Helper: Toggle Custom Date Input
-function togglePollCustomDate() {
-    if (pollDeadlineSelect && pollDeadlineSelect.value === 'custom') { 
-        pollCustomDate?.classList.remove('hidden'); 
-        pollCustomDate?.focus(); 
-    } else { 
-        pollCustomDate?.classList.add('hidden'); 
-    }
-}
-
-// Helper: Calculate Deadline Date
-function getPollDeadline() {
-    if(!pollDeadlineSelect || !pollDeadlineSelect.value) return null;
-    
-    const d = new Date();
-    if (pollDeadlineSelect.value === 'tomorrow') d.setDate(d.getDate() + 1);
-    else if (pollDeadlineSelect.value === 'next_week') d.setDate(d.getDate() + 7);
-    else if (pollDeadlineSelect.value === 'custom') {
-        const v = pollCustomDate?.value;
-        return v ? v.replace('T', ' ') + ':00' : null;
-    }
-    
-    // Convert to MySQL/Postgres format (YYYY-MM-DD HH:MM:SS)
-    // Using simple offset trick for local time
-    const offset = d.getTimezoneOffset() * 60000;
-    return new Date(d.getTime() - offset).toISOString().slice(0, 19).replace('T', ' ');
 }
 
 // Add New Option Input
@@ -1637,6 +1518,8 @@ pollAddOptionBtn?.addEventListener('click', () => {
 createPollBtn?.addEventListener('click', async () => {
     // 1. Get Values
     const question = pollQuestionInput.value.trim();
+    
+    // Collect all inputs with class .option-input
     const options = Array.from(pollOptionsContainer.querySelectorAll('.option-input'))
                          .map(input => input.value.trim())
                          .filter(val => val !== ''); 
@@ -1647,16 +1530,14 @@ createPollBtn?.addEventListener('click', async () => {
 
     createPollBtn.disabled = true; createPollBtn.textContent = "Creating...";
 
-    // 3. Construct Payload
+    // 3. Construct Payload (Capture toggle states NOW, not before)
     const payload = {
         event_id: <?php echo (int)$id; ?>,
         question: question,
         options: options,
         allow_multiple: allowMultipleChk ? allowMultipleChk.checked : false, 
         is_anonymous: isAnonymousChk ? isAnonymousChk.checked : false,
-        allow_user_add: allowUserAddChk ? allowUserAddChk.checked : false,
-        // ADDED: Deadline
-        deadline: getPollDeadline()
+        allow_user_add: allowUserAddChk ? allowUserAddChk.checked : false
     };
 
     try {
@@ -1669,6 +1550,7 @@ createPollBtn?.addEventListener('click', async () => {
         
         if (data.success) {
             closePoll();
+            // Add the new poll to the feed immediately
             if (typeof prependNewPost === 'function') {
                 prependNewPost(data.post); 
             }
@@ -1997,18 +1879,16 @@ async function toggleTaskItem(itemId) {
         }
     } catch(e){ console.error(e); }
 }
-
 </script>
 
 <script>
+// ==========================================
+// 4. MAIN FEED RENDERING (With Pin & Delete Menu)
+// ==========================================
 function prependNewPost(post) {
     let postContentHTML = '';
-
-    // --- 1. INITIALIZE VARIABLES ---
-    const likeCount = post.like_count || 0;
-    const commentCount = post.comment_count || 0;
-    const isLiked = post.is_liked ? 'text-[#f4b41a] font-bold' : 'text-gray-500';
-
+    
+    // Formatting Fix (Keep this logic!)
     const cleanContent = (post.content || '')
         .replace(/&lt;(\/?(b|i|u|strong|em|div|br|span|p))(.*?)&gt;/gi, function(match, tag, attrs) {
             const cleanAttrs = attrs.replace(/&quot;/g, '"').replace(/&amp;/g, '&');
@@ -2016,174 +1896,219 @@ function prependNewPost(post) {
         })
         .replace(/&nbsp;/g, ' ');
 
-    // --- 2. POST CONTENT TYPE ---
+    // --- CONTENT GENERATION ---
     if (post.post_type === 'standard') {
         postContentHTML = `
             ${cleanContent ? `<div class="text-sm text-gray-800 mb-3 break-words">${cleanContent}</div>` : ''}
-            ${post.image_path ? `<div class="mb-3 rounded-lg overflow-hidden border border-gray-100 bg-gray-50"><img src="${post.image_path}" onclick="openImageModal(this.src)" class="w-full h-auto object-cover max-h-[500px] cursor-zoom-in"></div>` : ''}
+            ${post.image_path ? `<div class="mb-3 rounded-lg overflow-hidden border border-gray-100"><img src="${post.image_path}" alt="Post Image" class="w-full h-auto object-cover max-h-[500px]"></div>` : ''}
         `;
     } 
     else if (post.post_type === 'poll') {
-        const pd = post.poll_data;
-        const optionsHTML = (typeof generatePollOptionsHTML === 'function' && pd) ? generatePollOptionsHTML(pd, post.id) : '';
-        if (pd) {
-            postContentHTML = `<div class="bg-gray-50 rounded-xl p-3 border border-gray-200 mb-2">
-                <div class="relative flex items-center justify-center mb-4 min-h-[24px]"><h3 class="text-base font-bold text-[#222] text-center">${pd.question}</h3></div>
-                <div class="space-y-2" id="poll-options-${post.id}">${optionsHTML}</div>
-                <div class="flex justify-between items-center mt-4 text-xs text-gray-500 font-medium px-1">
-                    <span>${pd.total_votes || 0} total votes</span>
-                    <span class="bg-gray-100 border border-gray-200 px-2 py-0.5 rounded-full text-[10px] uppercase">${pd.is_anonymous ? 'Anonymous' : 'Public'}</span>
-                </div>
-            </div>`;
+    const pd = post.poll_data;
+    const totalVotes = pd ? (pd.total_votes || 0) : 0;
+    const optionsHTML = (typeof generatePollOptionsHTML === 'function' && pd) ? generatePollOptionsHTML(pd, post.id) : '';
+    if (pd) {
+        postContentHTML = `
+        <div class="bg-gray-50 rounded-xl p-3 border border-gray-200 mb-2" id="poll-container-${post.id}">
+            <div class="relative flex items-center justify-center mb-4 min-h-[24px]">
+                <h3 class="text-base font-bold text-[#222] text-center">
+                    ${pd.question}
+                </h3>
+            </div>
+          
+            <div class="space-y-2" id="poll-options-${post.id}">
+                ${optionsHTML}
+            </div>
+
+            <div class="flex justify-between items-center mt-4 text-xs text-gray-500 font-medium px-1">
+                <span id="poll-stats-${post.id}">${totalVotes} total votes</span>
+                <span class="bg-gray-100 border border-gray-200 px-2 py-0.5 rounded-full text-[10px] uppercase tracking-wide">
+                    ${pd.is_anonymous ? 'Anonymous' : 'Public'}
+                </span>
+            </div>
+        </div>`;
+    }
+}
+    else if (post.post_type === 'task') {
+        const td = post.task_data;
+        if (td && typeof generateTaskHTML === 'function') {
+            postContentHTML = generateTaskHTML(td);
+        } else {
+            postContentHTML = `<div class="bg-gray-50 p-3 rounded text-sm text-gray-600">Task: ${td ? td.title : 'Untitled'}</div>`;
         }
     }
 
-    // --- 3. PIN BADGE ---
+    const likeCount = post.like_count || 0;
+    const commentCount = post.comment_count || 0;
+    const isLiked = post.is_liked ? 'text-[#f4b41a] font-bold' : 'text-gray-500';
+    
+    // --- PINNED BADGE ---
     const pinnedBadge = post.is_pinned ? 
         `<div class="mb-2 flex items-center gap-1 text-[10px] font-bold text-[#f4b41a] uppercase tracking-wider">
-            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3"><path d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" /></svg> 
+            <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a1 1 0 011 1v1.323l3.954 1.582 1.699-3.184A1 1 0 0118 3v1a1 1 0 01-.447.894L16 5.618V14a2 2 0 01-1.059 1.764l-4 2a2 2 0 01-1.882 0l-4-2A2 2 0 014 14V5.618L2.447 4.894A1 1 0 012 4V3a1 1 0 011.347-.279l1.699 3.184L9 4.323V3a1 1 0 011-1z"/></svg> 
             Pinned Post
          </div>` : '';
+    
+    // --- ACTION MENU (Only for Owner) ---
+    let actionMenuHTML = '';
+    if (post.is_owner) {
+        actionMenuHTML = `
+        <div class="relative">
+            <button onclick="togglePostMenu(event, ${post.id})" class="text-gray-400 hover:text-gray-600 p-1 rounded-full hover:bg-gray-100 transition">
+                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z"/></svg>
+            </button>
+            <div id="post-menu-${post.id}" class="hidden absolute right-0 mt-1 w-32 bg-white rounded-lg shadow-xl border border-gray-100 z-20 overflow-hidden">
+                <button onclick="togglePin(${post.id})" class="w-full text-left px-4 py-2 text-xs font-medium text-gray-700 hover:bg-gray-50 flex items-center gap-2">
+                    ${post.is_pinned ? 'Unpin Post' : 'Pin Post'}
+                </button>
+                <button onclick="deletePost(${post.id})" class="w-full text-left px-4 py-2 text-xs font-medium text-red-600 hover:bg-red-50 flex items-center gap-2 border-t border-gray-50">
+                    Delete Post
+                </button>
+            </div>
+        </div>`;
+    }
 
- // --- 4. MINIMALIST ACTION MENU ---
-const isPlanOwner = <?php echo json_encode($is_creator); ?>;
-let menuItems = ''; // Siguraduhing may '' para hindi mag-error ang +=
-
-if (post.is_owner || isPlanOwner) {
-    menuItems += `<button onclick="togglePin(${post.id})" class="w-full text-left px-4 py-2 text-xs font-medium text-gray-600 hover:bg-gray-50 flex items-center gap-2">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" /></svg> ${post.is_pinned ? 'Unpin' : 'Pin'}
-    </button>`;
-}
-
-if (post.post_type === 'poll' && post.is_owner && !post.poll_data?.is_closed) {
-    menuItems += `<button onclick="finalizePoll(${post.id})" class="w-full text-left px-4 py-2 text-xs font-medium text-gray-600 hover:bg-gray-50 flex items-center gap-2 border-t border-gray-50">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg> End Voting
-    </button>`;
-}
-
-if (post.is_owner || isPlanOwner) {
-    menuItems += `<button onclick="deletePost(${post.id})" class="w-full text-left px-4 py-2 text-xs font-medium text-red-500 hover:bg-red-50 flex items-center gap-2 border-t border-gray-50">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg> Delete
-    </button>`;
-}
-
-// Check if menuItems has content, then build the 3-dots menu
-const actionMenuHTML = menuItems !== '' ? `
-    <div class="relative">
-        <button onclick="togglePostMenu(event, ${post.id})" class="text-gray-400 hover:text-gray-600 p-1 rounded-full hover:bg-gray-100 transition">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" /></svg>
-        </button>
-        <div id="post-menu-${post.id}" class="hidden absolute right-0 mt-1 w-36 bg-white rounded-lg shadow-xl border border-gray-100 z-50 overflow-hidden">${menuItems}</div>
-    </div>` : '';
-
-    // --- 5. ASSEMBLY ---
     const finalHTML = `
-    <div class="bg-white p-4 rounded-lg shadow w-full transition-all duration-300 animate-fade-in" id="post-${post.id}">
+    <div class="bg-white p-4 rounded-lg shadow w-full transition-all duration-300 animate-fade-in mb-4" id="post-${post.id}">
       ${pinnedBadge}
       <div class="flex items-start justify-between mb-3">
         <div class="flex items-start gap-3">
-            <img src="${post.user.avatar}" class="w-10 h-10 rounded-full object-cover shadow-sm" />
-            <div><h4 class="font-semibold text-[#222] text-sm">${post.user.name}</h4><p class="text-xs text-gray-500">${post.created_at}</p></div>
+            <img src="${post.user.avatar}" alt="${post.user.name}" class="w-10 h-10 rounded-full object-cover shadow-sm" />
+            <div>
+              <h4 class="font-semibold text-[#222] text-sm">${post.user.name}</h4>
+              <p class="text-xs text-gray-500">${post.created_at}</p>
+            </div>
         </div>
         ${actionMenuHTML}
       </div>
+      
       ${postContentHTML}
+
       <div class="flex items-center gap-6 pt-2 border-t border-gray-100 text-sm font-medium">
         <button onclick="toggleLike(${post.id}, this)" class="flex items-center gap-1.5 hover:text-[#f4b41a] transition ${isLiked}">
-           <svg class="w-5 h-5" fill="${post.is_liked ? 'currentColor' : 'none'}" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg> <span>${likeCount > 0 ? likeCount : 'Like'}</span>
+           <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="${post.is_liked ? 'currentColor' : 'none'}" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+           </svg> 
+           <span class="like-count">${likeCount > 0 ? likeCount : 'Like'}</span>
         </button>
+
         <button onclick="toggleComments(${post.id})" class="flex items-center gap-1.5 text-gray-500 hover:text-[#f4b41a] transition">
-           <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg> <span>${commentCount > 0 ? commentCount : 'Comment'}</span>
+           <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+           </svg> 
+           <span class="comment-count-label">${commentCount > 0 ? commentCount : 'Comment'}</span>
         </button>
       </div>
+
       <div id="comments-section-${post.id}" class="hidden mt-3 pt-3 border-t border-gray-50">
          <div id="comments-list-${post.id}" class="space-y-3 mb-3 max-h-60 overflow-y-auto"></div>
+         <div class="flex items-start gap-2">
+            <img src="<?php echo htmlspecialchars($currentUserAvatar); ?>" class="w-8 h-8 rounded-full border border-gray-200">
+            <div class="flex-1 relative">
+                <textarea id="comment-input-${post.id}" rows="1" placeholder="Write a comment..." class="w-full bg-gray-50 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-1 focus:ring-[#f4b41a] focus:outline-none resize-none"></textarea>
+                <button onclick="submitComment(${post.id})" class="absolute right-2 bottom-1.5 text-[#f4b41a] hover:text-black text-xs font-bold uppercase p-1">Post</button>
+            </div>
+         </div>
       </div>
     </div>`;
     
     document.getElementById('feedContainer').insertAdjacentHTML('afterbegin', finalHTML);
 }
 
-// ==========================================
-// 5. NEW: End Poll Function (Backend Stub)
-// ==========================================
-async function endPoll(postId) {
-    if(!confirm("End voting for this poll? This cannot be undone.")) return;
-
-    try {
-        const res = await fetch('/DINADRAWING/Backend/events/end_poll.php', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({ post_id: postId })
-        });
-        const data = await res.json();
-        
-        if(data.success) {
-            // Auto-refresh the feed to show results and remove the button
-            loadEventPosts(); 
-        } else {
-            alert(data.error || "Failed to end poll");
-        }
-    } catch(e) { console.error(e); }
-}
 
 // ==========================================
 // POLL VOTING LOGIC
 // ==========================================
+let currentPollVotes = new Map(); // Track which user has voted on which poll
+
+// ==========================================
+    // POLL STATE INITIALIZATION
+    // ==========================================
+    function initPollVotingState() {
+        // This would ideally be populated from server when page loads
+        // For now, we'll track locally
+        currentPollVotes = new Map();
+    }
+
 async function votePoll(pollId, optionId, postId) {
-    // Optimistic Update (Optional, but let's just reload for accuracy first)
+    // 1. Prevent rapid double-clicking
+    if (window.isVoting) return;
+    window.isVoting = true;
+    
+    // 2. Get poll data from DOM to check settings
+    const pollContainer = document.getElementById(`poll-container-${postId}`);
+    if (!pollContainer) {
+        window.isVoting = false;
+        return;
+    }
+    
+    // 3. Check if user has already voted on this poll
+    const pollKey = `poll_${pollId}`;
+    const userAlreadyVoted = currentPollVotes.has(pollKey);
+    
     try {
+        // 4. First, get poll details to check settings
+        const pollDetailsRes = await fetch(`/DINADRAWING/Backend/events/get_poll.php?poll_id=${pollId}`);
+        const pollDetails = await pollDetailsRes.json();
+        
+        if (!pollDetails.success) {
+            console.error("Failed to get poll details");
+            window.isVoting = false;
+            return;
+        }
+        
+        const poll = pollDetails.poll;
+        
+        // 5. CHECK: If multiple votes NOT allowed and user already voted
+        if (!poll.allow_multiple && userAlreadyVoted) {
+            alert("You have already voted in this poll. Multiple votes are not allowed.");
+            window.isVoting = false;
+            return;
+        }
+        
+        // 6. Send the vote to server
         const res = await fetch('/DINADRAWING/Backend/events/vote_poll.php', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({ poll_id: pollId, option_id: optionId })
+            body: JSON.stringify({ 
+                poll_id: pollId, 
+                option_id: optionId,
+                allow_multiple: poll.allow_multiple 
+            })
         });
         const data = await res.json();
         
         if (data.success) {
-            // Reload the posts to show new percentages
-            // A smoother way is to just reload the page or re-fetch posts
-            // For now, let's just trigger a reload of the specific post if possible, 
-            // or just reload the window to keep it simple and accurate.
-            loadEventPosts(); 
-        } else {
-            console.error(data.error);
-        }
-    } catch(e) { console.error("Vote error", e); }
-}
-
-// ==========================================
-// NEW FUNCTIONS: LIKE & COMMENT LOGIC
-// ==========================================
-
-async function toggleLike(postId, btn) {
-    try {
-        const res = await fetch('/DINADRAWING/Backend/events/toggle_like.php', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({ post_id: postId })
-        });
-        const data = await res.json();
-        
-        if (data.success) {
-            const countSpan = btn.querySelector('.like-count');
-            const svg = btn.querySelector('svg');
-            
-            // Update Number
-            countSpan.textContent = data.new_count > 0 ? data.new_count : 'Like';
-            
-            // Update Color/Icon
-            if (data.action === 'liked') {
-                btn.classList.add('text-[#f4b41a]', 'font-bold');
-                btn.classList.remove('text-gray-500');
-                svg.setAttribute('fill', 'currentColor');
-            } else {
-                btn.classList.remove('text-[#f4b41a]', 'font-bold');
-                btn.classList.add('text-gray-500');
-                svg.setAttribute('fill', 'none');
+            // Track this vote
+            if (!poll.allow_multiple) {
+                currentPollVotes.set(pollKey, true);
             }
+            
+            // Update UI with fresh poll data
+            const optionsContainer = document.getElementById(`poll-options-${postId}`);
+            const statsContainer = document.getElementById(`poll-stats-${postId}`);
+            
+            if (optionsContainer && data.poll_data) {
+                optionsContainer.innerHTML = generatePollOptionsHTML(data.poll_data, postId);
+                if (statsContainer) {
+                    statsContainer.textContent = `${data.poll_data.total_votes} total votes`;
+                }
+            }
+            
+            // Show success message
+            if (typeof showToast === 'function') {
+                showToast("Vote submitted!");
+            }
+        } else {
+            console.error("Vote failed:", data.error);
+            alert(data.error || "Failed to submit vote");
         }
-    } catch(e) { console.error("Like error", e); }
+    } catch(e) { 
+        console.error("Vote network error", e);
+        alert("Network error. Please try again.");
+    } finally { 
+        window.isVoting = false; 
+    }
 }
 
 // ==========================================
@@ -2282,41 +2207,38 @@ document.addEventListener('click', () => {
     document.querySelectorAll('[id^="post-menu-"]').forEach(el => el.classList.add('hidden'));
 });
 
-// 1. DELETE POST (Using Custom Modal)
-// 1. DELETE POST Action
-function deletePost(postId) {
-    showConfirm("Are you sure you want to delete this post? This cannot be undone.", async () => {
-        try {
-            const res = await fetch('/DINADRAWING/Backend/events/delete_post.php', {
-                method: 'POST', 
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ post_id: postId })
-            });
-            const data = await res.json();
-            if (data.success) {
-                document.getElementById(`post-${postId}`)?.remove();
-                if(typeof showToast === 'function') showToast("Post deleted.");
-            }
-        } catch (e) { console.error(e); }
-    });
+// Logic: DELETE POST
+async function deletePost(postId) {
+    if(!confirm("Are you sure you want to delete this post?")) return;
+    try {
+        const res = await fetch('/DINADRAWING/Backend/events/delete_post.php', {
+            method: 'POST', headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ post_id: postId })
+        });
+        const data = await res.json();
+        if (data.success) {
+            document.getElementById(`post-${postId}`).remove();
+        } else {
+            alert("Error: " + data.error);
+        }
+    } catch (e) { console.error(e); }
 }
 
-// 2. END VOTING Action
-function finalizePoll(postId) {
-    showConfirm("End voting now? This will finalize the results immediately.", async () => {
-        try {
-            const res = await fetch('/DINADRAWING/Backend/events/finalize_poll.php', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ post_id: postId })
-            });
-            const data = await res.json();
-            if (data.success) {
-                loadEventPosts(); // Refresh para lumabas ang Winner UI
-                if(typeof showToast === 'function') showToast("Voting ended.");
-            }
-        } catch (e) { console.error(e); }
-    });
+// Logic: PIN POST
+async function togglePin(postId) {
+    try {
+        const res = await fetch('/DINADRAWING/Backend/events/pin_post.php', {
+            method: 'POST', headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ post_id: postId })
+        });
+        const data = await res.json();
+        if (data.success) {
+            // Reload feed to see changes (easiest way to resort)
+            loadEventPosts(); 
+        } else {
+            alert("Error: " + data.error);
+        }
+    } catch (e) { console.error(e); }
 }
 </script>
 
@@ -2348,106 +2270,67 @@ function finalizePoll(postId) {
     // SETTINGS & DELETE LOGIC
     // ==========================================
     document.addEventListener("DOMContentLoaded", () => {
+      initPollVotingState(); // <-- ADD THIS LINE FIRST
+      loadEventPosts(); 
+    loadMembers(); 
+    setInterval(loadMembers, 5000);
         
         // SAVE SETTINGS
-        // SAVE SETTINGS (Updated for Immediate UI + Toast)
-document.getElementById("saveSettingsBtn")?.addEventListener("click", () => {
-    // 1. Get Values
-    const nameVal = document.getElementById("eventName").value.trim();
-    const descVal = document.getElementById("eventDesc").value.trim();
-    const locationVal = document.getElementById("eventPlace").value.trim();
-    
-    // 2. Handle Date & Time
-    const dateTimeVal = document.getElementById("eventDate").value; 
-    let datePart = null;
-    let timePart = null;
-    
-    if (dateTimeVal) {
-        const parts = dateTimeVal.split('T');
-        datePart = parts[0];
-        if (parts.length > 1) timePart = parts[1];
-    }
+        document.getElementById("saveSettingsBtn")?.addEventListener("click", () => {
+            // 1. Get Values
+            const nameVal = document.getElementById("eventName").value.trim();
+            const descVal = document.getElementById("eventDesc").value.trim();
+            const locationVal = document.getElementById("eventPlace").value.trim();
+            
+            // 2. Handle Date & Time
+            const dateTimeVal = document.getElementById("eventDate").value; 
+            let datePart = null;
+            let timePart = null;
+            
+            if (dateTimeVal) {
+                const parts = dateTimeVal.split('T');
+                datePart = parts[0];
+                if (parts.length > 1) timePart = parts[1];
+            }
 
-    // 3. Prepare Payload
-    const payload = {
-        id: <?php echo (int)$id; ?>,
-        name: nameVal,
-        description: descVal,
-        date: datePart,
-        time: timePart,
-        location: locationVal,
-        // ADD THIS LINE:
-        allow_invites: document.getElementById('allowInvites').checked ? 1 : 0 
-    };
+            // 3. Prepare Payload
+            const payload = {
+                id: <?php echo (int)$id; ?>,
+                name: nameVal,
+                description: descVal,
+                date: datePart,
+                time: timePart,
+                location: locationVal 
+            };
 
-    // 4. Send Request
-    const btn = document.getElementById("saveSettingsBtn");
-    const originalText = btn.textContent;
-    btn.textContent = "Saving...";
-    btn.disabled = true;
+            // 4. Send Request
+            const btn = document.getElementById("saveSettingsBtn");
+            const originalText = btn.textContent;
+            btn.textContent = "Saving...";
+            btn.disabled = true;
 
-    fetch('/DINADRAWING/Backend/events/update.php', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-    })
-    .then(r => r.json())
-    .then(res => {
-        if (res.success) {
-            // A. USE TOAST INSTEAD OF ALERT
-            showToast('Settings saved successfully!');
-
-            // B. UPDATE TITLE IMMEDIATELY
-            const bannerTitle = document.getElementById('bannerText');
-            if(bannerTitle) bannerTitle.textContent = nameVal;
-
-            // C. UPDATE DESCRIPTION IMMEDIATELY
-            const descContainer = document.getElementById('planDescriptionContainer');
-            if (descContainer) {
-                if (descVal) {
-                    // Convert newlines to <br> for HTML display
-                    descContainer.innerHTML = `<p>${descVal.replace(/\n/g, '<br>')}</p>`;
+            fetch('/DINADRAWING/Backend/events/update.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            })
+            .then(r => r.json())
+            .then(res => {
+                if (res.success) {
+                    alert('Settings saved successfully!');
+                    // Update Banner Text
+                    const bannerTitle = document.getElementById('bannerText');
+                    if(bannerTitle) bannerTitle.textContent = nameVal;
                 } else {
-                    // Revert to placeholder if empty
-                    descContainer.innerHTML = `<span class="text-gray-400 cursor-pointer hover:text-gray-600" onclick="switchTab('settings')">Add your plan description...</span>`;
+                    alert('Save failed: ' + (res.error || res.message || 'unknown error'));
                 }
-            }
-
-            // D. UPDATE BANNER SUBTEXT (Date • Location) IMMEDIATELY
-            const bannerSub = document.getElementById('bannerSubtext');
-            if (bannerSub) {
-                let displayParts = [];
-
-                // Format Date nicely using JS (e.g. "Jan 1, 2025")
-                if (datePart) {
-                    const d = new Date(datePart);
-                    // Note: This uses local browser time. 
-                    const formattedDate = d.toLocaleDateString('en-US', { 
-                        month: 'short', day: 'numeric', year: 'numeric' 
-                    });
-                    displayParts.push(formattedDate);
-                }
-
-                if (locationVal) {
-                    displayParts.push(locationVal);
-                }
-
-                bannerSub.textContent = displayParts.join(" • ");
-            }
-
-        } else {
-            alert('Save failed: ' + (res.error || res.message || 'unknown error'));
-        }
-    })
-    .catch((e) => {
-        console.error(e);
-        alert('Save failed due to network error.');
-    })
-    .finally(() => {
-        btn.textContent = originalText;
-        btn.disabled = false;
-    });
-});
+            })
+            .catch(() => alert('Save failed due to network error.'))
+            .finally(() => {
+                btn.textContent = originalText;
+                btn.disabled = false;
+            });
+        });
         
         // DELETE EVENT
         document.getElementById('deleteEventBtn')?.addEventListener('click', () => {
@@ -2469,181 +2352,104 @@ document.getElementById("saveSettingsBtn")?.addEventListener("click", () => {
 
     });
 
+// HELPER: Generates Poll Options + Voter Faces
 // ==========================================
-// 3. POLL UI & LOGIC (With Deadline & Winner Highlight)
+// 3. POLL UI & LOGIC (Updated & Fixed)
 // ==========================================
 
+// ==========================================
+// POLL UI GENERATOR (Venice Style + Face Piles)
+// ==========================================
 function generatePollOptionsHTML(pd, postId) {
     if (!pd || !pd.options) return '';
     const totalVotes = pd.total_votes || 0;
     
-    // --- 1. SETTINGS & DEADLINE CHECK ---
-    const isTrue = (val) => String(val) === 'true' || String(val) === 't' || String(val) === '1';
+    // Check if user has already voted in this poll
+    const pollKey = `poll_${pd.id}`;
+    const userAlreadyVoted = currentPollVotes.has(pollKey) || pd.has_voted;
     
-    const showFaces = !isTrue(pd.is_anonymous); 
-    const allowMultiple = isTrue(pd.allow_multiple);
-    const allowUserAdd = isTrue(pd.allow_user_add);
-
-    // Check Deadline
-    let isEnded = false;
-    let timeLabel = '';
-    
-    if (pd.deadline) {
-        // Convert SQL timestamp (YYYY-MM-DD HH:MM:SS) to JS Date
-        // Note: Backend usually sends UTC or Server Time. 
-        // For simplicity, we assume server time matches or user parses it.
-        // A safer parsing for "YYYY-MM-DD HH:MM:SS" across browsers:
-        const t = pd.deadline.split(/[- :]/);
-        // Apply to new Date(year, monthIndex, day, hour, minute, second)
-        const end = new Date(t[0], t[1]-1, t[2], t[3], t[4], t[5]);
-        const now = new Date();
-        
-        if (now >= end) {
-            isEnded = true;
-            timeLabel = `<span class="bg-red-100 text-red-700 border border-red-200 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide flex items-center gap-1">
-                🏁 Final Results
-            </span>`;
-        } else {
-            const dateStr = end.toLocaleDateString([], {month:'short', day:'numeric'});
-            const timeStr = end.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
-            timeLabel = `<span class="bg-orange-100 text-orange-800 border border-orange-200 px-2 py-0.5 rounded text-[10px] font-bold flex items-center gap-1">
-                ⏳ Ends: ${dateStr} ${timeStr}
-            </span>`;
-        }
-    }
-
-    // Determine Winner (Highest Vote)
-    let maxVotes = -1;
-    if (isEnded) {
-        pd.options.forEach(o => { if(o.vote_count > maxVotes) maxVotes = o.vote_count; });
-    }
-
-    // --- 2. GENERATE OPTIONS ---
-    let html = '';
-    
-    // Status Badge at top right
-    if (timeLabel) {
-        html += `<div class="mb-2 flex justify-end">${timeLabel}</div>`;
-    }
-
-    html += pd.options.map(opt => {
+    let html = pd.options.map(opt => {
         const votes = opt.vote_count || 0;
         const percentage = totalVotes > 0 ? Math.round((votes / totalVotes) * 100) : 0;
-        const isVoted = isTrue(opt.is_voted);
+        const isVoted = opt.is_voted;
         
-        // Winner Check (Must be ended, have max votes, and > 0 votes)
-        const isWinner = isEnded && votes === maxVotes && votes > 0;
+        // Determine if this option should be clickable
+        const isClickable = pd.allow_multiple || !userAlreadyVoted;
         
-        // Styles based on State
-        let containerClass = "relative w-full min-h-[44px] rounded-xl border overflow-hidden mb-2 transition-all ";
-        let barColor = "";
-        let clickAction = "";
-
-        if (isEnded) {
-            // --- LOCKED / FINALIZED STATE ---
-            clickAction = ""; // Disable click
-            containerClass += "cursor-default "; 
-            
-            if (isWinner) {
-                // GOLD HIGHLIGHT FOR WINNER
-                containerClass += "border-[#f4b41a] bg-yellow-50 shadow-sm ring-1 ring-[#f4b41a] z-10"; 
-                barColor = "bg-[#f4b41a]"; 
-            } else {
-                // DIMMED FOR LOSERS
-                containerClass += "border-gray-100 bg-gray-50 opacity-60 grayscale"; 
-                barColor = "bg-gray-300";
-            }
-        } else {
-            // --- ACTIVE STATE ---
-            clickAction = `onclick="votePoll(${pd.id}, ${opt.id}, ${postId}, ${allowMultiple})"`;
-            containerClass += `cursor-pointer group hover:border-[#f4b41a]/50 ${isVoted ? 'border-[#f4b41a]' : 'border-gray-200'} bg-white`;
-            barColor = isVoted ? 'bg-[#f4b41a]' : 'bg-gray-100';
-        }
-
-        const opacity = (isEnded || isVoted) ? '1' : '0.6';
-
-        // Icons
-        let iconHTML = '';
-        if (isEnded && isWinner) {
-            iconHTML = `<div class="mr-3 text-xl z-10 drop-shadow-sm">🏆</div>`;
-        } else if (isVoted) {
-            iconHTML = `<div class="mr-3 text-[#222] z-10 flex-shrink-0"><svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg></div>`;
-        } else {
-            iconHTML = `<div class="mr-3 w-5 h-5 rounded-full border-2 border-gray-300 group-hover:border-[#f4b41a] transition z-10 flex-shrink-0"></div>`;
-        }
-
-        // Facepile (Voters)
+        // Add a class to indicate non-clickable state
+        const containerClass = `relative w-full h-11 rounded-full border border-gray-200 bg-white overflow-hidden mb-2 transition-all ${isClickable ? 'cursor-pointer hover:border-[#f4b41a]' : 'cursor-not-allowed opacity-80'}`;
+        
+        const barColor = isVoted ? 'bg-[#f4b41a]' : 'bg-[#f4b41a]/60';
+        
+        const checkIcon = isVoted 
+            ? `<div class="mr-3 text-gray-900 z-10"><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg></div>`
+            : `<div class="mr-3 w-4 h-4 rounded-full border border-gray-300 ${isClickable ? 'group-hover:border-[#f4b41a]' : ''} transition z-10"></div>`;
+        
+        // Voters profile image logic...
         let avatarsHTML = '';
-        if (showFaces && opt.voters && opt.voters.length > 0) {
-            const maxDisplay = 4;
+        if (opt.voters && opt.voters.length > 0) {
+            const maxDisplay = 3;
             const displayVoters = opt.voters.slice(0, maxDisplay);
             const extraCount = votes - displayVoters.length;
-            avatarsHTML = `<div class="flex -space-x-2 ml-3 items-center z-10 relative flex-shrink-0">`; 
-            displayVoters.forEach((pic, index) => {
-                const zIndex = 30 - index; 
-                avatarsHTML += `<img src="${pic}" class="w-6 h-6 rounded-full border-2 border-white object-cover shadow-sm bg-gray-200" style="z-index: ${zIndex};" alt="Voter">`;
+            
+            avatarsHTML = `<div class="flex -space-x-2 ml-3 items-center z-10 relative">`;
+            displayVoters.forEach(pic => {
+                avatarsHTML += `<img src="${pic}" class="w-6 h-6 rounded-full border-2 border-white object-cover shadow-sm" alt="Voter">`;
             });
-            if (extraCount > 0) avatarsHTML += `<div class="w-6 h-6 rounded-full border-2 border-white bg-gray-800 text-white flex items-center justify-center text-[9px] font-bold z-0 relative">+${extraCount}</div>`;
+            
+            if (extraCount > 0) {
+                avatarsHTML += `
+                <div class="w-6 h-6 rounded-full border-2 border-white bg-gray-800 text-white flex items-center justify-center text-[8px] font-bold z-20">
+                    +${extraCount}
+                </div>`;
+            }
             avatarsHTML += `</div>`;
         }
-
+        
         return `
-        <div class="${containerClass}" id="poll-opt-${opt.id}" data-voted="${isVoted ? '1' : '0'}" ${clickAction}>
+        <div class="${containerClass}" ${isClickable ? `onclick="votePoll(${pd.id}, ${opt.id}, ${postId})"` : 'title="You have already voted in this poll"'}>
           <div class="absolute top-0 left-0 h-full ${barColor} transition-all duration-500 ease-out z-0" 
-               style="width: ${votes > 0 ? percentage : 0}%; opacity: ${opacity};">
+               style="width: ${votes > 0 ? percentage : 0}%; opacity: ${votes > 0 ? 1 : 0};">
           </div>
-          
-          <div class="relative w-full h-full flex items-center px-4 py-2 z-10">
-            ${iconHTML}
-            <span class="text-sm font-medium ${isEnded && !isWinner ? 'text-gray-500' : 'text-gray-900'} truncate flex-1 leading-tight select-none">
-                ${opt.option_text}
-            </span>
+          <div class="relative w-full h-full flex items-center px-4 z-10">
+            ${checkIcon}
+            <span class="text-sm font-medium text-gray-800 truncate flex-1">${opt.option_text}</span>
+            ${votes > 0 ? `<span class="text-xs font-bold text-gray-700 ml-2">${percentage}%</span>` : ''}
             ${avatarsHTML}
-            ${votes > 0 ? `<span class="text-xs font-bold ${isWinner ? 'text-yellow-800' : 'text-gray-600'} ml-3 min-w-[30px] text-right">${percentage}%</span>` : ''}
           </div>
+          ${!isClickable ? '<div class="absolute inset-0 bg-white/50 z-5"></div>' : ''}
         </div>`;
     }).join('');
-
-    // --- 3. ADD OPTION INPUT (Hide if Ended) ---
-    // Magpapakita lang ito kung ALLOWED at HINDI PA ENDED
-    if (allowUserAdd && !isEnded) {
+    
+    // Add warning message if user has voted and multiple votes not allowed
+    if (userAlreadyVoted && !pd.allow_multiple) {
+        html = `<div class="mb-3 p-2 bg-yellow-50 border border-yellow-200 rounded-lg text-sm text-yellow-800 text-center">
+                  You have already voted in this poll
+                </div>` + html;
+    }
+    
+    // Add option input...
+    if (pd.allow_user_add && (!userAlreadyVoted || pd.allow_multiple)) {
         html += `
-        <div class="relative flex items-center bg-white border border-gray-200 p-1 rounded-lg mt-3 transition hover:shadow-sm group">
-            <input type="text" id="new-opt-${pd.id}" placeholder="+ Add an option..." 
-                   class="w-full bg-transparent px-3 py-1.5 text-sm focus:outline-none placeholder-gray-400 pr-16"
-                   onkeydown="if(event.key === 'Enter') addPollOption(${pd.id}, ${postId})">
-            
+        <div class="relative w-full h-10 flex items-center mt-2">
+            <input type="text" id="new-opt-${pd.id}" placeholder="+ Add option" 
+                   class="w-full h-full rounded-full border border-gray-200 bg-white px-5 text-sm focus:outline-none focus:border-[#f4b41a] transition placeholder-gray-400">
             <button onclick="addPollOption(${pd.id}, ${postId})" 
-                    class="absolute right-1 z-10 bg-[#f4b41a] hover:bg-[#e3a918] text-[#222] text-[10px] font-bold px-3 py-1.5 rounded-md transition shadow-sm">
+                    class="absolute right-1 top-1 bottom-1 bg-gray-100 hover:bg-[#f4b41a] text-gray-600 hover:text-black rounded-full px-4 text-[10px] font-bold transition">
                 ADD
             </button>
         </div>`;
     }
-
+    
     return html;
 }
 
-// --- VOTE FUNCTION (With Strict Check) ---
-async function votePoll(pollId, optionId, postId, allowMultiple) {
+// 2. VOTING FUNCTION (Connects to our secured Backend)
+async function votePoll(pollId, optionId, postId) {
+    // Basic frontend lock to prevent double clicking rapidly
     if (window.isVoting) return; 
-
-    // STRICT SINGLE VOTE CHECK
-    if (!allowMultiple) {
-        const container = document.getElementById(`poll-options-${postId}`);
-        if (container) {
-            const votedOption = container.querySelector('[data-voted="1"]');
-            if (votedOption && votedOption.id !== `poll-opt-${optionId}`) {
-                if (typeof showToast === 'function') {
-                    showToast("⚠️ Single vote only. Unvote your choice first.");
-                } else {
-                    alert("⚠️ You can only choose one option. Please remove your current vote first.");
-                }
-                return; 
-            }
-        }
-    }
-
     window.isVoting = true;
+
     try {
         const res = await fetch('/DINADRAWING/Backend/events/vote_poll.php', {
             method: 'POST',
@@ -2653,57 +2459,21 @@ async function votePoll(pollId, optionId, postId, allowMultiple) {
         const data = await res.json();
         
         if (data.success) {
+            // Find the container and update JUST that poll
             const optionsContainer = document.getElementById(`poll-options-${postId}`);
             const statsContainer = document.getElementById(`poll-stats-${postId}`);
             
             if (optionsContainer && data.poll_data) {
                 optionsContainer.innerHTML = generatePollOptionsHTML(data.poll_data, postId);
-                if (statsContainer) statsContainer.textContent = `${data.poll_data.total_votes} total votes`;
+                if (statsContainer) {
+                    statsContainer.textContent = `${data.poll_data.total_votes} total votes`;
+                }
             }
         } else {
             console.error("Vote failed:", data.error);
         }
     } catch(e) { console.error("Vote network error", e); }
-    finally { 
-        setTimeout(() => { window.isVoting = false; }, 300);
-    }
-}
-
-// --- ADD OPTION FUNCTION (Restored!) ---
-async function addPollOption(pollId, postId) {
-    const input = document.getElementById(`new-opt-${pollId}`);
-    if(!input) return;
-    const text = input.value.trim();
-    if(!text) return;
-
-    input.disabled = true; // Disable input while loading
-    const originalPlaceholder = input.placeholder;
-    input.placeholder = "Adding...";
-
-    try {
-        const res = await fetch('/DINADRAWING/Backend/events/add_poll_option.php', {
-            method: 'POST', headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({ poll_id: pollId, text: text })
-        });
-        const data = await res.json();
-        
-        if(data.success) {
-             const optionsContainer = document.getElementById(`poll-options-${postId}`);
-             if (optionsContainer && data.poll_data) {
-                optionsContainer.innerHTML = generatePollOptionsHTML(data.poll_data, postId);
-             }
-        } else {
-            alert(data.error || "Failed to add option");
-            input.disabled = false;
-            input.placeholder = originalPlaceholder;
-            input.focus();
-        }
-    } catch(e) { 
-        console.error(e); 
-        alert("Network Error");
-        input.disabled = false; 
-        input.placeholder = originalPlaceholder;
-    }
+    finally { window.isVoting = false; }
 }
 </script>
 
@@ -3344,53 +3114,6 @@ document.getElementById('createEventSubmitBtn')?.addEventListener('click', async
     }
 
     
-</script>
-
-<div id="imageModal" class="fixed inset-0 z-[9999] bg-black/95 hidden items-center justify-center p-4 backdrop-blur-sm transition-opacity duration-300" onclick="closeImageModal()">
-    <button onclick="closeImageModal()" class="absolute top-5 right-5 z-[10000] text-white/70 hover:text-white p-2 rounded-full bg-white/10 hover:bg-white/20 transition cursor-pointer">
-        <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-        </svg>
-    </button>
-    
-    <img id="imageModalContent" src="" alt="Full Preview" class="max-w-full max-h-[90vh] object-contain rounded shadow-2xl scale-95 transition-transform duration-300 cursor-default" onclick="event.stopPropagation()">
-</div>
-
-<script>
-    window.openImageModal = function(src) {
-        const modal = document.getElementById('imageModal');
-        const img = document.getElementById('imageModalContent');
-        if(modal && img) {
-            img.src = src;
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
-            document.body.style.overflow = 'hidden'; // Stop scrolling
-            setTimeout(() => { 
-                img.classList.remove('scale-95'); 
-                img.classList.add('scale-100'); 
-            }, 10);
-        }
-    }
-
-    window.closeImageModal = function() {
-        const modal = document.getElementById('imageModal');
-        const img = document.getElementById('imageModalContent');
-        if(modal) {
-            img.classList.remove('scale-100');
-            img.classList.add('scale-95');
-            setTimeout(() => {
-                modal.classList.add('hidden');
-                modal.classList.remove('flex');
-                document.body.style.overflow = ''; // Restore scrolling
-                img.src = '';
-            }, 150);
-        }
-    }
-    
-    // Close on Escape Key
-    document.addEventListener('keydown', (e) => {
-        if (e.key === "Escape") closeImageModal();
-    });
 </script>
 
 </body>

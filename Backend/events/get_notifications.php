@@ -13,7 +13,8 @@ $user_id = $_SESSION['user_id'];
 try {
     $pdo = getDatabaseConnection();
 
-    // Fetch notifications
+    // UPDATED SQL: Using LEFT JOINs so 'join' notifications appear.
+    // It now checks both the direct event_id and the one linked through a post.
     $stmt = $pdo->prepare("
         SELECT 
             n.id, n.type, n.created_at, n.is_read,
@@ -23,8 +24,8 @@ try {
             e.id as event_id
         FROM notifications n
         JOIN users u ON n.actor_id = u.id
-        JOIN posts p ON n.post_id = p.id
-        JOIN events e ON p.event_id = e.id
+        LEFT JOIN posts p ON n.post_id = p.id
+        LEFT JOIN events e ON (n.event_id = e.id OR p.event_id = e.id)
         WHERE n.user_id = ?
         ORDER BY n.created_at DESC
         LIMIT 20
@@ -42,23 +43,35 @@ try {
              $avatar = '/DINADRAWING/Assets/Profile Icon/profile.png';
         }
 
+        // Action Text Logic - Added 'join' type
         $actionText = "updated something in";
         if ($n['type'] === 'like') $actionText = "liked your post in";
         if ($n['type'] === 'comment') $actionText = "commented on your post in";
+        if ($n['type'] === 'join') $actionText = "joined your plan"; 
 
         $formatted[] = [
             'id' => $n['id'],
             'actor_name' => htmlspecialchars($n['actor_name']),
             'actor_avatar' => $avatar,
             'action_text' => $actionText,
-            'event_name' => htmlspecialchars($n['event_name']),
+            'event_name' => htmlspecialchars($n['event_name'] ?? 'Plan'),
+            'event_id' => $n['event_id'],
             'is_read' => $n['is_read'],
-            // Pass true to ensure it calculates based on current timezone
             'time_ago' => time_elapsed_string($n['created_at'])
         ];
     }
 
-    echo json_encode(['success' => true, 'notifications' => $formatted]);
+    // Check for unread status for the dashboard dot
+    $hasUnread = false;
+    foreach($formatted as $f) {
+        if(!$f['is_read']) { $hasUnread = true; break; }
+    }
+
+    echo json_encode([
+        'success' => true, 
+        'notifications' => $formatted,
+        'has_unread' => $hasUnread
+    ]);
 
 } catch (Exception $e) {
     echo json_encode(['success' => false, 'error' => $e->getMessage()]);
@@ -66,13 +79,7 @@ try {
 
 // Updated Helper Function to handle Timezones correctly
 function time_elapsed_string($datetime, $full = false) {
-    // 1. Create 'Now' using the set timezone (Asia/Manila)
     $now = new DateTime('now', new DateTimeZone('Asia/Manila'));
-    
-    // 2. Create 'Ago' from the DB string. 
-    //    We assume the DB stores it as 'YYYY-MM-DD HH:MM:SS' in the same local time (from CURRENT_TIMESTAMP)
-    //    If your DB is actually UTC, you might need to convert it here. 
-    //    For most local setups (XAMPP/Postgres Local), DB matches System Time.
     $ago = new DateTime($datetime, new DateTimeZone('Asia/Manila'));
     
     $diff = $now->diff($ago);

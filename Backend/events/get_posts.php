@@ -1,5 +1,4 @@
 <?php
-// Backend/events/get_posts.php
 session_start();
 header('Content-Type: application/json; charset=utf-8');
 
@@ -21,11 +20,11 @@ require_once __DIR__ . "/../config/database.php";
 $pdo = getDatabaseConnection();
 
 try {
-    // 1. GET POSTS (Updated to select allow_user_add)
+    // 1. GET POSTS
+    // Note: allow_user_add ay nasa POLLS table, hindi sa POSTS table, kaya aalisin natin dito sa main query para iwas error.
     $sql = "
         SELECT 
             p.id, p.user_id, p.post_type, p.content, p.image_path, p.created_at, p.is_pinned, 
-            p.allow_user_add,  -- <--- WE ARE FETCHING IT HERE
             u.username AS user_name, 
             u.profile_picture,
             (SELECT COUNT(*) FROM post_likes WHERE post_id = p.id) as like_count,
@@ -65,9 +64,10 @@ try {
             'user' => [ 'name' => $p['user_name'], 'avatar' => $avatarPath ]
         ];
 
-        // --- POLL DATA ---
+        // --- POLL DATA (UPDATED FETCH) ---
         if ($post['post_type'] === 'poll') {
-            $pollStmt = $pdo->prepare("SELECT id, question, allow_multiple, is_anonymous FROM polls WHERE post_id = ?");
+            // ✅ FETCH DEADLINE & ALLOW_USER_ADD FROM POLLS TABLE
+            $pollStmt = $pdo->prepare("SELECT id, question, allow_multiple, is_anonymous, allow_user_add, deadline FROM polls WHERE post_id = ?");
             $pollStmt->execute([$p['id']]);
             $pollInfo = $pollStmt->fetch(PDO::FETCH_ASSOC);
 
@@ -85,7 +85,19 @@ try {
                 } catch(Exception $e){}
 
                 $totalVotes = 0;
-                $isAnon = ($pollInfo['is_anonymous'] == 1);
+                
+                // Robust boolean checkers (Postgres/MySQL compatible)
+                $isAnon = ($pollInfo['is_anonymous'] === true || $pollInfo['is_anonymous'] === 1 || $pollInfo['is_anonymous'] === 't');
+                $allowMulti = ($pollInfo['allow_multiple'] === true || $pollInfo['allow_multiple'] === 1 || $pollInfo['allow_multiple'] === 't');
+                $allowUserAdd = ($pollInfo['allow_user_add'] === true || $pollInfo['allow_user_add'] === 1 || $pollInfo['allow_user_add'] === 't');
+
+                // ✅ Check if voting has ended (Manual finalize or Expired deadline)
+                $isClosed = false;
+                if (!empty($pollInfo['deadline'])) {
+                    if (strtotime($pollInfo['deadline']) <= time()) {
+                        $isClosed = true;
+                    }
+                }
 
                 foreach ($options as &$opt) {
                     $totalVotes += $opt['vote_count'];
@@ -117,17 +129,21 @@ try {
                 $post['poll_data'] = [
                     'id' => $pollInfo['id'],
                     'question' => htmlspecialchars($pollInfo['question']),
-                    'allow_multiple' => ($pollInfo['allow_multiple'] == 1),
+                    'allow_multiple' => $allowMulti,
                     'is_anonymous' => $isAnon,
+                    // ✅ PASS NEW DATA TO FRONTEND
+                    'allow_user_add' => $allowUserAdd, 
+                    'deadline' => $pollInfo['deadline'], 
+                    'is_closed' => $isClosed, // ✅ Added flag for End Voting status
                     'total_votes' => $totalVotes,
                     'options' => $options
                 ];
             }
         }
 
-        // --- TASK DATA (FIXED) ---
+        // --- TASK DATA ---
         if ($post['post_type'] === 'task') {
-            $taskStmt = $pdo->prepare("SELECT id, title, deadline FROM tasks WHERE post_id = ?");
+            $taskStmt = $pdo->prepare("SELECT id, title, deadline, allow_user_add FROM tasks WHERE post_id = ?");
             $taskStmt->execute([$p['id']]);
             $taskInfo = $taskStmt->fetch(PDO::FETCH_ASSOC);
 
@@ -135,14 +151,13 @@ try {
                 $itemStmt = $pdo->prepare("SELECT id, item_text, assigned_to, is_completed FROM task_items WHERE task_id = ? ORDER BY id ASC");
                 $itemStmt->execute([$taskInfo['id']]);
                 
-                // Determine if adding is allowed (Handle PostgreSQL boolean types safely)
-                $isAllowed = ($p['allow_user_add'] === true || $p['allow_user_add'] === 't' || $p['allow_user_add'] == 1);
+                $isAllowed = ($taskInfo['allow_user_add'] === true || $taskInfo['allow_user_add'] === 't' || $taskInfo['allow_user_add'] == 1);
 
                 $post['task_data'] = [
                     'id' => $taskInfo['id'],
                     'title' => htmlspecialchars($taskInfo['title']),
                     'deadline' => $taskInfo['deadline'],
-                    'allow_user_add' => $isAllowed, // <--- PASSING THE FIX HERE
+                    'allow_user_add' => $isAllowed,
                     'items' => $itemStmt->fetchAll(PDO::FETCH_ASSOC)
                 ];
             }

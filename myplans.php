@@ -48,7 +48,7 @@ try {
         END AS dt,
         e.location AS loc,
         e.banner_type, e.banner_color, e.banner_from, e.banner_to, e.banner_image,
-        e.invite_code, 
+          e.invite_code, e.allow_invites,
         e.archived, e.owner_id
       FROM events e
       LEFT JOIN event_members em ON e.id = em.event_id
@@ -255,11 +255,7 @@ function card_banner_style($ev){
     <li class="p-6 text-center text-gray-400 text-sm">Loading...</li>
   </ul>
 
-  <div class="border-t border-gray-100 p-3 bg-gray-50/50 text-center">
-    <button onclick="document.getElementById('notificationList').innerHTML = '<li class=\'p-6 text-center text-gray-400 text-sm\'>No new notifications</li>';" class="text-sm font-medium text-blue-600 hover:underline">
-        Clear All Notifications
-    </button>
-  </div>
+  
 </div>
       </div>
 
@@ -341,9 +337,12 @@ function card_banner_style($ev){
         <?php foreach ($myPlans as $ev): ?>
           <div class="relative w-64 bg-white border border-gray-300 rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow group flex flex-col h-full" 
                data-id="<?php echo $ev['id']; ?>" 
-               data-owner="1"
+               data-owner="1" 
+               data-code="<?php echo h($ev['invite_code']); ?>"
                data-date="<?php echo $ev['date']; ?>"
-               data-code="<?php echo h($ev['invite_code']); ?>"> <div class="p-4 text-lg flex justify-end items-start h-24" style="<?php echo card_banner_style($ev); ?>">
+               data-archived="<?php echo ($ev['archived'] === true || $ev['archived'] === 't' || $ev['archived'] == 1) ? '1' : '0'; ?>">
+               
+            <div class="p-4 text-lg flex justify-end items-start h-24" style="<?php echo card_banner_style($ev); ?>">
               <div class="relative z-10">
                 <button onclick="showPlanActions(event,this)" class="text-white hover:text-gray-200 px-1.5 py-0.5 rounded hover:bg-black/20 transition text-xl leading-none">⋮</button>
               </div>
@@ -366,7 +365,7 @@ function card_banner_style($ev){
                       onclick="window.location.href='plan.php?id=<?php echo (int)$ev['id']; ?>'">Open</button>
             </div>
           </div>
-        <?php endforeach; ?>
+          <?php endforeach; ?>
       <?php else: ?>
         <div class="w-full text-center py-8 bg-gray-50 rounded-xl border border-dashed border-gray-300">
           <p class="text-gray-500 text-sm mb-2">You haven't created any plans yet.</p>
@@ -388,11 +387,15 @@ function card_banner_style($ev){
                data-id="<?php echo $ev['id']; ?>" 
                data-owner="0"
                data-code="<?php echo h($ev['invite_code']); ?>"
-               data-date="<?php echo $ev['date']; ?>"> <div class="p-4 text-lg flex justify-end items-start h-24" style="<?php echo card_banner_style($ev); ?>">
+               data-date="<?php echo $ev['date']; ?>"
+               data-allow-invites="<?php echo (isset($ev['allow_invites']) && $ev['allow_invites'] === false) ? '0' : '1'; ?>">
+            
+            <div class="p-4 text-lg flex justify-end items-start h-24" style="<?php echo card_banner_style($ev); ?>">
               <div class="relative z-10">
                 <button onclick="showPlanActions(event,this)" class="text-white hover:text-gray-200 px-1.5 py-0.5 rounded hover:bg-black/20 transition text-xl leading-none">⋮</button>
               </div>
             </div>
+            
             <div class="p-4 flex-1">
                 <h3 class="font-bold text-[#222] text-lg leading-tight mb-1 line-clamp-2"><?php echo h($ev['name'] ?? 'Untitled'); ?></h3>
                 <p class="text-sm text-gray-500 flex items-center gap-1 mt-1">
@@ -400,6 +403,7 @@ function card_banner_style($ev){
                   <?php echo h($ev['loc'] ?? 'No location'); ?>
                 </p>
             </div>
+            
             <div class="px-4 pb-4 flex items-center justify-between mt-auto border-t border-gray-50 pt-3">
               <div class="text-center leading-none">
                 <div class="text-[10px] text-gray-400 uppercase font-bold tracking-wider"><?php echo formatMonth($ev['dt']); ?></div>
@@ -1026,61 +1030,77 @@ function card_banner_style($ev){
   // ==========================================
   // 4. PLAN ACTIONS (Smart Title, PDF, Modals)
   // ==========================================
-  
-  // Show Action Menu
 window.showPlanActions = function(e, button) {
     e.stopPropagation();
     document.getElementById('headerMoreMenu')?.classList.add('hidden');
-    
     const modal = document.getElementById('planActionModal');
     modal.classList.add('hidden'); 
 
     const card = button.closest('[data-id]');
     if (!card) return;
 
-    // --- KEEP ALL YOUR DATA GRABBING ---
+    // DATA
     const id = card.getAttribute('data-id');
     const isOwner = card.getAttribute('data-owner') === '1';
-    const inviteCode = card.getAttribute('data-code') || ''; // IMPORTANT
+    const inviteCode = card.getAttribute('data-code') || '';
+    const isArchived = card.getAttribute('data-archived') === '1'; // Check status
     
-    const urlParams = new URLSearchParams(window.location.search);
-    const isArchivedTab = urlParams.has('archived');
+    const allowInvitesAttr = card.getAttribute('data-allow-invites');
+    const isInvitesAllowed = (allowInvitesAttr !== '0');
 
     let titleEl = card.querySelector('h3') || card.querySelector('span.font-semibold');
     const title = titleEl ? titleEl.textContent.trim() : 'Plan';
     const locEl = card.querySelector('p.text-sm'); 
     const location = locEl ? locEl.innerText.trim() : 'No location';
     const date = card.getAttribute('data-date') || 'No date';
-
-    // Store everything in context
+    
     window.__planActionContext = { id, title, location, date, inviteCode };
 
-    // --- KEEP YOUR BUTTON TOGGLING ---
+    // SHOW/HIDE BUTTONS (Owner vs Member)
     const ownerBtns = document.querySelectorAll('.owner-only');
     const memberBtns = document.querySelectorAll('.member-only');
     
     if (isOwner) {
         ownerBtns.forEach(el => el.classList.remove('hidden'));
         memberBtns.forEach(el => el.classList.add('hidden'));
+
+        // --- NEW LOGIC: TOGGLE ARCHIVE / UNARCHIVE BUTTONS ---
         const archiveBtn = document.getElementById('actionArchiveBtn');
         const unarchiveBtn = document.getElementById('actionUnarchiveBtn');
-        if (isArchivedTab) {
+
+        if (isArchived) {
+            // If plan is archived: Hide "Archive", Show "Unarchive"
             archiveBtn.classList.add('hidden');
             unarchiveBtn.classList.remove('hidden');
         } else {
+            // If plan is active: Show "Archive", Hide "Unarchive"
             archiveBtn.classList.remove('hidden');
             unarchiveBtn.classList.add('hidden');
         }
+
     } else {
         ownerBtns.forEach(el => el.classList.add('hidden'));
         memberBtns.forEach(el => el.classList.remove('hidden'));
     }
 
-    // --- POSITIONING (Updated for pop-right) ---
+    // INVITE BUTTON VISIBILITY
+    const inviteContainer = modal.querySelector('.has-submenu');
+    if (inviteContainer) {
+        if (isOwner) {
+             inviteContainer.classList.remove('hidden'); 
+        } else {
+            if (isInvitesAllowed) {
+                inviteContainer.classList.remove('hidden');
+            } else {
+                inviteContainer.classList.add('hidden');
+            }
+        }
+    }
+
+    // POSITION
     const rect = button.getBoundingClientRect();
     modal.style.top = (rect.bottom + 5) + 'px';
-    // Shift the menu further left (e.g., -200) so the pop-right doesn't hit the screen edge
-    modal.style.left = (rect.left - 200) + 'px'; 
+    modal.style.left = (rect.left - 180) + 'px'; 
     modal.classList.remove('hidden');
 };
 
@@ -1118,18 +1138,45 @@ window.copyInviteLink = function() {
         document.getElementById('planActionModal').classList.add('hidden');
     });
 };
-  // --- ADD LISTENER FOR UNARCHIVE ---
-  document.getElementById('actionUnarchiveBtn')?.addEventListener('click', async () => {
-      const { id, title } = window.__planActionContext;
-      if(!confirm(`Restore "${title}" to active plans?`)) return;
+  // --- UNARCHIVE PLAN (With Modal) ---
+  document.getElementById('actionUnarchiveBtn')?.addEventListener('click', () => {
+      // 1. Close Action Menu
+      document.getElementById('planActionModal').classList.add('hidden');
+
+      // 2. Setup Modal Elements
+      const modal = document.getElementById('actionConfirmModal');
+      const title = document.getElementById('actionConfirmTitle');
+      const msg = document.getElementById('actionConfirmMessage');
+      const okBtn = document.getElementById('actionConfirmOk');
+
+      // 3. Set Modal Content
+      if(title) title.textContent = "Unarchive Plan";
+      msg.textContent = `Restore "${window.__planActionContext.title}" to active plans?`;
+      
+      // 4. Configure Confirm Button
+      okBtn.textContent = "Unarchive";
+      okBtn.disabled = false;
+      okBtn.className = "flex-1 px-4 py-2 bg-[#f4b41a] text-[#222] rounded-xl font-bold hover:bg-[#e0a419]"; // Yellow style
+      okBtn.onclick = executeUnarchive;
+
+      // 5. Show Modal
+      modal.classList.remove('hidden');
+  });
+
+  // Helper: Execute Unarchive Logic
+  async function executeUnarchive() {
+      const btn = document.getElementById('actionConfirmOk');
+      btn.disabled = true; btn.textContent = "Restoring...";
+      
       try {
           const res = await fetch('/DINADRAWING/Backend/events/unarchive.php', {
               method: 'POST', headers: {'Content-Type': 'application/json'},
-              body: JSON.stringify({ id: id })
+              body: JSON.stringify({ id: window.__planActionContext.id })
           });
           if((await res.json()).success) location.reload();
-      } catch(e) { alert("Network Error"); }
-  });
+          else { alert("Failed to restore"); btn.disabled = false; btn.textContent = "Unarchive"; }
+      } catch(e) { alert("Network Error"); btn.disabled = false; btn.textContent = "Unarchive"; }
+  }
 
 
 // --- DELETE PLAN (Opens Centered Modal) ---
@@ -1175,17 +1222,45 @@ window.copyInviteLink = function() {
   });
 
   // --- ARCHIVE PLAN ---
-  document.getElementById('actionArchiveBtn')?.addEventListener('click', async () => {
-      const { id, title } = window.__planActionContext;
-      if(!confirm(`Archive "${title}"?`)) return;
+  // --- ARCHIVE PLAN (With Modal) ---
+  document.getElementById('actionArchiveBtn')?.addEventListener('click', () => {
+      // 1. Close Action Menu
+      document.getElementById('planActionModal').classList.add('hidden');
+
+      // 2. Setup Modal Elements
+      const modal = document.getElementById('actionConfirmModal');
+      const title = document.getElementById('actionConfirmTitle');
+      const msg = document.getElementById('actionConfirmMessage');
+      const okBtn = document.getElementById('actionConfirmOk');
+
+      // 3. Set Modal Content
+      if(title) title.textContent = "Archive Plan";
+      msg.textContent = `Are you sure you want to archive "${window.__planActionContext.title}"?`;
+      
+      // 4. Configure Confirm Button
+      okBtn.textContent = "Archive";
+      okBtn.disabled = false;
+      okBtn.className = "flex-1 px-4 py-2 bg-[#f4b41a] text-[#222] rounded-xl font-bold hover:bg-[#e0a419]"; // Gawing Yellow/Black style
+      okBtn.onclick = executeArchive;
+
+      // 5. Show Modal
+      modal.classList.remove('hidden');
+  });
+
+  // Helper: Execute Archive Logic
+  async function executeArchive() {
+      const btn = document.getElementById('actionConfirmOk');
+      btn.disabled = true; btn.textContent = "Archiving...";
+      
       try {
           const res = await fetch('/DINADRAWING/Backend/events/archive.php', {
               method: 'POST', headers: {'Content-Type': 'application/json'},
-              body: JSON.stringify({ id: id })
+              body: JSON.stringify({ id: window.__planActionContext.id })
           });
           if((await res.json()).success) location.reload();
-      } catch(e) { alert("Network Error"); }
-  });
+          else { alert("Failed to archive"); btn.disabled = false; btn.textContent = "Archive"; }
+      } catch(e) { alert("Network Error"); btn.disabled = false; btn.textContent = "Archive"; }
+  }
 
   // --- DOWNLOAD PDF ---
   document.getElementById('actionDownloadBtn')?.addEventListener('click', () => {
@@ -1261,27 +1336,85 @@ window.copyInviteLink = function() {
   };
 
   // --- TRASH RESTORE/DELETE ---
-  window.restorePlan = async function(id) {
-    if(!confirm("Restore plan?")) return;
-    try {
-        const res = await fetch('/DINADRAWING/Backend/events/restore.php', {
-            method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ id: id })
-        });
-        if((await res.json()).success) location.reload();
-    } catch(e) { console.error(e); }
+  // --- TRASH RESTORE (With Modal) ---
+  window.restorePlan = function(id) {
+      // 1. Save ID to temporary global variable
+      window.__trashActionId = id;
+
+      // 2. Setup Modal Elements
+      const modal = document.getElementById('actionConfirmModal');
+      const title = document.getElementById('actionConfirmTitle');
+      const msg = document.getElementById('actionConfirmMessage');
+      const okBtn = document.getElementById('actionConfirmOk');
+
+      // 3. Set Content
+      if(title) title.textContent = "Restore Plan";
+      if(msg) msg.textContent = "Do you want to restore this plan to your active list?";
+
+      // 4. Configure Button (GREEN for Restore)
+      okBtn.textContent = "Restore";
+      okBtn.disabled = false;
+      okBtn.className = "flex-1 px-4 py-2 bg-green-600 text-white rounded-xl font-bold hover:bg-green-700";
+      okBtn.onclick = executeRestore;
+
+      // 5. Show Modal
+      modal.classList.remove('hidden');
   };
 
-  window.hardDeletePlan = async function(id) {
-    if(!confirm("⚠️ Permanently delete?")) return;
-    try {
-        const res = await fetch('/DINADRAWING/Backend/events/hard_delete.php', {
-            method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ id: id })
-        });
-        if((await res.json()).success) location.reload();
-    } catch(e) { console.error(e); }
+  // Helper: Execute Restore
+  async function executeRestore() {
+      const btn = document.getElementById('actionConfirmOk');
+      btn.disabled = true; btn.textContent = "Restoring...";
+      
+      try {
+          const res = await fetch('/DINADRAWING/Backend/events/restore.php', {
+              method: 'POST', headers: {'Content-Type': 'application/json'}, 
+              body: JSON.stringify({ id: window.__trashActionId })
+          });
+          if((await res.json()).success) location.reload();
+          else { alert("Failed to restore"); btn.disabled = false; btn.textContent = "Restore"; }
+      } catch(e) { alert("Network Error"); btn.disabled = false; btn.textContent = "Restore"; }
+  }
+
+  // --- TRASH PERMANENT DELETE (With Modal) ---
+  window.hardDeletePlan = function(id) {
+      window.__trashActionId = id;
+
+      const modal = document.getElementById('actionConfirmModal');
+      const title = document.getElementById('actionConfirmTitle');
+      const msg = document.getElementById('actionConfirmMessage');
+      const okBtn = document.getElementById('actionConfirmOk');
+
+      if(title) title.textContent = "Delete Permanently";
+      if(msg) msg.textContent = "⚠️ This action cannot be undone. Delete forever?";
+
+      // Configure Button (RED for Danger)
+      okBtn.textContent = "Delete Forever";
+      okBtn.disabled = false;
+      okBtn.className = "flex-1 px-4 py-2 bg-red-600 text-white rounded-xl font-bold hover:bg-red-700";
+      okBtn.onclick = executeHardDelete;
+
+      modal.classList.remove('hidden');
   };
 
-  // ==========================================
+  // Helper: Execute Hard Delete
+  async function executeHardDelete() {
+      const btn = document.getElementById('actionConfirmOk');
+      btn.disabled = true; btn.textContent = "Deleting...";
+      
+      try {
+          const res = await fetch('/DINADRAWING/Backend/events/hard_delete.php', {
+              method: 'POST', headers: {'Content-Type': 'application/json'}, 
+              body: JSON.stringify({ id: window.__trashActionId })
+          });
+          if((await res.json()).success) location.reload();
+          else { alert("Failed to delete"); btn.disabled = false; btn.textContent = "Delete Forever"; }
+      } catch(e) { alert("Network Error"); btn.disabled = false; btn.textContent = "Delete Forever"; }
+  }
+
+  
+
+ // ==========================================
   // 5. CREATE & JOIN & MAPS
   // ==========================================
   function toggleModal(id, show) {
@@ -1290,7 +1423,37 @@ window.copyInviteLink = function() {
       else { el.classList.add('hidden'); document.body.classList.remove('modal-open'); }
   }
 
-  document.getElementById("openCreateEvent")?.addEventListener("click", () => toggleModal('createEventModal', true));
+  // --- REPLACED BLOCK START ---
+  document.getElementById("openCreateEvent")?.addEventListener("click", () => {
+      // 1. Auto-fill Date & Time
+      const now = new Date();
+      const yyyy = now.getFullYear();
+      const mm = String(now.getMonth() + 1).padStart(2, '0');
+      const dd = String(now.getDate()).padStart(2, '0');
+      const hh = String(now.getHours()).padStart(2, '0');
+      const min = String(now.getMinutes()).padStart(2, '0');
+
+      const dateInput = document.getElementById("eventDate");
+      const timeInput = document.getElementById("eventTime");
+
+      if(dateInput) dateInput.value = `${yyyy}-${mm}-${dd}`;
+      if(timeInput) timeInput.value = `${hh}:${min}`;
+
+      // 2. Load Maps logic
+      if (!window.google) {
+          const s = document.createElement('script');
+          // Note: Make sure API_KEY variable is defined in your global scope!
+          s.src = `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(API_KEY)}&libraries=places`; 
+          s.async = true; s.defer = true;
+          s.onload = () => { initMapOnce(); };
+          document.head.appendChild(s);
+      } else if(!map) { initMapOnce(); }
+
+      // 3. Open Modal
+      toggleModal('createEventModal', true);
+  });
+  // --- REPLACED BLOCK END ---
+
   document.getElementById("closeCreateEvent")?.addEventListener("click", () => toggleModal('createEventModal', false));
   document.getElementById("cancelCreateEvent")?.addEventListener("click", () => toggleModal('createEventModal', false));
 
@@ -1365,15 +1528,6 @@ window.copyInviteLink = function() {
         });
     });
   }
-  document.getElementById("openCreateEvent")?.addEventListener("click", () => {
-    if (!window.google) {
-        const s = document.createElement('script');
-        s.src = `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(API_KEY)}&libraries=places`;
-        s.async = true; s.defer = true;
-        s.onload = () => { initMapOnce(); };
-        document.head.appendChild(s);
-    } else if(!map) { initMapOnce(); }
-  });
 
 // ==========================================
   // 6. PAST EVENT CHECKER (Fixed: Remembers your choice)
@@ -1467,6 +1621,52 @@ window.copyInviteLink = function() {
       } catch(e) { alert("Network Error"); }
   };
 
+function renderNotificationItem(n) {
+    const bgClass = n.is_read ? 'bg-white' : 'bg-blue-50/40';
+    return `
+    <li class="flex items-start gap-3 p-3 border-b border-gray-50 last:border-0 hover:bg-gray-50 transition ${bgClass} cursor-pointer" onclick="window.location.href='plan.php?id=${n.event_id}'">
+      <img src="${n.actor_avatar}" class="w-9 h-9 rounded-full object-cover border border-gray-200 shrink-0">
+      <div class="flex-1 text-sm leading-snug text-gray-600">
+        <p>
+           <span class="font-bold text-gray-900">${n.actor_name}</span> 
+           ${n.action_text} 
+           <span class="font-bold text-gray-900">${n.event_name}</span>.
+        </p>
+        <span class="text-xs text-gray-400 mt-0.5 block">${n.time_ago}</span>
+      </div>
+    </li>
+    `;
+}
+
+
+
+window.handleNotificationClick = async function(id, link) {
+    try {
+        // I-mark as read sa backend
+        await fetch('/DINADRAWING/Backend/notifications/mark_read.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: id })
+        });
+        
+        // Pagkatapos, pumunta sa link (kung mayroon)
+        if (link) {
+            window.location.href = link;
+        } else {
+            location.reload();
+        }
+    } catch (e) {
+        console.error("Click error:", e);
+        if (link) window.location.href = link;
+    }
+};
+
+// Idagdag ito para tumakbo pagka-load ng page
+document.addEventListener('DOMContentLoaded', () => {
+    if (typeof fetchNotifications === 'function') {
+        fetchNotifications();
+    }
+});
 </script>
 </body>
 </html>

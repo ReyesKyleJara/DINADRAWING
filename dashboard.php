@@ -234,20 +234,19 @@ function formatRecentDate($d) { return $d ? date('M d, Y', strtotime($d)) : 'No 
 
     /* Hamburger Menu */
    /* Gemini-style Hamburger Menu */
-    .hamburger { 
-        display: flex; 
-        align-items: center; 
-        justify-content: center; 
-        width: 48px; 
-        height: 48px; 
-        border-radius: 50%; /* Makes the hover effect a perfect circle */
-        cursor: pointer; 
-        transition: background-color 0.2s ease;
-        border: none;
-        background: transparent;
-        color: #444746; /* Standard Google Icon Grey */
-        padding: 0;
-    }
+    /* Hamburger Menu matching My Plans */
+.hamburger { 
+  display: flex; 
+  flex-direction: column; 
+  gap: 4px; 
+  cursor: pointer; 
+  padding: 8px; 
+  border-radius: 8px; 
+  transition: background 0.2s; 
+}
+.hamburger:hover { background: rgba(244, 180, 26, 0.1); }
+.hamburger span { width: 24px; height: 3px; background: #222; border-radius: 2px; transition: all 0.3s; }
+body.dark-mode .hamburger span { background: #e0e0e0; }
     
     /* Circular hover effect */
     .hamburger:hover { 
@@ -311,6 +310,7 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
     <h2 class="text-xl font-bold text-[#222]">DiNaDrawing</h2>
   </div>
 
+  
   <nav>
     <ul class="space-y-5">
       <li><a href="dashboard.html" class="block px-4 py-2 rounded-lg font-medium bg-[#222] text-white hover:bg-[#111] transition">Home</a></li>
@@ -326,10 +326,10 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
 <div class="page-header flex justify-between items-center border-b-2 border-gray-200 pb-4 mb-6 fixed top-0 left-0 w-full bg-[#fffaf2] z-40 px-12 py-10">
   <div class="flex items-center gap-4">
     <button id="hamburgerBtn" class="hamburger">
-      <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24" fill="currentColor">
-        <path d="M120-240v-80h720v80H120Zm0-200v-80h720v80H120Zm0-200v-80h720v80H120Z"/>
-      </svg>
-    </button>
+  <span></span>
+  <span></span>
+  <span></span>
+</button>
 
     <div class="flex flex-col">
       <h1 class="text-3xl font-bold">Welcome, <span id="userDisplayName">...</span>!</h1>
@@ -348,17 +348,34 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
       <span class="md:hidden">Join</span>
     </button>
 
-    <div class="flex items-center gap-4 relative">
-      <div>
-        <button id="notificationBtn"
-          class="relative w-9 h-9 flex items-center justify-center rounded-full bg-white border border-[#222] hover:bg-[#222] hover:text-white transition">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3c0 .386-.146.735-.395 1.002L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-          </svg>
-          <span id="notificationDot" class="absolute top-1 right-1 w-2.5 h-2.5 bg-[#f4b41a] rounded-full"></span>
-        </button>
-      </div>
+    <div>
+  <button id="notificationBtn" class="relative w-9 h-9 flex items-center justify-center rounded-full bg-white border border-[#222] hover:bg-[#222] hover:text-white transition">
+    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3c0 .386-.146.735-.395 1.002L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+    </svg>
+    <span id="notificationDot" class="absolute top-1 right-1 w-2.5 h-2.5 bg-[#f4b41a] rounded-full hidden"></span>
+  </button>
+
+  <div id="notificationPanel" class="absolute top-full right-12 mt-3 w-80 sm:w-96 bg-white shadow-xl rounded-2xl border border-gray-100 hidden z-50 overflow-hidden">
+    
+    <div class="px-5 py-4 border-b border-gray-100 flex justify-between items-center bg-white">
+      <h4 class="font-bold text-lg text-[#222]">Notifications</h4>
+      <button onclick="markAllRead()" class="text-sm font-medium text-blue-600 hover:text-blue-700 hover:underline">
+        Mark all as read
+      </button>
+    </div>
+
+    <ul id="notificationList" class="max-h-[60vh] overflow-y-auto">
+      <li class="p-6 text-center text-gray-400 text-sm">Loading...</li>
+    </ul>
+
+    <div class="border-t border-gray-100 p-3 bg-gray-50/50 text-center">
+      <button onclick="clearAllNotifications()" class="text-sm font-medium text-blue-600 hover:underline">
+    Clear All Notifications
+</button>
+    </div>
+  </div>
+</div>
 
       <div class="relative">
         <button id="profileBtn" class="flex items-center gap-2 bg-[#f4b41a]/30 border border-[#222] rounded-full px-3 py-1.5 hover:bg-[#f4b41a]/50 transition">
@@ -380,31 +397,7 @@ class="fixed top-4 left-0 h-[calc(100vh-1rem)] w-64
         </div>
       </div>
 
-      <div id="notificationPanel"
-          class="absolute top-full right-0 mt-2 w-[90vw] md:w-60 lg:w-80 max-w-[28rem]
-                bg-white shadow-lg rounded-2xl border border-gray-200 hidden z-50">
-        <div class="p-4 border-b border-gray-200 flex justify-between items-center">
-          <h4 class="font-semibold">Notifications</h4>
-          <a href="#" id="clearNotificationsTop" class="text-sm text-[#2563eb] hover:underline">Mark all as read</a>
-        </div>
-        <ul id="notificationList" class="p-4 space-y-3 max-h-64 overflow-y-auto">
-          <li class="flex items-start gap-3 bg-white hover:bg-gray-50 p-2 rounded-lg cursor-pointer">
-            <img src="Assets/Profile Icon/profile2.png" onerror="this.src='Assets/profile2.png'" alt="User" class="w-10 h-10 rounded-full border border-gray-200">
-            <p class="text-sm"><strong>Kyle</strong> added 'Rice' to Assigned Tasks in <strong>Family Reunion.</strong></p>
-          </li>
-          <li class="flex items-start gap-3 bg-white hover:bg-gray-50 p-2 rounded-lg cursor-pointer">
-            <img src="Assets/Profile Icon/profile4.png" alt="User" class="w-10 h-10 rounded-full border border-gray-200">
-            <p class="text-sm"><strong>Ken</strong> voted for <strong>Oct 16</strong> as the final date for <strong>Birthday Trip.</strong></p>
-          </li>
-          <li class="flex items-start gap-3 bg-white hover:bg-gray-50 p-2 rounded-lg cursor-pointer">
-            <img src="Assets/Profile Icon/profile3.png" alt="User" class="w-10 h-10 rounded-full border border-gray-200">
-            <p class="text-sm"><strong>Andrea</strong> added 'Japan' to Poll in <strong>Birthday Trip.</strong></p>
-          </li>
-        </ul>
-        <div class="border-t border-gray-200 p-3 text-center">
-          <a href="#" id="clearNotificationsBottom" class="text-sm text-[#2563eb] hover:underline">Clear All Notifications</a>
-        </div>
-      </div>
+      
     </div>
   </div>
 </div>
@@ -723,6 +716,15 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    // Initial Unread Notif Check
+    fetch('/DINADRAWING/Backend/events/get_notifications.php')
+    .then(r => r.json())
+    .then(data => {
+        if(data.success && data.has_unread) {
+            document.getElementById('notificationDot')?.classList.remove('hidden');
+        }
+    });
+
     // Banner Carousel
     const bannerCarousel = document.getElementById('bannerCarousel');
     let currentIndex = 0; const totalBanners = 3;
@@ -737,9 +739,33 @@ document.addEventListener('DOMContentLoaded', function() {
 // ==========================================
 
 // Open/Close Modals
+// FIND THIS BLOCK IN dashboard.php (Around line 690) AND REPLACE IT:
+
 document.getElementById("openCreateEvent").addEventListener("click", () => {
+    // 1. GET CURRENT DATE/TIME (Local Time)
+    const now = new Date();
+    
+    // Format Date: YYYY-MM-DD
+    const yyyy = now.getFullYear();
+    const mm = String(now.getMonth() + 1).padStart(2, '0');
+    const dd = String(now.getDate()).padStart(2, '0');
+    
+    // Format Time: HH:MM
+    const hh = String(now.getHours()).padStart(2, '0');
+    const min = String(now.getMinutes()).padStart(2, '0');
+
+    // 2. SET THE VALUES
+    // This pre-fills the inputs so they are ready to edit immediately
+    const dateInput = document.getElementById("eventDate");
+    const timeInput = document.getElementById("eventTime");
+    
+    if(dateInput) dateInput.value = `${yyyy}-${mm}-${dd}`;
+    if(timeInput) timeInput.value = `${hh}:${min}`;
+
+    // 3. OPEN MODAL
     toggleModal("createEventModal", true);
-    // Load map only when modal opens
+
+    // 4. MAP LOGIC (Keep existing map code)
     loadGoogleMaps().then(() => { 
         if(!map) initMapOnce(); 
         setTimeout(() => { 
@@ -750,14 +776,18 @@ document.getElementById("openCreateEvent").addEventListener("click", () => {
 document.getElementById("closeCreateEvent").addEventListener("click", () => toggleModal("createEventModal", false));
 document.getElementById("cancelCreateEvent").addEventListener("click", () => toggleModal("createEventModal", false));
 
-// Save Action
 // ==========================================
 // CREATE PLAN LOGIC (DB + AUTO GOOGLE SYNC)
 // ==========================================
-
 document.getElementById("saveCreateEvent").addEventListener("click", async () => {
     const name = document.getElementById("eventName").value.trim();
-    if (!name) { alert("Plan Name required"); return; }
+    
+    // Check if name is empty (Silent check)
+    if (!name) { 
+        const nameInput = document.getElementById("eventName");
+        nameInput.style.borderColor = "red"; // Visual cue instead of alert
+        return; 
+    }
     
     // 1. Prepare Data
     const eventData = {
@@ -771,21 +801,20 @@ document.getElementById("saveCreateEvent").addEventListener("click", async () =>
     // 2. Save to YOUR Database (DiNaDrawing)
     try {
         const res = await fetch('/DINADRAWING/Backend/events/create.php', {
-            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            method: 'POST', 
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(eventData)
         });
         const result = await res.json();
 
         if (result.success) {
-            // ✅ SUCCESS SA DB!
+            // ✅ SUCCESS SA DATABASE
             
             // 3. TRY AUTO-SYNC TO GOOGLE (Silent)
-            // Che-check kung may permission tayo kay Google. Kung meron, save agad.
-            if (gapiInited && gapi.client.getToken() && eventData.date && eventData.time) {
+            if (typeof gapiInited !== 'undefined' && gapiInited && gapi.client.getToken() && eventData.date && eventData.time) {
                 try {
-                    console.log("Syncing to Google Calendar...");
                     const startDateTime = new Date(`${eventData.date}T${eventData.time}:00`);
-                    const endDateTime = new Date(startDateTime.getTime() + (60 * 60 * 1000)); // Default 1 hour duration
+                    const endDateTime = new Date(startDateTime.getTime() + (60 * 60 * 1000)); 
 
                     await gapi.client.calendar.events.insert({
                         'calendarId': 'primary',
@@ -797,24 +826,20 @@ document.getElementById("saveCreateEvent").addEventListener("click", async () =>
                             'end': { 'dateTime': endDateTime.toISOString() }
                         }
                     });
-                    alert("Plan created & synced to Google Calendar!");
+                    console.log("Synced to Google Calendar successfully.");
                 } catch (googleErr) {
                     console.error("Google Sync Error:", googleErr);
-                    alert("Plan saved to App, but Google Sync failed (check console).");
                 }
-            } else {
-                // Kung hindi naka-login sa Google, save lang sa App. No error.
-                alert("Plan created successfully!");
             }
 
-            // Redirect to the new plan
+            // 4. DIRECT REDIRECT (No more success alerts)
             window.location.href = `plan.php?id=${result.id}`;
 
         } else {
-            alert("Failed to save: " + (result.error || "Unknown Error"));
+            console.error("Failed to save:", result.error || "Unknown Error");
         }
     } catch (e) { 
-        alert("Network Error"); console.error(e); 
+        console.error("Network Error:", e);
     }
 });
 
@@ -1070,46 +1095,115 @@ calendarViewBtn.addEventListener("click", () => {
     updateCalendar(); // Refresh grid
 });
 
-// Notifications
+// ==========================================
+// NOTIFICATIONS LOGIC (MATCHING MYPLANS.PHP)
+// ==========================================
+
 const notificationBtn = document.getElementById("notificationBtn");
 const notificationPanel = document.getElementById("notificationPanel");
 const notificationDot = document.getElementById("notificationDot");
-const profileBtn = document.getElementById('profileBtn');
-const profileDropdown = document.getElementById('profileDropdown');
+const notificationList = document.getElementById("notificationList");
 
-notificationBtn?.addEventListener("click", (e) => { 
-    e.stopPropagation(); document.getElementById('profileDropdown')?.classList.add('hidden'); 
-    notificationPanel?.classList.toggle("hidden"); 
-    if (!notificationPanel?.classList.contains("hidden")) { loadNotifications(); } 
-});
-profileBtn?.addEventListener('click', (e) => { 
-    e.stopPropagation(); notificationPanel?.classList.add('hidden'); 
-    profileDropdown?.classList.toggle('hidden'); 
-});
-document.addEventListener('click', (e) => {
-    if(!profileBtn?.contains(e.target) && !profileDropdown?.contains(e.target)) profileDropdown?.classList.add('hidden');
-    if(!notificationBtn?.contains(e.target) && !notificationPanel?.contains(e.target)) notificationPanel?.classList.add('hidden');
+// 1. Toggle Panel
+notificationBtn?.addEventListener("click", (e) => {
+    e.stopPropagation();
+    // Close profile if open
+    document.getElementById('profileDropdown')?.classList.add('hidden'); 
+    
+    notificationPanel?.classList.toggle("hidden");
+    
+    // Load data only if opening
+    if (notificationPanel && !notificationPanel.classList.contains("hidden")) {
+        loadNotifications();
+    }
 });
 
-function loadNotifications() {
-    fetch('/DINADRAWING/Backend/events/get_notifications.php')
-        .then(r => r.json())
-        .then(data => {
-            const list = document.getElementById('notificationList');
-            if(data.success && data.notifications.length > 0) {
-                list.innerHTML = data.notifications.map(n => `
-                <li class="p-3 border-b border-gray-50 text-sm hover:bg-gray-50">
-                    <span class="font-bold">${n.actor_name}</span> ${n.action_text} <span class="font-bold">${n.event_name}</span>
-                    <div class="text-xs text-gray-400 mt-1">${n.time_ago}</div>
-                </li>`).join('');
-                if(data.notifications.some(n => !n.is_read)) document.getElementById('notificationDot')?.classList.remove('hidden');
-            } else {
-                list.innerHTML = '<li class="p-4 text-center text-gray-400 text-sm">No new notifications.</li>';
-                document.getElementById('notificationDot')?.classList.add('hidden');
-            }
-        }).catch(e => console.error(e));
+// 2. Fetch & Render
+async function loadNotifications() {
+    try {
+        const res = await fetch('/DINADRAWING/Backend/events/get_notifications.php?t=' + new Date().getTime());
+        const data = await res.json();
+        
+        if (data.success && data.notifications.length > 0) {
+            // Render List
+            if(notificationList) notificationList.innerHTML = data.notifications.map(n => renderNotificationItem(n)).join('');
+            
+            // Handle Red Dot
+            const hasUnread = data.notifications.some(n => !n.is_read);
+            if (hasUnread && notificationDot) notificationDot.classList.remove('hidden');
+            else if (notificationDot) notificationDot.classList.add('hidden');
+
+        } else {
+            if(notificationList) notificationList.innerHTML = `<li class="p-6 text-center text-gray-500 text-sm">No new notifications.</li>`;
+            if (notificationDot) notificationDot.classList.add('hidden');
+        }
+    } catch (e) { console.error("Notification Error:", e); }
 }
-window.markAllRead = function() { fetch('/DINADRAWING/Backend/events/mark_read.php').then(() => { loadNotifications(); document.getElementById('notificationDot')?.classList.add('hidden'); }); };
+
+function renderNotificationItem(n) {
+    // Exact styling from myplans
+    const bgClass = n.is_read ? 'bg-white' : 'bg-blue-50/40';
+    return `
+    <li class="flex items-start gap-3 p-3 border-b border-gray-50 last:border-0 hover:bg-gray-50 transition ${bgClass} cursor-pointer" onclick="window.location.href='plan.php?id=${n.event_id}'">
+      <img src="${n.actor_avatar}" class="w-9 h-9 rounded-full object-cover border border-gray-200 shrink-0">
+      <div class="flex-1 text-sm leading-snug text-gray-600">
+        <p>
+           <span class="font-bold text-gray-900">${n.actor_name}</span> 
+           ${n.action_text} 
+           <span class="font-bold text-gray-900">${n.event_name}</span>.
+        </p>
+        <span class="text-xs text-gray-400 mt-0.5 block">${n.time_ago}</span>
+      </div>
+    </li>
+    `;
+}
+
+// 3. Mark All Read Function (Global)
+window.markAllRead = async function() {
+    await fetch('/DINADRAWING/Backend/events/mark_read.php');
+    loadNotifications();
+};
+
+// 4. Auto-load red dot on startup
+document.addEventListener('DOMContentLoaded', loadNotifications);
+
+// 5. Click Outside to Close (Ensure this exists in your click listener)
+document.addEventListener('click', (e) => {
+    if (notificationPanel && !notificationPanel.classList.contains('hidden') && !notificationPanel.contains(e.target) && !notificationBtn.contains(e.target)) {
+        notificationPanel.classList.add('hidden');
+    }
+});
+
+// Function to delete notifications from the database
+window.clearAllNotifications = async function() {
+    if(!confirm("Delete all notifications permanently?")) return;
+
+    try {
+        // Fetch the PHP file we just updated
+        const res = await fetch('/DINADRAWING/Backend/events/clear_notifications.php');
+        
+        // Check if the file was found (404 means the file path is wrong)
+        if (!res.ok) {
+            alert("Error: Backend file not found. Check your file path!");
+            return;
+        }
+
+        const data = await res.json();
+
+        if (data.success) {
+            // Update UI immediately
+            const list = document.getElementById('notificationList');
+            if(list) list.innerHTML = '<li class="p-6 text-center text-gray-400 text-sm">No new notifications</li>';
+            document.getElementById('notificationDot')?.classList.add('hidden');
+        } else {
+            // Show the specific error from the PHP file
+            alert("Failed: " + (data.error || "Unknown error"));
+        }
+    } catch(e) {
+        console.error("Clear Error:", e);
+        alert("Network error. Check console for details.");
+    }
+};
 
 // About Us & Logout
 document.getElementById("aboutUsBtn")?.addEventListener("click", (e) => { e.preventDefault(); toggleModal("aboutUsModal", true); document.getElementById('profileDropdown').classList.add('hidden'); });
