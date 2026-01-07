@@ -142,26 +142,33 @@ try {
         }
 
         // --- TASK DATA ---
-        if ($post['post_type'] === 'task') {
-            $taskStmt = $pdo->prepare("SELECT id, title, deadline, allow_user_add FROM tasks WHERE post_id = ?");
-            $taskStmt->execute([$p['id']]);
-            $taskInfo = $taskStmt->fetch(PDO::FETCH_ASSOC);
+if ($post['post_type'] === 'task') {
+    // Make sure the table name 'tasks' is correct in your DB
+    $taskStmt = $pdo->prepare("SELECT id, title, deadline, allow_user_add FROM tasks WHERE post_id = ?");
+    $taskStmt->execute([$p['id']]);
+    $taskInfo = $taskStmt->fetch(PDO::FETCH_ASSOC);
 
-            if ($taskInfo) {
-                $itemStmt = $pdo->prepare("SELECT id, item_text, assigned_to, is_completed FROM task_items WHERE task_id = ? ORDER BY id ASC");
-                $itemStmt->execute([$taskInfo['id']]);
-                
-                $isAllowed = ($taskInfo['allow_user_add'] === true || $taskInfo['allow_user_add'] === 't' || $taskInfo['allow_user_add'] == 1);
+    if ($taskInfo) {
+        // Fetch items and ensure we handle the task_id foreign key correctly
+        $itemStmt = $pdo->prepare("SELECT id, item_text, assigned_to, is_completed FROM task_items WHERE task_id = ? ORDER BY id ASC");
+        $itemStmt->execute([$taskInfo['id']]);
+        $items = $itemStmt->fetchAll(PDO::FETCH_ASSOC);
 
-                $post['task_data'] = [
-                    'id' => $taskInfo['id'],
-                    'title' => htmlspecialchars($taskInfo['title']),
-                    'deadline' => $taskInfo['deadline'],
-                    'allow_user_add' => $isAllowed,
-                    'items' => $itemStmt->fetchAll(PDO::FETCH_ASSOC)
-                ];
-            }
-        }
+        // Normalize boolean for allow_user_add
+        $isAllowed = ($taskInfo['allow_user_add'] === true || $taskInfo['allow_user_add'] === 't' || $taskInfo['allow_user_add'] == 1);
+
+        $post['task_data'] = [
+            'id' => $taskInfo['id'],
+            'title' => htmlspecialchars($taskInfo['title']),
+            'deadline' => $taskInfo['deadline'],
+            'allow_user_add' => $isAllowed,
+            'items' => $items // This must be an array, even if empty
+        ];
+    } else {
+        // Prevent frontend crash if post_type is task but no row exists in tasks table
+        $post['task_data'] = null; 
+    }
+}
 
         $formattedPosts[] = $post;
     }

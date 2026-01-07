@@ -1778,15 +1778,26 @@ function toggleCustomDate() {
 function getCalculatedDeadline() {
     const s = document.getElementById('taskDeadlineSelect');
     if(!s || !s.value) return null;
+    
     const d = new Date();
-    if (s.value === 'tomorrow') d.setDate(d.getDate() + 1);
-    else if (s.value === 'next_week') d.setDate(d.getDate() + 7);
-    else if (s.value === 'custom') {
+    if (s.value === 'tomorrow') {
+        d.setDate(d.getDate() + 1);
+    } else if (s.value === 'next_week') {
+        d.setDate(d.getDate() + 7);
+    } else if (s.value === 'custom') {
         const v = document.getElementById('taskCustomDate')?.value;
+        // Postgres expects 'YYYY-MM-DD HH:MM:SS'
         return v ? v.replace('T', ' ') + ':00' : null;
     }
-    const offset = d.getTimezoneOffset() * 60000;
-    return new Date(d.getTime() - offset).toISOString().slice(0, 19).replace('T', ' ');
+    
+    // Formats the Date object to a Postgres-friendly string 'YYYY-MM-DD HH:MM:SS'
+    const pad = (n) => n < 10 ? '0' + n : n;
+    return d.getFullYear() + '-' + 
+           pad(d.getMonth() + 1) + '-' + 
+           pad(d.getDate()) + ' ' + 
+           pad(d.getHours()) + ':' + 
+           pad(d.getMinutes()) + ':' + 
+           pad(d.getSeconds());
 }
 
 
@@ -1840,12 +1851,18 @@ if(btnSaveTask) {
 // ==========================================
 // 3. GENERATE FEED HTML (The Missing Part!)
 // ==========================================
+// ==========================================
+// 3. GENERATE FEED HTML FOR TASKS
+// ==========================================
 function generateTaskHTML(taskData) {
     if (!taskData || !taskData.items) return '';
 
-    // 1. GENERATE LIST ITEMS (Using uniform gap, no individual margins)
+    // Helper: Handles 't', 1, or true from the database consistently
+    const isTrue = (val) => String(val) === 'true' || String(val) === 't' || String(val) === '1';
+
+    // 1. GENERATE LIST ITEMS
     let itemsHTML = taskData.items.map(item => {
-        const isDone = (item.is_completed == 1 || item.is_completed === 't' || item.is_completed === true);
+        const isDone = isTrue(item.is_completed);
         const assignee = item.assigned_to ? item.assigned_to.trim() : '';
         
         const textStyle = isDone ? "text-gray-400 line-through" : "text-gray-800";
@@ -1892,9 +1909,10 @@ function generateTaskHTML(taskData) {
         </span>`;
     }
 
-    // 3. ADD NEW TASK OPTION (Sized to match task rows and placed in the gap grid)
+    // 3. ADD NEW TASK OPTION
     let addTaskHTML = '';
-    if (taskData.allow_user_add == 1 || taskData.allow_user_add === true || taskData.allow_user_add === 't') {
+    // Use the isTrue helper to check the flag
+    if (isTrue(taskData.allow_user_add)) {
         addTaskHTML = `
         <div class="relative flex items-center bg-white border border-gray-200 p-1 rounded-lg transition hover:shadow-sm">
             <input type="text" id="new-task-input-${taskData.id}" placeholder="+ Add a new task..." 
@@ -1904,7 +1922,6 @@ function generateTaskHTML(taskData) {
         </div>`;
     }
 
-    // 4. FINAL RETURN (Using flex-col and gap-2 for perfect even spacing)
     return `
     <div class="bg-gray-50 rounded-xl p-3 border border-gray-200 mb-2" id="task-container-${taskData.id}">
         <div class="relative flex items-center justify-center mb-4 min-h-[24px]">
@@ -1924,30 +1941,63 @@ function generateTaskHTML(taskData) {
     </div>`;
 }
 
-
 // ==========================================
 // 4. GLOBAL ACTIONS (Volunteer, Delete, Toggle)
 // ==========================================
 window.claimTask = async function(itemId, btn) {
-    if(event) { event.preventDefault(); event.stopPropagation(); }
-    const original = btn.innerHTML; btn.innerHTML = "Saving..."; btn.disabled = true;
+    // Fixed: Capture event safely
+    if (window.event) { window.event.preventDefault(); window.event.stopPropagation(); }
+    
+    const original = btn.innerHTML; 
+    btn.innerHTML = "Saving..."; 
+    btn.disabled = true;
+    
     try {
-        const res = await fetch('/DINADRAWING/Backend/events/claim_task.php', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({item_id:itemId}) });
+        const res = await fetch('/DINADRAWING/Backend/events/claim_task.php', { 
+            method:'POST', 
+            headers:{'Content-Type':'application/json'}, 
+            body:JSON.stringify({item_id:itemId}) 
+        });
         const data = await res.json();
-        if(data.success) { if(typeof showToast==='function') showToast("You volunteered!"); if(typeof loadEventPosts==='function') loadEventPosts(); }
-        else { alert(data.error); btn.innerHTML = original; btn.disabled = false; }
-    } catch(e){ console.error(e); btn.innerHTML = original; btn.disabled = false; }
+        if(data.success) { 
+            if(typeof showToast==='function') showToast("You volunteered!"); 
+            loadEventPosts(); 
+        } else { 
+            alert(data.error); 
+            btn.innerHTML = original; 
+            btn.disabled = false; 
+        }
+    } catch(e){ 
+        console.error(e); 
+        btn.innerHTML = original; 
+        btn.disabled = false; 
+    }
 };
 
 window.unclaimTask = function(itemId, btn) {
-    if(event) { event.preventDefault(); event.stopPropagation(); }
+    // Fixed: Capture event safely
+    if (window.event) { window.event.preventDefault(); window.event.stopPropagation(); }
+    
     const run = async () => {
         try {
-            const res = await fetch('/DINADRAWING/Backend/events/unclaim_task.php', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({item_id:itemId}) });
-            if((await res.json()).success) { if(typeof showToast==='function') showToast("Unvolunteered."); if(typeof loadEventPosts==='function') loadEventPosts(); }
+            const res = await fetch('/DINADRAWING/Backend/events/unclaim_task.php', { 
+                method:'POST', 
+                headers:{'Content-Type':'application/json'}, 
+                body:JSON.stringify({item_id:itemId}) 
+            });
+            const data = await res.json();
+            if(data.success) { 
+                if(typeof showToast==='function') showToast("Unvolunteered."); 
+                loadEventPosts(); 
+            }
         } catch(e){ console.error(e); }
     };
-    if(typeof showConfirm === 'function') showConfirm("Unclaim task?", run); else if(confirm("Unclaim task?")) run();
+    
+    if(typeof showConfirm === 'function') {
+        showConfirm("Unclaim task?", run); 
+    } else if(confirm("Unclaim task?")) {
+        run();
+    }
 };
 
 window.deleteTaskItem = function(itemId) {
@@ -2001,13 +2051,19 @@ async function toggleTaskItem(itemId) {
 </script>
 
 <script>
+
+  window.currentPollDeadlines = {};
+
 function prependNewPost(post) {
     let postContentHTML = '';
 
     // --- 1. INITIALIZE VARIABLES ---
     const likeCount = post.like_count || 0;
     const commentCount = post.comment_count || 0;
-    const isLiked = post.is_liked ? 'text-[#f4b41a] font-bold' : 'text-gray-500';
+    // Determine if the user has liked this post for initial styling
+    const isLiked = (post.is_liked === true || post.is_liked == 1 || post.is_liked === 't') 
+        ? 'text-[#f4b41a] font-bold' 
+        : 'text-gray-500';
 
     const cleanContent = (post.content || '')
         .replace(/&lt;(\/?(b|i|u|strong|em|div|br|span|p))(.*?)&gt;/gi, function(match, tag, attrs) {
@@ -2025,6 +2081,7 @@ function prependNewPost(post) {
     } 
     else if (post.post_type === 'poll') {
         const pd = post.poll_data;
+        if (pd && pd.deadline) { window.currentPollDeadlines[pd.id] = pd.deadline; }
         const optionsHTML = (typeof generatePollOptionsHTML === 'function' && pd) ? generatePollOptionsHTML(pd, post.id) : '';
         if (pd) {
             postContentHTML = `<div class="bg-gray-50 rounded-xl p-3 border border-gray-200 mb-2">
@@ -2037,48 +2094,54 @@ function prependNewPost(post) {
             </div>`;
         }
     }
+    // Added Task Content support to ensure full compatibility with plan_2.php
+    else if (post.post_type === 'task') {
+        const td = post.task_data;
+        if (td && typeof generateTaskHTML === 'function') {
+            postContentHTML = generateTaskHTML(td);
+        }
+    }
 
     // --- 3. PIN BADGE ---
     const pinnedBadge = post.is_pinned ? 
         `<div class="mb-2 flex items-center gap-1 text-[10px] font-bold text-[#f4b41a] uppercase tracking-wider">
-            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3"><path d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" /></svg> 
+            <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a1 1 0 011 1v1.323l3.954 1.582 1.699-3.184A1 1 0 0118 3v1a1 1 0 01-.447.894L16 5.618V14a2 2 0 01-1.059 1.764l-4 2a2 2 0 01-1.882 0l-4-2A2 2 0 014 14V5.618L2.447 4.894A1 1 0 012 4V3a1 1 0 011.347-.279l1.699 3.184L9 4.323V3a1 1 0 011-1z"/></svg> 
             Pinned Post
          </div>` : '';
 
- // --- 4. MINIMALIST ACTION MENU ---
-const isPlanOwner = <?php echo json_encode($is_creator); ?>;
-let menuItems = ''; // Siguraduhing may '' para hindi mag-error ang +=
+    // --- 4. MINIMALIST ACTION MENU ---
+    const isPlanOwner = <?php echo json_encode($is_creator); ?>;
+    let menuItems = ''; 
 
-if (post.is_owner || isPlanOwner) {
-    menuItems += `<button onclick="togglePin(${post.id})" class="w-full text-left px-4 py-2 text-xs font-medium text-gray-600 hover:bg-gray-50 flex items-center gap-2">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" /></svg> ${post.is_pinned ? 'Unpin' : 'Pin'}
-    </button>`;
-}
+    if (post.is_owner || isPlanOwner) {
+        menuItems += `<button onclick="togglePin(${post.id})" class="w-full text-left px-4 py-2 text-xs font-medium text-gray-600 hover:bg-gray-50 flex items-center gap-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" /></svg> ${post.is_pinned ? 'Unpin' : 'Pin'}
+        </button>`;
+    }
 
-if (post.post_type === 'poll' && post.is_owner && !post.poll_data?.is_closed) {
-    menuItems += `<button onclick="finalizePoll(${post.id})" class="w-full text-left px-4 py-2 text-xs font-medium text-gray-600 hover:bg-gray-50 flex items-center gap-2 border-t border-gray-50">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg> End Voting
-    </button>`;
-}
+    if (post.post_type === 'poll' && post.is_owner && !post.poll_data?.is_closed) {
+        menuItems += `<button onclick="finalizePoll(${post.id})" class="w-full text-left px-4 py-2 text-xs font-medium text-gray-600 hover:bg-gray-50 flex items-center gap-2 border-t border-gray-50">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg> End Voting
+        </button>`;
+    }
 
-if (post.is_owner || isPlanOwner) {
-    menuItems += `<button onclick="deletePost(${post.id})" class="w-full text-left px-4 py-2 text-xs font-medium text-red-500 hover:bg-red-50 flex items-center gap-2 border-t border-gray-50">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg> Delete
-    </button>`;
-}
+    if (post.is_owner || isPlanOwner) {
+        menuItems += `<button onclick="deletePost(${post.id})" class="w-full text-left px-4 py-2 text-xs font-medium text-red-500 hover:bg-red-50 flex items-center gap-2 border-t border-gray-50">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg> Delete
+        </button>`;
+    }
 
-// Check if menuItems has content, then build the 3-dots menu
-const actionMenuHTML = menuItems !== '' ? `
-    <div class="relative">
-        <button onclick="togglePostMenu(event, ${post.id})" class="text-gray-400 hover:text-gray-600 p-1 rounded-full hover:bg-gray-100 transition">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" /></svg>
-        </button>
-        <div id="post-menu-${post.id}" class="hidden absolute right-0 mt-1 w-36 bg-white rounded-lg shadow-xl border border-gray-100 z-50 overflow-hidden">${menuItems}</div>
-    </div>` : '';
+    const actionMenuHTML = menuItems !== '' ? `
+        <div class="relative">
+            <button onclick="togglePostMenu(event, ${post.id})" class="text-gray-400 hover:text-gray-600 p-1 rounded-full hover:bg-gray-100 transition">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" /></svg>
+            </button>
+            <div id="post-menu-${post.id}" class="hidden absolute right-0 mt-1 w-36 bg-white rounded-lg shadow-xl border border-gray-100 z-50 overflow-hidden">${menuItems}</div>
+        </div>` : '';
 
     // --- 5. ASSEMBLY ---
     const finalHTML = `
-    <div class="bg-white p-4 rounded-lg shadow w-full transition-all duration-300 animate-fade-in" id="post-${post.id}">
+    <div class="bg-white p-4 rounded-lg shadow w-full transition-all duration-300 animate-fade-in mb-4" id="post-${post.id}">
       ${pinnedBadge}
       <div class="flex items-start justify-between mb-3">
         <div class="flex items-start gap-3">
@@ -2090,16 +2153,30 @@ const actionMenuHTML = menuItems !== '' ? `
       ${postContentHTML}
       <div class="flex items-center gap-6 pt-2 border-t border-gray-100 text-sm font-medium">
         <button onclick="toggleLike(${post.id}, this)" class="flex items-center gap-1.5 hover:text-[#f4b41a] transition ${isLiked}">
-           <svg class="w-5 h-5" fill="${post.is_liked ? 'currentColor' : 'none'}" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg> <span>${likeCount > 0 ? likeCount : 'Like'}</span>
+           <svg class="w-5 h-5" fill="${(post.is_liked === true || post.is_liked == 1 || post.is_liked === 't') ? 'currentColor' : 'none'}" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg> 
+           <span class="like-count">${likeCount > 0 ? likeCount : 'Like'}</span>
         </button>
         <button onclick="toggleComments(${post.id})" class="flex items-center gap-1.5 text-gray-500 hover:text-[#f4b41a] transition">
-           <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg> <span>${commentCount > 0 ? commentCount : 'Comment'}</span>
+           <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg> 
+           <span class="comment-count-label">${commentCount > 0 ? commentCount : 'Comment'}</span>
         </button>
       </div>
-      <div id="comments-section-${post.id}" class="hidden mt-3 pt-3 border-t border-gray-50">
-         <div id="comments-list-${post.id}" class="space-y-3 mb-3 max-h-60 overflow-y-auto"></div>
+
+     <div id="comments-section-${post.id}" class="hidden mt-3 pt-3 border-t border-gray-50">
+   <div id="comments-list-${post.id}" class="space-y-3 mb-3 max-h-60 overflow-y-auto"></div>
+   <div class="flex items-start gap-2">
+      <img src="${post.currentUserAvatar || 'Assets/Profile Icon/profile.png'}" class="w-8 h-8 rounded-full border border-gray-200">
+      <div class="flex-1 relative">
+          <textarea id="comment-input-${post.id}" rows="1" placeholder="Write a comment..." class="w-full bg-gray-50 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-1 focus:ring-[#f4b41a] focus:outline-none resize-none pr-12"></textarea>
+          
+          <button onclick="submitComment(${post.id})" class="absolute right-2 bottom-2 text-[#f4b41a] hover:text-[#e3a918] transition">
+              <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
+              </svg>
+          </button>
       </div>
-    </div>`;
+   </div>
+</div>`;
     
     document.getElementById('feedContainer').insertAdjacentHTML('afterbegin', finalHTML);
 }
@@ -2130,26 +2207,34 @@ async function endPoll(postId) {
 // ==========================================
 // POLL VOTING LOGIC
 // ==========================================
-async function votePoll(pollId, optionId, postId) {
-    // Optimistic Update (Optional, but let's just reload for accuracy first)
+async function votePoll(pollId, optionId, postId, allowMultiple) {
+    // ... (keep your existing checks) ...
     try {
         const res = await fetch('/DINADRAWING/Backend/events/vote_poll.php', {
             method: 'POST',
-            headers: {'Content-Type': 'application/json'},
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ poll_id: pollId, option_id: optionId })
         });
         const data = await res.json();
         
         if (data.success) {
-            // Reload the posts to show new percentages
-            // A smoother way is to just reload the page or re-fetch posts
-            // For now, let's just trigger a reload of the specific post if possible, 
-            // or just reload the window to keep it simple and accurate.
-            loadEventPosts(); 
-        } else {
-            console.error(data.error);
+            const optionsContainer = document.getElementById(`poll-options-${postId}`);
+            if (optionsContainer && data.poll_data) {
+                
+                // 1. Keep "Add Option" visible
+                if (typeof data.poll_data.allow_user_add === 'undefined') {
+                    data.poll_data.allow_user_add = true; 
+                }
+                
+                // 2. RESTORE THE DEADLINE from our global storage
+                if (!data.poll_data.deadline && window.currentPollDeadlines[pollId]) {
+                    data.poll_data.deadline = window.currentPollDeadlines[pollId];
+                }
+
+                optionsContainer.innerHTML = generatePollOptionsHTML(data.poll_data, postId);
+            }
         }
-    } catch(e) { console.error("Vote error", e); }
+    } catch(e) { console.error(e); }
 }
 
 // ==========================================
@@ -2200,7 +2285,7 @@ async function toggleComments(postId) {
     // Load comments only if opening and empty
     if (!section.classList.contains('hidden') && list.children.length === 0) {
         try {
-            // UPDATED LINE: Added "&t=${new Date().getTime()}" to force fresh data
+            // Force fresh data with a timestamp
             const res = await fetch(`/DINADRAWING/Backend/events/get_comments.php?post_id=${postId}&t=${new Date().getTime()}`);
             const data = await res.json();
             
@@ -2654,37 +2739,47 @@ async function votePoll(pollId, optionId, postId, allowMultiple) {
         
         if (data.success) {
             const optionsContainer = document.getElementById(`poll-options-${postId}`);
-            const statsContainer = document.getElementById(`poll-stats-${postId}`);
             
             if (optionsContainer && data.poll_data) {
+                
+                if (typeof data.poll_data.allow_user_add === 'undefined') {
+                    data.poll_data.allow_user_add = true; 
+                }
+                if (!data.poll_data.deadline && window.currentPollDeadlines && window.currentPollDeadlines[pollId]) {
+                    data.poll_data.deadline = window.currentPollDeadlines[pollId];
+                }
+
                 optionsContainer.innerHTML = generatePollOptionsHTML(data.poll_data, postId);
-                if (statsContainer) statsContainer.textContent = `${data.poll_data.total_votes} total votes`;
             }
-        } else {
-            console.error("Vote failed:", data.error);
-        }
-    } catch(e) { console.error("Vote network error", e); }
-    finally { 
+        } 
+    } catch(e) { 
+        console.error("Vote network error", e); 
+    } finally { 
         setTimeout(() => { window.isVoting = false; }, 300);
     }
 }
 
 // --- ADD OPTION FUNCTION (Restored!) ---
+// --- Updated addPollOption in plan.php ---
 async function addPollOption(pollId, postId) {
     const input = document.getElementById(`new-opt-${pollId}`);
     if(!input) return;
     const text = input.value.trim();
     if(!text) return;
 
-    input.disabled = true; // Disable input while loading
+    input.disabled = true;
     const originalPlaceholder = input.placeholder;
     input.placeholder = "Adding...";
 
     try {
         const res = await fetch('/DINADRAWING/Backend/events/add_poll_option.php', {
-            method: 'POST', headers: {'Content-Type': 'application/json'},
+            method: 'POST', 
+            headers: {'Content-Type': 'application/json'},
+            // Ensure keys match what the PHP file expects
             body: JSON.stringify({ poll_id: pollId, text: text })
         });
+        
+        // If the server crashes, this line will fail and go to the catch block
         const data = await res.json();
         
         if(data.success) {
@@ -2696,11 +2791,10 @@ async function addPollOption(pollId, postId) {
             alert(data.error || "Failed to add option");
             input.disabled = false;
             input.placeholder = originalPlaceholder;
-            input.focus();
         }
     } catch(e) { 
-        console.error(e); 
-        alert("Network Error");
+        console.error("Server Error:", e);
+        alert("The server encountered an error (500). Please check the PHP error logs.");
         input.disabled = false; 
         input.placeholder = originalPlaceholder;
     }
